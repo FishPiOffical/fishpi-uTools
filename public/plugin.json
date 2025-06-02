@@ -1,0 +1,20 @@
+{
+  "main": "index.html",
+  "preload": "preload/services.js",
+  "logo": "fishpi.png",
+  "development": {
+    "main": "http://localhost:5173"
+  },
+  "features": [
+  
+    {
+      "code": "fishpi",
+      "explain": "来摸鱼派摸鱼吧~",
+      "cmds": [
+        "摸鱼",
+        "摸鱼派",
+        "fishpi"
+      ]
+    }  
+  ]
+}

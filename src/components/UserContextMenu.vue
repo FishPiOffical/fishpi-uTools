@@ -1,0 +1,90 @@
+<template>
+  <div
+    v-if="visible"
+    class="user-context-menu"
+    :style="{ top: y + 'px', left: x + 'px' }"
+    @click.stop
+  >
+    <div class="menu-item" @click="onAction('message')">
+      <i class="menu-icon fas fa-comment-dots"></i>
+      <span>发送消息</span>
+    </div>
+    <div class="menu-item" @click="onAction('at')">
+      <i class="menu-icon fas fa-at"></i>
+      <span>@TA</span>
+    </div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" @click="onAction('profile')">
+      <i class="menu-icon fas fa-user"></i>
+      <span>查看资料</span>
+    </div>
+  </div>
+</template>
+
+<script setup>
+const props = defineProps({
+  visible: Boolean,
+  x: Number,
+  y: Number,
+});
+const emit = defineEmits(["action"]);
+function onAction(type) {
+  emit("action", type);
+}
+</script>
+
+<style scoped>
+.user-context-menu {
+  position: fixed;
+  z-index: 3000;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.18);
+  padding: 6px 0;
+  min-width: 148px;
+  border: 1px solid #f0f0f0;
+  animation: fadeIn 0.18s;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px 10px 18px;
+  cursor: pointer;
+  font-size: 15px;
+  color: #333;
+  transition: background 0.18s, color 0.18s;
+  border-radius: 6px;
+  user-select: none;
+}
+.menu-item:hover {
+  background: #e6f4ff;
+  color: #1890ff;
+}
+.menu-icon {
+  width: 18px;
+  text-align: center;
+  font-size: 15px;
+  color: #8c8c8c;
+  flex-shrink: 0;
+}
+.menu-item:hover .menu-icon {
+  color: #1890ff;
+}
+.menu-divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 4px 0 4px 18px;
+  width: calc(100% - 18px);
+}
+</style>

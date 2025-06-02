@@ -1,0 +1,17 @@
+{
+  "pluginName": "摸鱼派",
+  "description": "摸鱼派社区插件，支持文章浏览、聊天室等功能",
+  "author": "Your Name",
+  "homepage": "https://fishpi.cn",
+  "version": "0.0.1",
+  "logo": "logo.png",
+  "preload": "preload.js",
+  "features": [
+    {
+      "code": "fishpi",
+      "explain": "摸鱼派",
+      "cmds": ["摸鱼派", "fishpi"]
+    }
+  ],
+  "platform": ["win32", "darwin", "linux"]
+} 
