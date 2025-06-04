@@ -145,7 +145,7 @@ const handleLogin = async () => {
 
 // 跳转到注册页
 const goToRegister = () => {
-  utools.shellOpenExternal("https://fishpi.cn/register");
+  utools.shellOpenExternal("https://fishpi.cn/register?r=otis1026");
 };
 
 // 跳转到忘记密码页面
