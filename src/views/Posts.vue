@@ -99,10 +99,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  nextTick,
+  onActivated,
+  onDeactivated,
+} from "vue";
+import { useRouter, onBeforeRouteLeave } from "vue-router";
 import { articleApi } from "../api";
-import { useRouter } from "vue-router"; // 引入useRouter
 // import PublishBreezemoon from "../components/PublishBreezemoon.vue"; // 看贴页面没有发布功能
+
+// 添加组件名称，用于keep-alive
+defineOptions({
+  name: "Posts",
+});
 
 const articles = ref([]);
 const loading = ref(false);
@@ -179,7 +191,11 @@ const goToPostDetail = (articleId) => {
 
 // 切换文章类型
 const changeType = (type) => {
-  if (currentType.value === type) return; // 防止重复点击当前类型
+  if (currentType.value === type) {
+    // 如果点击的是当前类型，则刷新数据
+    refreshCurrentType();
+    return;
+  }
   currentType.value = type;
   articles.value = []; // 清空当前列表
   currentPage.value = 1; // 重置页码
@@ -187,17 +203,44 @@ const changeType = (type) => {
   getArticles(1); // 加载第一页新类型数据
 };
 
-// 滚动处理函数
+// 刷新当前类型的数据
+const refreshCurrentType = () => {
+  articles.value = []; // 清空当前列表
+  currentPage.value = 1; // 重置页码
+  hasMore.value = true; // 重置hasMore
+  getArticles(1); // 重新加载第一页数据
+};
+
+// 添加滚动位置保存方法
+const saveScrollPosition = () => {
+  if (postsListRef.value) {
+    const position = postsListRef.value.scrollTop;
+    console.log("保存滚动位置:", position);
+    utools.dbStorage.setItem("postsScrollPosition", position);
+  }
+};
+
+// 添加滚动位置恢复方法
+const restoreScrollPosition = () => {
+  const savedPosition = utools.dbStorage.getItem("postsScrollPosition");
+  console.log("恢复滚动位置:", savedPosition);
+  if (postsListRef.value && savedPosition) {
+    postsListRef.value.scrollTop = parseInt(savedPosition);
+    console.log("设置滚动位置:", postsListRef.value.scrollTop);
+  }
+};
+
+// 修改滚动处理函数
 const handleScroll = () => {
   const listElement = postsListRef.value;
   if (!listElement) return;
 
-  // 判断是否滚动到底部附近 (例如，距离底部小于100px)
+  // 判断是否滚动到底部附近
   const isNearBottom =
     listElement.scrollHeight -
       listElement.scrollTop -
       listElement.clientHeight <
-    200; // 稍微增大触发距离，提前加载
+    200;
 
   if (isNearBottom && !loading.value && hasMore.value) {
     getArticles(currentPage.value + 1);
@@ -219,7 +262,19 @@ const truncateContent = (content) => {
   return plainText.length > 100 ? plainText.slice(0, 100) + "..." : plainText;
 };
 
+// 添加路由离开守卫
+onBeforeRouteLeave((to, from, next) => {
+  console.log("Posts组件即将离开，保存滚动位置");
+  if (postsListRef.value) {
+    const position = postsListRef.value.scrollTop;
+    console.log("保存滚动位置:", position);
+    utools.dbStorage.setItem("postsScrollPosition", position);
+  }
+  next();
+});
+
 onMounted(() => {
+  console.log("Posts组件挂载");
   getArticles();
   // 添加滚动事件监听器
   if (postsListRef.value) {
@@ -227,7 +282,23 @@ onMounted(() => {
   }
 });
 
+// 组件被激活时（从缓存中恢复）
+onActivated(() => {
+  console.log("Posts组件被激活");
+  // 恢复滚动位置
+  nextTick(() => {
+    console.log("准备恢复滚动位置");
+    restoreScrollPosition();
+  });
+});
+
+// 组件被缓存时
+onDeactivated(() => {
+  console.log("Posts组件被缓存");
+});
+
 onUnmounted(() => {
+  console.log("Posts组件卸载");
   // 移除滚动事件监听器
   if (postsListRef.value) {
     postsListRef.value.removeEventListener("scroll", handleScroll);
