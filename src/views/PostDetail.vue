@@ -91,50 +91,12 @@
 
       <!-- TODO: 评论区域 -->
       <div class="comments-area">
-        <h3>评论</h3>
-
-        <!-- 评论输入框 -->
-        <div class="comment-input-area">
-          <div class="comment-input-wrapper">
-            <textarea
-              v-model="commentContent"
-              class="comment-input"
-              :placeholder="
-                replyTo
-                  ? `回复 @${
-                      replyTo.commentAuthorNickName || replyTo.commentAuthorName
-                    }`
-                  : '写下你的评论...'
-              "
-              rows="3"
-            ></textarea>
-            <div class="comment-options">
-              <label class="comment-option">
-                <input type="checkbox" v-model="commentAnonymous" />
-                <span>匿名评论</span>
-              </label>
-              <label class="comment-option">
-                <input type="checkbox" v-model="commentVisible" />
-                <span>仅楼主可见</span>
-              </label>
-            </div>
-            <div class="comment-input-footer">
-              <button
-                v-if="replyTo"
-                class="cancel-reply-btn"
-                @click="cancelReply"
-              >
-                取消回复
-              </button>
-              <button
-                class="submit-comment-btn"
-                :disabled="!commentContent.trim() || isSubmitting"
-                @click="submitComment"
-              >
-                {{ isSubmitting ? "提交中..." : "发表评论" }}
-              </button>
-            </div>
-          </div>
+        <div class="comments-header">
+          <h3>评论</h3>
+          <button class="comment-btn" @click="showCommentDialog = true">
+            <i class="fas fa-edit"></i>
+            <span>写评论</span>
+          </button>
         </div>
 
         <!-- 评论列表 -->
@@ -206,20 +168,19 @@
                   :class="{ active: comment.commentVote === 1 }"
                   @click="handleCommentUpvote(comment)"
                 >
-                  <i class="fas fa-thumbs-up"></i>
-                  <span>{{ comment.commentGoodCnt || 0 }} 点赞</span>
+                  <i class="far fa-thumbs-up"></i>
+                  <span class="count">{{ comment.commentGoodCnt || 0 }}</span>
                 </button>
                 <button
                   class="action-btn"
                   :class="{ active: comment.commentThankStatus === 1 }"
                   @click="handleCommentThank(comment)"
                 >
-                  <i class="fas fa-heart"></i>
-                  <span>{{ comment.commentThankCnt || 0 }} 感谢</span>
+                  <i class="far fa-heart"></i>
+                  <span class="count">{{ comment.commentThankCnt || 0 }}</span>
                 </button>
                 <button class="action-btn" @click="handleReply(comment)">
-                  <i class="fas fa-reply"></i>
-                  <span>回复</span>
+                  <i class="far fa-comment"></i>
                 </button>
               </div>
 
@@ -279,20 +240,21 @@
                       :class="{ active: reply.commentVote === 1 }"
                       @click="handleCommentUpvote(reply)"
                     >
-                      <i class="fas fa-thumbs-up"></i>
-                      <span>{{ reply.commentGoodCnt || 0 }} 点赞</span>
+                      <i class="far fa-thumbs-up"></i>
+                      <span class="count">{{ reply.commentGoodCnt || 0 }}</span>
                     </button>
                     <button
                       class="action-btn"
                       :class="{ active: reply.commentThankStatus === 1 }"
                       @click="handleCommentThank(reply)"
                     >
-                      <i class="fas fa-heart"></i>
-                      <span>{{ reply.commentThankCnt || 0 }} 感谢</span>
+                      <i class="far fa-heart"></i>
+                      <span class="count">{{
+                        reply.commentThankCnt || 0
+                      }}</span>
                     </button>
                     <button class="action-btn" @click="handleReply(reply)">
-                      <i class="fas fa-reply"></i>
-                      <span>回复</span>
+                      <i class="far fa-comment"></i>
                     </button>
                   </div>
                 </div>
@@ -301,17 +263,78 @@
           </div>
         </template>
       </div>
+
+      <!-- 评论弹窗 -->
+      <el-dialog
+        v-model="showCommentDialog"
+        :title="
+          replyTo
+            ? `回复 @${
+                replyTo.commentAuthorNickName || replyTo.commentAuthorName
+              }`
+            : '发表评论'
+        "
+        width="500px"
+        :close-on-click-modal="false"
+        @close="handleDialogClose"
+      >
+        <div class="comment-dialog-content">
+          <textarea
+            v-model="commentContent"
+            class="comment-input"
+            :placeholder="replyTo ? `` : '友善地留下一条评论吧 :)'"
+            rows="2"
+            ref="commentInput"
+            autofocus
+          ></textarea>
+          <div class="comment-options">
+            <label class="comment-option">
+              <input type="checkbox" v-model="commentAnonymous" />
+              <span>匿名评论</span>
+            </label>
+            <label class="comment-option">
+              <input type="checkbox" v-model="commentVisible" />
+              <span>仅楼主可见</span>
+            </label>
+          </div>
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <button
+              v-if="replyTo"
+              class="cancel-reply-btn"
+              @click="cancelReply"
+            >
+              取消回复
+            </button>
+            <button
+              class="submit-comment-btn"
+              :disabled="!commentContent.trim() || isSubmitting"
+              @click="submitComment"
+            >
+              {{ isSubmitting ? "提交中..." : "发表评论" }}
+            </button>
+          </div>
+        </template>
+      </el-dialog>
     </div>
+  </div>
+  <!-- 添加返回按钮 -->
+  <div class="back-to-list" @click="goBack">
+    <i class="fas fa-arrow-left"></i>
+    <span>返回列表</span>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from "vue";
-import { useRoute } from "vue-router";
+import { ref, onMounted, onUnmounted, watch, nextTick } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { articleApi } from "../api";
 import { ElMessage } from "element-plus";
+import { onBeforeRouteLeave } from "vue-router";
 
 const route = useRoute();
+const router = useRouter();
 const article = ref(null);
 const loading = ref(true);
 const error = ref(null);
@@ -328,6 +351,11 @@ const isSubmitting = ref(false);
 const commentAnonymous = ref(false);
 const commentVisible = ref(false);
 const userCommentViewMode = ref(1);
+
+// 添加评论弹窗控制变量
+const showCommentDialog = ref(false);
+
+const commentInput = ref(null);
 
 const fetchArticleDetail = async () => {
   const articleId = route.params.id;
@@ -442,7 +470,6 @@ const handleUpvote = async () => {
     }
   } catch (err) {
     console.error("点赞操作失败:", err);
-    ElMessage.error("操作失败，请稍后重试");
   }
 };
 
@@ -453,27 +480,19 @@ const handleThank = async () => {
   try {
     const response = await articleApi.thankArticle(article.value.oId);
     if (response.code === 0) {
-      if (response.type === -1) {
-        // 感谢成功
-        article.value.articleThankStatus = 1;
-        article.value.articleThankCnt =
-          (article.value.articleThankCnt || 0) + 1;
-        ElMessage.success("感谢成功");
-      } else if (response.type === 0) {
-        // 取消感谢
-        article.value.articleThankStatus = 0;
-        article.value.articleThankCnt = Math.max(
-          0,
-          (article.value.articleThankCnt || 0) - 1
-        );
-        ElMessage.success("已取消感谢");
+      // 如果已经感谢过,则不做任何操作
+      if (article.value.articleThankStatus === 1) {
+        return;
       }
+      // 感谢成功
+      article.value.articleThankStatus = 1;
+      article.value.articleThankCnt = (article.value.articleThankCnt || 0) + 1;
+      ElMessage.success("感谢成功");
     } else {
       ElMessage.error(response.msg || "操作失败");
     }
   } catch (err) {
     console.error("感谢操作失败:", err);
-    ElMessage.error("操作失败，请稍后重试");
   }
 };
 
@@ -568,6 +587,7 @@ const submitComment = async () => {
       replyTo.value = null;
       commentAnonymous.value = false;
       commentVisible.value = false;
+      showCommentDialog.value = false; // 关闭弹窗
       // 重新获取评论列表
       await fetchComments();
       // 更新文章评论数
@@ -587,17 +607,28 @@ const submitComment = async () => {
 // 处理回复
 const handleReply = (comment) => {
   replyTo.value = comment;
-  // 滚动到评论框
-  const commentInput = document.querySelector(".comment-input");
-  if (commentInput) {
-    commentInput.scrollIntoView({ behavior: "smooth" });
-    commentInput.focus();
-  }
+  showCommentDialog.value = true;
+  // 确保在下一个 tick 后聚焦
+  nextTick(() => {
+    setTimeout(() => {
+      commentInput.value?.focus();
+    }, 100);
+  });
 };
 
 // 取消回复
 const cancelReply = () => {
   replyTo.value = null;
+  commentContent.value = "";
+  showCommentDialog.value = false; // 关闭弹窗
+};
+
+// 处理弹窗关闭
+const handleDialogClose = () => {
+  replyTo.value = null;
+  commentContent.value = "";
+  commentAnonymous.value = false;
+  commentVisible.value = false;
 };
 
 // 处理评论点赞
@@ -621,7 +652,6 @@ const handleCommentUpvote = async (comment) => {
     }
   } catch (err) {
     console.error("点赞操作失败:", err);
-    ElMessage.error("操作失败，请稍后重试");
   }
 };
 
@@ -630,28 +660,45 @@ const handleCommentThank = async (comment) => {
   try {
     const response = await articleApi.thankComment(comment.oId);
     if (response.code === 0) {
-      if (response.type === -1) {
-        // 感谢成功
-        comment.commentThankStatus = 1;
-        comment.commentThankCnt = (comment.commentThankCnt || 0) + 1;
-        ElMessage.success("感谢成功");
-      } else if (response.type === 0) {
-        // 取消感谢
-        comment.commentThankStatus = 0;
-        comment.commentThankCnt = Math.max(
-          0,
-          (comment.commentThankCnt || 0) - 1
-        );
-        ElMessage.success("已取消感谢");
+      // 如果已经感谢过,则不做任何操作
+      if (comment.commentThankStatus === 1) {
+        return;
       }
+      // 感谢成功
+      comment.commentThankStatus = 1;
+      comment.commentThankCnt = (comment.commentThankCnt || 0) + 1;
+      ElMessage.success("感谢成功");
     } else {
       ElMessage.error(response.msg || "操作失败");
     }
   } catch (err) {
     console.error("感谢操作失败:", err);
-    ElMessage.error("操作失败，请稍后重试");
   }
 };
+
+// 添加返回列表方法
+const goBack = () => {
+  console.log("点击返回按钮");
+  router.push("/posts");
+};
+
+// 添加路由离开守卫
+onBeforeRouteLeave((to, from, next) => {
+  console.log("离开帖子详情页", to.path);
+  next();
+});
+
+// 修改 showCommentDialog 的监听
+watch(showCommentDialog, (newVal) => {
+  if (newVal) {
+    // 确保在下一个 tick 后聚焦
+    nextTick(() => {
+      setTimeout(() => {
+        commentInput.value?.focus();
+      }, 100);
+    });
+  }
+});
 </script>
 
 <style scoped>
@@ -883,57 +930,116 @@ const handleCommentThank = async (comment) => {
 .comments-area h3 {
   font-size: 24px;
   font-weight: 600;
-  margin-bottom: 24px;
   color: #333;
 }
 
-.comment-input-area {
-  margin-bottom: 32px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+.comments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.comment-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #ff9800;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.comment-input-area:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+.comment-btn:hover {
+  background: #f57c00;
+  transform: translateY(-1px);
 }
 
-.comment-input-wrapper {
-  padding: 20px;
+.comment-btn i {
+  font-size: 14px;
 }
 
-.comment-input {
+.comment-dialog-content {
+  padding: 12px 0;
+}
+
+.comment-dialog-content .comment-input {
   width: 100%;
-  min-height: 100px;
-  padding: 16px;
-  border: 1px solid #e8e8e8;
-  border-radius: 8px;
-  resize: vertical;
-  font-size: 15px;
-  line-height: 1.6;
-  margin-bottom: 16px;
+  min-height: 80px;
+  padding: 8px 0;
+  border: none !important;
+  resize: none;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 12px;
   transition: all 0.3s ease;
-  background: #fafafa;
+  background: transparent;
+  caret-color: #ff9800;
+  outline: none !important; /* 确保移除轮廓 */
+  box-shadow: none !important; /* 确保移除阴影 */
 }
 
-.comment-input:focus {
-  outline: none;
-  border-color: #ff9800;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+.comment-dialog-content .comment-input:focus {
+  border: none !important;
+  outline: none !important; /* 确保聚焦时也无轮廓 */
+  box-shadow: none !important; /* 确保聚焦时也无阴影 */
 }
 
-.comment-input-footer {
+.comment-dialog-content .comment-input::placeholder {
+  color: #999;
+  font-size: 14px;
+}
+
+.comment-dialog-content .comment-input::selection {
+  background: rgba(255, 152, 0, 0.1);
+}
+
+.comment-dialog-content .comment-input::-moz-selection {
+  background: rgba(255, 152, 0, 0.1);
+}
+
+.comment-dialog-content .comment-options {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.comment-dialog-content .comment-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+}
+
+.comment-dialog-content .comment-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.comment-dialog-content .comment-option span {
+  user-select: none;
+}
+
+.dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding-top: 8px;
+  padding-top: 20px;
 }
 
-.submit-comment-btn,
-.cancel-reply-btn {
+.dialog-footer .submit-comment-btn {
   padding: 8px 24px;
+  background: #ff9800;
+  color: #fff;
+  border: none;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
@@ -941,33 +1047,57 @@ const handleCommentThank = async (comment) => {
   transition: all 0.3s ease;
 }
 
-.submit-comment-btn {
-  background: #ff9800;
-  color: #fff;
-  border: none;
-}
-
-.submit-comment-btn:hover:not(:disabled) {
+.dialog-footer .submit-comment-btn:hover:not(:disabled) {
   background: #f57c00;
-  transform: translateY(-1px);
 }
 
-.submit-comment-btn:disabled {
+.dialog-footer .submit-comment-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
-  transform: none;
 }
 
-.cancel-reply-btn {
+.dialog-footer .cancel-reply-btn {
+  padding: 8px 24px;
   background: #f5f5f5;
   color: #666;
-  border: 1px solid #e8e8e8;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.cancel-reply-btn:hover {
+.dialog-footer .cancel-reply-btn:hover {
   background: #e8e8e8;
-  border-color: #d9d9d9;
   color: #333;
+}
+
+/* 自定义弹窗样式 */
+:deep(.el-dialog) {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+:deep(.el-dialog__header) {
+  margin: 0;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+:deep(.el-dialog__title) {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+:deep(.el-dialog__body) {
+  padding: 0 20px;
+}
+
+:deep(.el-dialog__footer) {
+  padding: 0 20px 20px;
+  border-top: none;
 }
 
 .comment-loading,
@@ -993,33 +1123,195 @@ const handleCommentThank = async (comment) => {
 
 .comment-item {
   background: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 12px 0;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
 }
 
 .comment-header {
   display: flex;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .comment-avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   margin-right: 12px;
 }
 
 .comment-info {
-  display: flex;
-  flex-direction: column;
+  flex: 1;
 }
 
 .comment-author-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: #333;
+  font-size: 15px;
+}
+
+.comment-time {
+  font-size: 13px;
+  color: #999;
+  margin-left: 8px;
+}
+
+.comment-content {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+  margin: 0 0 8px 48px;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 12px;
+  margin-left: 48px;
+}
+
+.comment-actions .action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 8px;
+  height: 32px;
+  font-size: 16px;
+  color: #666;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.comment-actions .action-btn:hover {
+  color: #ff9800;
+  background: #fff8e1;
+}
+
+.comment-actions .action-btn.active {
+  color: #ff9800;
+  background: transparent;
+}
+
+.comment-actions .action-btn .count {
+  font-size: 13px;
+  color: #999;
+}
+
+.reply-list {
+  margin: 8px 0 0 48px;
+  padding-left: 12px;
+  border-left: 1px solid #f0f0f0;
+}
+
+.reply-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.reply-item:last-child {
+  border-bottom: none;
+}
+
+.reply-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.reply-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.reply-info {
+  flex: 1;
+}
+
+.reply-author-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reply-author {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.reply-time {
+  font-size: 13px;
+  color: #999;
+  margin-left: 8px;
+}
+
+.reply-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  margin: 0 0 4px 36px;
+}
+
+.reply-actions {
+  display: flex;
+  gap: 12px;
+  margin-left: 36px;
+}
+
+.reply-actions .action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 6px;
+  height: 28px;
+  font-size: 14px;
+  color: #666;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reply-actions .action-btn:hover {
+  color: #ff9800;
+  background: #fff8e1;
+}
+
+.reply-actions .action-btn.active {
+  color: #ff9800;
+  background: transparent;
+}
+
+.reply-actions .action-btn .count {
+  font-size: 12px;
+  color: #999;
+}
+
+.author-tag {
+  background-color: #ff9800;
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: normal;
 }
 
 .user-metals {
@@ -1032,100 +1324,6 @@ const handleCommentThank = async (comment) => {
   height: 16px;
   border-radius: 50%;
   object-fit: cover;
-}
-
-.comment-author {
-  font-weight: 600;
-  color: #333;
-}
-
-.comment-time {
-  font-size: 13px;
-  color: #999;
-  margin-top: 2px;
-}
-
-.comment-content {
-  font-size: 15px;
-  line-height: 1.6;
-  color: #333;
-  margin-bottom: 16px;
-}
-
-.comment-actions {
-  display: flex;
-  gap: 16px;
-}
-
-.comment-actions .action-btn {
-  padding: 6px 12px;
-  font-size: 13px;
-}
-
-.reply-list {
-  margin-top: 16px;
-  margin-left: 52px;
-  padding-left: 16px;
-  border-left: 2px solid #eee;
-}
-
-.reply-item {
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  margin-bottom: 12px;
-}
-
-.reply-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.reply-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  margin-right: 8px;
-}
-
-.reply-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.reply-author-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.reply-author {
-  font-weight: 600;
-  color: #333;
-}
-
-.reply-time {
-  font-size: 12px;
-  color: #999;
-  margin-top: 2px;
-}
-
-.reply-content {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #333;
-  margin-bottom: 12px;
-}
-
-.reply-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.reply-actions .action-btn {
-  padding: 4px 10px;
-  font-size: 12px;
 }
 
 .fixed-header {
@@ -1274,5 +1472,37 @@ const handleCommentThank = async (comment) => {
 
 .comment-option span {
   user-select: none;
+}
+
+/* 添加返回按钮样式 */
+.back-to-list {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  background: #ff9800;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.back-to-list:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 152, 0, 0.3);
+}
+
+.back-to-list i {
+  font-size: 16px;
+}
+
+.back-to-list span {
+  font-size: 14px;
+  font-weight: 500;
 }
 </style>
