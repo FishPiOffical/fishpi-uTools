@@ -70,7 +70,6 @@ const messageHandlers = {
     console.log("处理在线用户消息:", data);
     onlineUsers.value = data.users || [];
     currentTopic.value = data.discussing || "";
-    // TODO: 可能还需要触发侧边栏更新
   },
   msg: (data) => {
     console.log("处理聊天消息:", data);
@@ -82,6 +81,28 @@ const messageHandlers = {
         { ...data, isHistory: false, isSelf },
       ];
     }
+  },
+  barrager: (data) => {
+    console.log("处理弹幕消息:", data);
+    // 将弹幕消息添加到消息列表，包含完整的用户信息
+    messages.value = [
+      ...messages.value,
+      {
+        type: "barrager",
+        content: data.barragerContent,
+        time: new Date().getTime(),
+        _key: `barrager-${Date.now()}`,
+        isHistory: false,
+        isSelf: false,
+        userAvatarURL: data.userAvatarURL,
+        userAvatarURL20: data.userAvatarURL20,
+        userAvatarURL48: data.userAvatarURL48,
+        userAvatarURL210: data.userAvatarURL210,
+        userNickname: data.userNickname,
+        userName: data.userName,
+        barragerColor: data.barragerColor,
+      },
+    ];
   },
   revoke: (data) => {
     console.log("处理撤回消息:", data);
@@ -150,6 +171,21 @@ const messageHandlers = {
         newDiscuss: data.newDiscuss,
         time: new Date().getTime(),
         _key: `discuss-changed-${Date.now()}`,
+        isHistory: false,
+        isSelf: false,
+      },
+    ];
+  },
+  customMessage: (data) => {
+    console.log("处理自定义消息:", data);
+    // 将自定义消息添加到消息列表
+    messages.value = [
+      ...messages.value,
+      {
+        type: "custom-message",
+        content: data.message,
+        time: new Date().getTime(),
+        _key: `custom-message-${Date.now()}`,
         isHistory: false,
         isSelf: false,
       },
@@ -352,23 +388,55 @@ const handleAddEmoji = async (item) => {
   try {
     // 从消息内容中提取图片URL
     const match = item.content.match(/<img[^>]+src=["']([^"']+)["']/);
-    if (match && match[1]) {
-      const imgSrc = match[1];
-      // 获取当前表情包列表
-      const res = await userApi.getEmotionPack("emojis");
-      if (res.code === 0) {
-        // 将字符串解析为数组
-        const urls = JSON.parse(res.data);
-        // 添加新的图片URL
-        urls.push(imgSrc);
-        // 同步到服务器
-        await userApi.syncEmotionPack("emojis", JSON.stringify(urls));
-        ElMessage.success("添加表情成功");
+    if (!match || !match[1]) {
+      ElMessage.warning("无法提取表情图片地址");
+      return;
+    }
+
+    const imgSrc = match[1];
+    // 获取当前表情包列表
+    const res = await userApi.getEmotionPack("emojis");
+
+    if (res.code !== 0) {
+      ElMessage.error("获取表情包列表失败");
+      return;
+    }
+
+    // 解析表情包数据，处理空数据的情况
+    let urls = [];
+    try {
+      urls = res.data ? JSON.parse(res.data) : [];
+      // 确保urls是数组
+      if (!Array.isArray(urls)) {
+        urls = [];
       }
+    } catch (e) {
+      console.warn("解析表情包数据失败，将使用空数组", e);
+      urls = [];
+    }
+
+    // 检查是否已存在相同的表情
+    if (urls.includes(imgSrc)) {
+      ElMessage.warning("该表情已存在");
+      return;
+    }
+
+    // 添加新的图片URL
+    urls.push(imgSrc);
+
+    // 同步到服务器
+    const syncRes = await userApi.syncEmotionPack(
+      "emojis",
+      JSON.stringify(urls)
+    );
+    if (syncRes.code === 0) {
+      ElMessage.success("添加表情成功");
+    } else {
+      ElMessage.error("同步表情包失败");
     }
   } catch (error) {
     console.error("添加表情失败:", error);
-    ElMessage.error("添加表情失败");
+    ElMessage.error("添加表情失败：" + (error.message || "未知错误"));
   }
 };
 
