@@ -26,6 +26,10 @@
       <i class="fas fa-image icon" @click="openImagePicker"></i>
       <!-- 红包图标 -->
       <i class="fas fa-gift icon" @click="openRedPacketDialog"></i>
+      <!-- 弹幕图标 -->
+      <i class="fas fa-comment-dots icon" @click="openDanmakuDialog"></i>
+      <!-- 小尾巴图标 -->
+      <i class="fas fa-pen-fancy icon" @click="openSignatureDialog"></i>
     </div>
     <div class="input-wrapper">
       <textarea
@@ -60,6 +64,17 @@
       @close="showRedPacketDialog = false"
       @send="handleRedPacketSend"
     />
+    <DanmakuDialog
+      :visible="showDanmakuDialog"
+      @close="showDanmakuDialog = false"
+      @send="handleDanmakuSend"
+    />
+    <SignatureDialog
+      :visible="showSignatureDialog"
+      :default-signature="signature"
+      @close="showSignatureDialog = false"
+      @save="handleSignatureSave"
+    />
   </div>
 </template>
 
@@ -75,6 +90,8 @@ import {
 } from "vue";
 import EmojiPicker from "./EmojiPicker.vue";
 import RedPacketDialog from "./RedPacketDialog.vue";
+import DanmakuDialog from "./DanmakuDialog.vue";
+import SignatureDialog from "./SignatureDialog.vue";
 import { userApi } from "../api/user";
 import { ElMessage } from "element-plus";
 
@@ -93,6 +110,9 @@ const mentionStartIndex = ref(-1);
 const quotedTopic = ref("");
 const currentTopic = ref("");
 const quoteData = ref(null); // 新增：引用消息数据
+const showDanmakuDialog = ref(false);
+const showSignatureDialog = ref(false);
+const signature = ref("");
 const emit = defineEmits([
   "send-message",
   "select-emoji",
@@ -253,6 +273,11 @@ const sendMessage = () => {
       content = `${content}\n${quotedTopic.value}`;
     }
 
+    // 添加小尾巴
+    if (signature.value) {
+      content = `${content}\n\n---\n${signature.value}`;
+    }
+
     emit("send-message", content);
     message.value = "";
     quotedTopic.value = "";
@@ -312,6 +337,24 @@ const openRedPacketDialog = () => {
 const handleRedPacketSend = (redPacketData) => {
   emit("send-red-packet", redPacketData);
   showRedPacketDialog.value = false;
+};
+
+const openDanmakuDialog = () => {
+  showDanmakuDialog.value = true;
+};
+
+const handleDanmakuSend = (content) => {
+  // 这里可以自定义弹幕的格式
+  const danmakuMessage = `${content}`;
+  emit("send-message", danmakuMessage);
+};
+
+const openSignatureDialog = () => {
+  showSignatureDialog.value = true;
+};
+
+const handleSignatureSave = (newSignature) => {
+  signature.value = newSignature;
 };
 </script>
 
