@@ -47,7 +47,7 @@ export const articleApi = {
 
   // 感谢文章
   thankArticle(articleId) {
-    return request.post("/article/thank", { articleId });
+    return request.post(`/article/thank?articleId=${articleId}`);
   },
 
   // 获取文章评论
