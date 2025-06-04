@@ -231,6 +231,7 @@ onMounted(() => {
   overflow-x: hidden;
   flex: 1;
   min-height: 0;
+  max-height: 235px;
   width: 100%;
   box-sizing: border-box;
 }
