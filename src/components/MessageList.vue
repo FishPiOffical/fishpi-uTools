@@ -1,5 +1,21 @@
 <template>
   <div class="message-list" ref="messageListRef" @scroll="handleScroll">
+    <!-- 弹幕容器 -->
+    <div class="barrager-container">
+      <div
+        v-for="(barrager, index) in barragers"
+        :key="barrager.id"
+        class="barrager-item"
+        :style="{
+          top: barrager.top + 'px',
+          animationDuration: barrager.duration + 's',
+          color: barrager.color,
+        }"
+      >
+        <img :src="barrager.avatar" class="barrager-avatar" />
+        <span class="barrager-content">{{ barrager.content }}</span>
+      </div>
+    </div>
     <div v-if="isLoadingMore" class="loading-more">
       <div class="loading-spinner"></div>
       加载中...
@@ -45,6 +61,15 @@
           <div class="red-packet-status-content">
             <span class="changer">{{ item.whoChanged }}</span>
             修改了话题为：<span class="new-topic">{{ item.newDiscuss }}</span>
+          </div>
+        </div>
+        <!-- 自定义消息提示 -->
+        <div
+          v-else-if="item.type === 'custom-message'"
+          class="red-packet-status-separator"
+        >
+          <div class="red-packet-status-content">
+            <span class="message-content">{{ item.content }}</span>
           </div>
         </div>
         <!-- 消息内容 -->
@@ -528,6 +553,16 @@ watch(
   () => props.messages,
   (newMessages, oldMessages) => {
     if (newMessages.length > oldMessages.length) {
+      // 获取新增的消息
+      const newMsg = newMessages[newMessages.length - 1];
+      console.log("新消息:", newMsg);
+
+      // 如果是弹幕消息，直接处理
+      if (newMsg.type === "barrager") {
+        handleBarrager(newMsg);
+        return;
+      }
+
       nextTick(() => {
         const lastMessage = newMessages[newMessages.length - 1];
         const isSystemOrSpecialMsg = (msg) => {
@@ -597,7 +632,18 @@ watch(
 // 滚动到底部
 const scrollToBottom = () => {
   if (messageListRef.value) {
-    messageListRef.value.scrollTop = messageListRef.value.scrollHeight;
+    const scrollToBottomWithCheck = () => {
+      const { scrollTop, scrollHeight, clientHeight } = messageListRef.value;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
+
+      if (!isAtBottom) {
+        messageListRef.value.scrollTop = messageListRef.value.scrollHeight;
+        // 使用 requestAnimationFrame 确保在下一帧继续检查
+        requestAnimationFrame(scrollToBottomWithCheck);
+      }
+    };
+
+    scrollToBottomWithCheck();
   }
 };
 
@@ -989,6 +1035,59 @@ const openRedPacketWithGesture = async (item, gesture) => {
   }
 };
 
+// 弹幕相关
+const barragers = ref([]);
+let barragerId = 0;
+
+// 处理弹幕消息
+const handleBarrager = (data) => {
+  // 确保数据完整性
+  if (!data.content || !data.userAvatarURL48) {
+    console.warn("弹幕消息数据不完整:", data);
+    return;
+  }
+
+  const barrager = {
+    id: barragerId++,
+    content: data.barragerContent,
+    avatar: data.userAvatarURL48,
+    color: data.barragerColor || "rgba(255,255,255,1)",
+    // 随机生成弹幕位置，但避免重叠
+    top: getRandomTop(),
+    duration: 8 + Math.random() * 4, // 8-12秒的随机持续时间
+  };
+
+  // 添加到弹幕列表
+  barragers.value.push(barrager);
+
+  // 动画结束后移除弹幕
+  setTimeout(() => {
+    barragers.value = barragers.value.filter((b) => b.id !== barrager.id);
+  }, barrager.duration * 1000);
+};
+
+// 获取随机弹幕位置，避免重叠
+const getRandomTop = () => {
+  const containerHeight = messageListRef.value?.clientHeight || 300;
+  const maxTop = containerHeight * 0.8; // 使用80%的容器高度
+  const minGap = 40; // 最小间距
+  const existingTops = barragers.value.map((b) => b.top);
+
+  let newTop;
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  do {
+    newTop = Math.random() * maxTop;
+    attempts++;
+  } while (
+    attempts < maxAttempts &&
+    existingTops.some((top) => Math.abs(top - newTop) < minGap)
+  );
+
+  return newTop;
+};
+
 onMounted(() => {
   scrollToBottom();
 });
@@ -1184,10 +1283,11 @@ onMounted(() => {
 }
 
 .message-text :deep(img) {
-  max-width: 100%;
+  max-width: 200px;
   height: auto;
   border-radius: 8px;
   margin: 4px 0;
+  cursor: pointer;
 }
 .message-text :deep(blockquote) {
   margin: 8px 0;
@@ -1668,6 +1768,11 @@ onMounted(() => {
   font-weight: 500;
 }
 
+.red-packet-status-content :deep(.message-content) {
+  color: #999;
+  font-weight: 500;
+}
+
 .user-info-modal {
   position: fixed;
   top: 0;
@@ -1815,5 +1920,53 @@ onMounted(() => {
 
 .message-row-self .gesture-btn:hover {
   background: #e6f7ff;
+}
+
+/* 弹幕样式 */
+.barrager-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.barrager-item {
+  position: absolute;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  white-space: nowrap;
+  animation: barrager-move linear;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.barrager-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.barrager-content {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+}
+
+@keyframes barrager-move {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
 }
 </style>
