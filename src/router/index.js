@@ -42,6 +42,9 @@ const routes = [
         path: "/posts",
         name: "Posts",
         component: Posts,
+        meta: {
+          keepAlive: true,
+        },
       },
       {
         path: "/moon",
