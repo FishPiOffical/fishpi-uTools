@@ -65,6 +65,7 @@
       <div
         class="post-detail-content"
         v-html="article.articleContent || article.articlePreviewContent"
+        @click="handleContentClick"
       ></div>
 
       <!-- 文章操作栏 -->
@@ -324,6 +325,13 @@
     <i class="fas fa-arrow-left"></i>
     <span>返回列表</span>
   </div>
+  <!-- 在 template 最后添加图片预览组件 -->
+  <vue-easy-lightbox
+    :visible="previewVisible"
+    :imgs="previewImages"
+    :index="previewIndex"
+    @hide="previewVisible = false"
+  />
 </template>
 
 <script setup>
@@ -332,6 +340,7 @@ import { useRoute, useRouter } from "vue-router";
 import { articleApi } from "../api";
 import { ElMessage } from "element-plus";
 import { onBeforeRouteLeave } from "vue-router";
+import VueEasyLightbox from "vue-easy-lightbox";
 
 const route = useRoute();
 const router = useRouter();
@@ -356,6 +365,11 @@ const userCommentViewMode = ref(1);
 const showCommentDialog = ref(false);
 
 const commentInput = ref(null);
+
+// 添加图片预览相关状态
+const previewVisible = ref(false);
+const previewImages = ref([]);
+const previewIndex = ref(0);
 
 const fetchArticleDetail = async () => {
   const articleId = route.params.id;
@@ -699,17 +713,50 @@ watch(showCommentDialog, (newVal) => {
     });
   }
 });
+
+// 处理图片点击
+const handleImageClick = (e) => {
+  if (e.target.tagName === "IMG") {
+    const imgSrc = e.target.src;
+    const allImages = Array.from(
+      document.querySelectorAll(".post-detail-content img")
+    ).map((img) => ({
+      src: img.src,
+    }));
+    previewIndex.value = allImages.findIndex((img) => img.src === imgSrc);
+    previewImages.value = allImages;
+    previewVisible.value = true;
+  }
+};
+
+// 处理链接点击
+const handleLinkClick = (e) => {
+  if (e.target.tagName === "A") {
+    e.preventDefault();
+    const url = e.target.href;
+    // 使用系统默认浏览器打开链接
+    utools.shellOpenExternal(url);
+  }
+};
+
+// 修改文章内容的点击事件处理
+const handleContentClick = (e) => {
+  handleImageClick(e);
+  handleLinkClick(e);
+};
 </script>
 
 <style scoped>
 .post-detail-container {
-  height: 100%; /* 确保容器有明确高度 */
-  overflow-y: auto; /* 确保内部内容超出时产生滚动条 */
-  padding: 24px; /* 容器内边距 */
+  height: 100%;
+  overflow-y: auto;
+  padding: 24px;
   background-color: #fff;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   position: relative;
-  box-sizing: border-box; /* 将padding计算在高度内 */
+  box-sizing: border-box;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .loading,
@@ -757,8 +804,10 @@ watch(showCommentDialog, (newVal) => {
 .post-content-area {
   max-width: 800px;
   margin: 0 auto;
-  padding: 0 20px; /* 内容区域内边距 */
-  /* transition: padding-top 0.3s ease; /* 可选：添加过渡动画 */
+  padding: 0 20px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .post-content-area.with-fixed-header {
@@ -786,8 +835,8 @@ watch(showCommentDialog, (newVal) => {
 }
 
 .author-avatar {
-  width: 56px;
-  height: 56px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   margin-right: 16px;
   border: 2px solid #fff;
@@ -834,54 +883,82 @@ watch(showCommentDialog, (newVal) => {
   font-size: 16px;
   color: #333;
   word-break: break-word;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* 对v-html渲染的内部元素进行样式控制 */
 .post-detail-content :deep(p) {
   margin: 0 0 1.2em 0;
   line-height: 1.8;
+  width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .post-detail-content :deep(img) {
   max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 1.5em auto;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
-}
-
-.post-detail-content :deep(img:hover) {
-  transform: scale(1.02);
+  cursor: pointer;
 }
 
 .post-detail-content :deep(pre) {
   background-color: #f8f9fa;
   padding: 16px;
   border-radius: 8px;
-  overflow-x: auto;
   margin: 1.2em 0;
   border: 1px solid #eee;
+  width: 100%;
+  box-sizing: border-box;
+  white-space: pre;
+  word-wrap: normal;
+  tab-size: 4;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.post-detail-content :deep(code) {
+.post-detail-content :deep(pre code) {
   font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
   font-size: 0.9em;
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: #333;
+  display: block;
+  line-height: 1.5;
+  white-space: pre;
+  word-wrap: normal;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 自定义滚动条样式 */
+.post-detail-content :deep(pre::-webkit-scrollbar) {
+  height: 6px;
   background-color: #f8f9fa;
-  padding: 2px 4px;
-  border-radius: 4px;
-  color: #e83e8c;
+}
+
+.post-detail-content :deep(pre::-webkit-scrollbar-thumb) {
+  background-color: #ddd;
+  border-radius: 3px;
+}
+
+.post-detail-content :deep(pre::-webkit-scrollbar-thumb:hover) {
+  background-color: #ccc;
 }
 
 .post-detail-content :deep(a) {
-  color: #ff9800;
+  color: #1890ff;
   text-decoration: none;
-  transition: color 0.2s;
+  word-break: break-all;
 }
 
 .post-detail-content :deep(a:hover) {
-  color: #f57c00;
   text-decoration: underline;
 }
 
@@ -905,7 +982,7 @@ watch(showCommentDialog, (newVal) => {
 }
 
 .post-detail-content :deep(table) {
-  width: 100%;
+  width: calc(100% - 120px);
   border-collapse: collapse;
   margin: 1.2em 0;
 }
@@ -1123,19 +1200,24 @@ watch(showCommentDialog, (newVal) => {
 
 .comment-item {
   background: #fff;
-  padding: 12px 0;
-  margin-bottom: 8px;
-  border-bottom: 1px solid #eee;
+  padding: 16px 0;
+  position: relative;
 }
 
-.comment-item:last-child {
-  border-bottom: none;
+.comment-item:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -12px;
+  height: 1px;
+  background: #f0f0f0;
 }
 
 .comment-header {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .comment-avatar {
@@ -1164,14 +1246,13 @@ watch(showCommentDialog, (newVal) => {
 .comment-time {
   font-size: 13px;
   color: #999;
-  margin-left: 8px;
 }
 
 .comment-content {
   font-size: 15px;
   line-height: 1.6;
   color: #333;
-  margin: 0 0 8px 48px;
+  margin: 0 0 12px 48px;
 }
 
 .comment-actions {
@@ -1212,18 +1293,24 @@ watch(showCommentDialog, (newVal) => {
 }
 
 .reply-list {
-  margin: 8px 0 0 48px;
+  margin: 12px 0 0 48px;
   padding-left: 12px;
   border-left: 1px solid #f0f0f0;
 }
 
 .reply-item {
-  padding: 8px 0;
-  border-bottom: 1px solid #f5f5f5;
+  padding: 12px 0;
+  position: relative;
 }
 
-.reply-item:last-child {
-  border-bottom: none;
+.reply-item:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 1px;
+  background: #f5f5f5;
 }
 
 .reply-header {
@@ -1258,14 +1345,13 @@ watch(showCommentDialog, (newVal) => {
 .reply-time {
   font-size: 13px;
   color: #999;
-  margin-left: 8px;
 }
 
 .reply-content {
   font-size: 14px;
   line-height: 1.6;
   color: #333;
-  margin: 0 0 4px 36px;
+  margin: 0 0 8px 36px;
 }
 
 .reply-actions {
@@ -1481,28 +1567,57 @@ watch(showCommentDialog, (newVal) => {
   bottom: 32px;
   background: #ff9800;
   color: #fff;
-  padding: 12px 20px;
-  border-radius: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1000;
+  overflow: hidden;
+  will-change: width, border-radius, transform;
 }
 
 .back-to-list:hover {
+  width: 120px;
+  border-radius: 24px;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(255, 152, 0, 0.3);
 }
 
 .back-to-list i {
-  font-size: 16px;
+  font-size: 20px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
 }
 
 .back-to-list span {
   font-size: 14px;
   font-weight: 500;
+  opacity: 0;
+  width: 0;
+  white-space: nowrap;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(-10px);
+}
+
+.back-to-list:hover span {
+  opacity: 1;
+  width: auto;
+  margin-left: 6px;
+  transform: translateX(0);
+}
+
+.back-to-list:hover i {
+  font-size: 16px;
+  transform: scale(0.9);
+}
+
+.back-to-list:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
 }
 </style>
