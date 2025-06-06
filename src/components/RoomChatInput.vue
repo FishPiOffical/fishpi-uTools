@@ -184,7 +184,12 @@ const quoteContent = computed(() => {
   if (!quoteData.value) return "";
   const temp = document.createElement("div");
   temp.innerHTML = quoteData.value.content;
-  return `${quoteData.value.userName}：${temp.innerText}`;
+  const text = temp.innerText;
+  const maxLength = 40; // 最大显示长度
+  if (text.length > maxLength) {
+    return `${quoteData.value.userName}：${text.slice(0, maxLength)}...`;
+  }
+  return `${quoteData.value.userName}：${text}`;
 });
 
 // 设置引用消息
@@ -522,26 +527,25 @@ const handleSignatureSave = (newSignature) => {
 }
 
 .quoted-message {
-  background-color: #fff;
+  background-color: #f5f7fa;
+  padding: 8px 12px;
   border-radius: 4px;
-  padding: 6px 12px;
   margin-bottom: 8px;
   display: flex;
-  align-items: center;
-  border: 1px solid #e8e8e8;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .quoted-message-label {
-  color: #999;
+  color: #666;
   font-size: 13px;
-  margin-right: 4px;
+  white-space: nowrap;
 }
 
 .quoted-message-content {
-  color: #1890ff;
-  font-size: 13px;
   flex: 1;
-  margin-right: 8px;
+  color: #333;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
