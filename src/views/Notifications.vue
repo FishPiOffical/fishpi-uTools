@@ -65,6 +65,7 @@ import PointNotification from "../components/notifications/PointNotification.vue
 import AtNotification from "../components/notifications/AtNotification.vue";
 import SystemNotification from "../components/notifications/SystemNotification.vue";
 import ReplyNotification from "../components/notifications/ReplyNotification.vue";
+import FollowingNotification from "../components/notifications/FollowingNotification.vue";
 
 const notificationStore = useNotificationStore();
 
@@ -249,6 +250,8 @@ const currentNotificationComponent = computed(() => {
       return AtNotification;
     case "sys-announce":
       return SystemNotification;
+    case "following":
+      return FollowingNotification;
     default:
       return CommentNotification;
   }
@@ -286,6 +289,29 @@ onMounted(async () => {
     // 切换到有未读通知的类别
     switchToUnreadTab();
   });
+
+  // 监听账号切换事件
+  window.addEventListener("fishpi:account-switched", async () => {
+    // 重置所有状态
+    notifications.value = [];
+    currentPage.value = 1;
+    hasMore.value = true;
+    stats.value = {
+      unreadNotificationCnt: 0,
+      unreadReplyNotificationCnt: 0,
+      unreadAtNotificationCnt: 0,
+      unreadBroadcastNotificationCnt: 0,
+      unreadSysAnnounceNotificationCnt: 0,
+      unreadNewFollowerNotificationCnt: 0,
+      unreadFollowingNotificationCnt: 0,
+      unreadCommentedNotificationCnt: 0,
+      unreadPointNotificationCnt: 0,
+    };
+    // 重新加载数据
+    await fetchStats();
+    switchToUnreadTab();
+    await fetchNotifications();
+  });
 });
 
 // 添加 onUnmounted 钩子来清理事件监听器
@@ -294,6 +320,26 @@ onUnmounted(() => {
     fetchNotifications();
     fetchStats();
     switchToUnreadTab();
+  });
+
+  window.removeEventListener("fishpi:account-switched", async () => {
+    notifications.value = [];
+    currentPage.value = 1;
+    hasMore.value = true;
+    stats.value = {
+      unreadNotificationCnt: 0,
+      unreadReplyNotificationCnt: 0,
+      unreadAtNotificationCnt: 0,
+      unreadBroadcastNotificationCnt: 0,
+      unreadSysAnnounceNotificationCnt: 0,
+      unreadNewFollowerNotificationCnt: 0,
+      unreadFollowingNotificationCnt: 0,
+      unreadCommentedNotificationCnt: 0,
+      unreadPointNotificationCnt: 0,
+    };
+    await fetchStats();
+    switchToUnreadTab();
+    await fetchNotifications();
   });
 });
 </script>
