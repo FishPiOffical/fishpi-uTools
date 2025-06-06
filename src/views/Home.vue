@@ -1,5 +1,6 @@
 <template>
   <div class="main-layout">
+    <WelcomeDialog />
     <div class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
       <div class="logo">
         <div
@@ -45,23 +46,54 @@
         :class="{ 'user-info-collapsed': isCollapsed }"
       >
         <div class="user-info-details" @click="showUserProfile">
-          <div class="user-avatar">
+          <div
+            class="user-avatar"
+            @mouseenter="showUserCard = true"
+            @mouseleave="showUserCard = false"
+          >
             <img :src="userStore.userInfo?.userAvatarURL" alt="用户头像" />
+            <div v-if="isCollapsed && showUserCard" class="user-card">
+              <div class="user-card-item" @click.stop="showSwitchAccount">
+                <i class="fas fa-exchange-alt"></i>
+                <span>切换账号</span>
+              </div>
+              <div class="user-card-item" @click.stop="logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>退出登录</span>
+              </div>
+            </div>
           </div>
           <div class="user-info" v-show="!isCollapsed">
             <div class="username">{{ userStore.userInfo?.userNickname }}</div>
-            <div class="user-points">
+            <div
+              class="user-points"
+              :class="{ signed: livenessStore.liveness >= 10 }"
+            >
               <i class="fas fa-fire"></i>
               <span>{{ livenessStore.liveness || 0 }}</span>
             </div>
           </div>
-          <div v-show="isCollapsed" class="bottom-tooltip">查看个人主页</div>
+          <div v-show="isCollapsed" class="collapsed-liveness">
+            <div
+              class="liveness-info"
+              :class="{ signed: livenessStore.liveness >= 10 }"
+            >
+              <i class="fas fa-fire"></i>
+              <span>{{ livenessStore.liveness || 0 }}</span>
+            </div>
+          </div>
         </div>
-        <button @click="logout" class="logout-button">
-          <i class="fas fa-sign-out-alt"></i>
-          <span v-show="!isCollapsed">退出登录</span>
-          <div v-show="isCollapsed" class="bottom-tooltip">退出登录</div>
-        </button>
+        <div v-show="!isCollapsed" class="user-actions">
+          <div class="divider"></div>
+          <button @click="showSwitchAccount" class="switch-account-button">
+            <i class="fas fa-exchange-alt"></i>
+            <span>切换账号</span>
+          </button>
+          <button @click="logout" class="logout-button">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>退出登录</span>
+          </button>
+        </div>
       </div>
       <div class="collapse-button" @click="toggleSidebar">
         <i
@@ -77,6 +109,43 @@
         <component :is="Component" v-if="!$route.meta.keepAlive" />
       </router-view>
     </div>
+    <!-- 账号切换弹窗 -->
+    <el-dialog
+      v-model="showAccountDialog"
+      title="切换账号"
+      width="360px"
+      :close-on-click-modal="false"
+      class="account-switch-dialog"
+    >
+      <div class="account-list">
+        <div v-if="savedAccounts.length === 0" class="no-accounts">
+          <i class="fas fa-user-plus"></i>
+          <span>暂无其他账号</span>
+        </div>
+        <div
+          v-for="account in savedAccounts"
+          :key="account.userName"
+          class="account-item"
+          @click="switchToAccount(account)"
+        >
+          <img
+            :src="account.userAvatarURL"
+            :alt="account.userNickname"
+            class="account-avatar"
+          />
+          <div class="account-info">
+            <div class="account-name">{{ account.userNickname }}</div>
+            <div class="account-username">@{{ account.userName }}</div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="showAccountDialog = false">取消</el-button>
+          <el-button type="primary" @click="goToLogin">去登录</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -88,10 +157,11 @@ import { useUserStore } from "../stores/user";
 import { useNotificationStore } from "../stores/notification";
 import { useLivenessStore } from "../stores/liveness";
 import wsManager from "../utils/websocket";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { chatApi } from "../api/chat";
 import * as lottie from "lottie-web";
 import logoData from "../js/logo";
+import WelcomeDialog from "../components/WelcomeDialog.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -101,6 +171,9 @@ const notificationStore = useNotificationStore();
 const livenessStore = useLivenessStore();
 const unreadPrivateCount = ref(0);
 const isCollapsed = ref(false);
+const showUserCard = ref(false);
+const showAccountDialog = ref(false);
+const savedAccounts = ref([]);
 
 const navItems = [
   { path: "/", name: "鱼塘首页", icon: "fas fa-home" },
@@ -111,6 +184,14 @@ const navItems = [
   { path: "/notifications", name: "消息通知", icon: "fas fa-bell" },
   { path: "/settings", name: "系统设置", icon: "fas fa-cog" },
 ];
+
+// 添加新用户判断逻辑
+const isNewUser = computed(() => {
+  return (
+    userStore.userInfo?.userPoint === 500 &&
+    userStore.userInfo?.userRole === "新人"
+  );
+});
 
 // 处理私信消息
 const handleMessage = (data) => {
@@ -280,6 +361,58 @@ const toggleSidebar = () => {
   const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
   savedSettings.defaultNavCollapsed = isCollapsed.value;
   utools.dbStorage.setItem("fishpi_settings", savedSettings);
+};
+
+const showSwitchAccount = () => {
+  // 获取已保存的账号列表
+  const accounts = utools.dbStorage.getItem("fishpi_accounts") || [];
+  savedAccounts.value = accounts.filter(
+    (account) => account.userName !== userStore.userInfo?.userName
+  );
+  showAccountDialog.value = true;
+};
+
+const switchToAccount = (account) => {
+  try {
+    // 保存当前账号设置
+    const currentUsername = userStore.userInfo?.userName;
+    if (currentUsername) {
+      const settings = utools.dbStorage.getItem("fishpi_settings") || {};
+      settings[currentUsername] = settings[currentUsername] || {};
+      utools.dbStorage.setItem("fishpi_settings", settings);
+    }
+
+    // 断开旧的 WebSocket 连接
+    wsManager.close("home-channel");
+
+    // 切换到新账号
+    userStore.setUserInfo(account);
+    showAccountDialog.value = false;
+    ElMessage.success("账号切换成功");
+
+    // 重新连接 WebSocket
+    wsManager
+      .connect("wss://fishpi.cn/user-channel", {
+        connectionId: "home-channel",
+      })
+      .then(() => {
+        wsManager.on("message", handleMessage, "home-channel");
+      })
+      .catch((error) => {
+        console.error("WebSocket 连接失败:", error);
+      });
+
+    // 触发账号切换事件
+    window.dispatchEvent(new CustomEvent("fishpi:account-switched"));
+  } catch (error) {
+    console.error("切换账号失败:", error);
+    ElMessage.error("切换账号失败，请重试");
+  }
+};
+
+const goToLogin = () => {
+  showAccountDialog.value = false;
+  router.push("/login");
 };
 </script>
 
@@ -517,11 +650,14 @@ const toggleSidebar = () => {
 }
 
 .user-info-collapsed .user-info-details {
-  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .user-info-collapsed .user-avatar {
   margin-right: 0;
+  margin-bottom: 4px;
 }
 
 .user-info-collapsed .logout-button {
@@ -623,5 +759,208 @@ const toggleSidebar = () => {
 .logout-button:hover .bottom-tooltip {
   opacity: 1;
   visibility: visible;
+}
+
+/* 欢迎弹框样式 */
+:deep(.welcome-dialog) {
+  .el-message-box__content {
+    padding: 20px;
+  }
+
+  .el-message-box__title {
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .el-message-box__message {
+    padding: 0;
+  }
+
+  .el-message-box__btns {
+    padding: 10px 20px 20px;
+  }
+
+  .el-button--primary {
+    background-color: #409eff;
+    border-color: #409eff;
+  }
+
+  a {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #f0f9ff;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: #e6f7ff;
+    }
+  }
+}
+
+.user-card {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  z-index: 1000;
+  min-width: 120px;
+}
+
+.user-card-item {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-card-item:hover {
+  background-color: #f5f5f5;
+}
+
+.user-card-item i {
+  width: 16px;
+  color: #666;
+}
+
+.user-actions {
+  margin-top: 8px;
+}
+
+.divider {
+  height: 1px;
+  background-color: #eee;
+  margin-bottom: 8px;
+}
+
+.switch-account-button,
+.logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px;
+  background-color: transparent;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  margin-bottom: 2px;
+}
+
+.switch-account-button:hover,
+.logout-button:hover {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.switch-account-button i,
+.logout-button i {
+  font-size: 14px;
+}
+
+.collapsed-liveness {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.collapsed-liveness .liveness-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #ff4d4f;
+}
+
+.collapsed-liveness .liveness-info.signed {
+  color: #52c41a;
+}
+
+.user-points {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #ff4d4f;
+  font-size: 12px;
+}
+
+.user-points.signed {
+  color: #52c41a;
+}
+
+.account-switch-dialog :deep(.el-dialog__body) {
+  padding: 20px;
+}
+
+.account-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.no-accounts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px;
+  color: #999;
+}
+
+.no-accounts i {
+  font-size: 24px;
+}
+
+.account-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.account-item:hover {
+  background-color: #f5f5f5;
+}
+
+.account-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.account-info {
+  flex: 1;
+}
+
+.account-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.account-username {
+  font-size: 12px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 </style>
