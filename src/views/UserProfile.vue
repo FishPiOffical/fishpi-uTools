@@ -1,114 +1,181 @@
 <template>
-  <div class="profile-container">
-    <!-- 顶部导航栏 -->
-    <nav class="profile-nav">
-      <button class="nav-back" @click="router.back()">
+  <div class="profile-page">
+    <!-- 顶部导航 -->
+    <header class="header">
+      <button class="back-btn" @click="router.back()">
         <i class="fas fa-arrow-left"></i>
       </button>
-      <h1 class="nav-title">个人主页</h1>
-    </nav>
+      <h1>{{ isCurrentUser ? "我的主页" : "TA的主页" }}</h1>
+      <button v-if="isCurrentUser" class="edit-btn" @click="handleEdit">
+        <i class="fas fa-edit"></i>
+      </button>
+      <!-- 添加一个占位符元素，用于在没有编辑按钮时帮助居中标题 -->
+      <div v-else class="nav-placeholder"></div>
+    </header>
 
-    <!-- 用户信息卡片 -->
-    <section class="profile-card">
-      <div class="profile-header">
-        <div class="profile-avatar">
-          <img :src="userInfo?.userAvatarURL" :alt="userInfo?.userNickname" />
-        </div>
-        <div class="profile-info">
-          <h2 class="profile-name">{{ userInfo?.userNickname }}</h2>
-          <p class="profile-username">@{{ userInfo?.userName }}</p>
-        </div>
-        <div class="profile-actions">
-          <button
-            class="action-btn follow"
-            :class="{ 'is-following': isFollowing }"
-            @click="handleFollow"
-          >
-            {{ isFollowing ? "已关注" : "关注" }}
-          </button>
-          <button class="action-btn message" disabled>发消息</button>
+    <!-- 可滚动内容区域 -->
+    <div class="scrollable-content">
+      <!-- 用户信息区 -->
+      <div
+        class="user-header"
+        :style="{ backgroundImage: `url(${userInfo?.cardBg})` }"
+      >
+        <div class="user-info">
+          <div class="avatar">
+            <img :src="userInfo?.userAvatarURL" :alt="userInfo?.userNickname" />
+            <span v-if="userInfo?.userRole" class="role-tag">{{
+              userInfo.userRole
+            }}</span>
+          </div>
+          <div class="info">
+            <h2>{{ userInfo?.userNickname }}</h2>
+            <p class="username">@{{ userInfo?.userName }}</p>
+            <p class="user-no">摸鱼派第 {{ userInfo?.userNo }} 号成员</p>
+            <p v-if="userInfo?.userCity" class="location">
+              <i class="fas fa-map-marker-alt"></i>
+              {{ userInfo.userCity }}
+            </p>
+          </div>
+          <div v-if="!isCurrentUser" class="actions">
+            <button
+              v-if="userInfo?.canFollow !== 'hide'"
+              class="btn follow"
+              :class="{ active: isFollowing }"
+              @click="handleFollow"
+            >
+              {{ isFollowing ? "已关注" : "关注" }}
+            </button>
+            <button class="btn message">发消息</button>
+          </div>
+
+          <!-- 只显示个人简介内容，如果有的话 -->
+          <div v-if="userInfo?.userIntro" class="bio-content-inline-only">
+            {{ userInfo?.userIntro }}
+          </div>
         </div>
       </div>
 
-      <!-- 用户统计数据 -->
-      <div class="profile-stats">
-        <div class="stat-item">
-          <span class="stat-value">{{ userInfo?.userPoint || 0 }}</span>
-          <span class="stat-label">积分</span>
+      <!-- 主要内容区 -->
+      <main class="main-content">
+        <!-- 数据统计 -->
+        <div class="stats">
+          <div class="stat-item">
+            <span class="value">{{ userInfo?.userPoint || 0 }}</span>
+            <span class="label">积分</span>
+          </div>
+          <div class="stat-item">
+            <span class="value">{{ userInfo?.followingUserCount || 0 }}</span>
+            <span class="label">关注</span>
+          </div>
+          <div class="stat-item">
+            <span class="value">{{ userInfo?.followerCount || 0 }}</span>
+            <span class="label">粉丝</span>
+          </div>
+          <div class="stat-item">
+            <span class="value">{{ userInfo?.onlineMinute || 0 }}</span>
+            <span class="label">在线时长/分钟</span>
+          </div>
         </div>
-        <div class="stat-item">
-          <span class="stat-value">{{
-            userInfo?.followingUserCount || 0
-          }}</span>
-          <span class="stat-label">关注</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value">{{ userInfo?.followerCount || 0 }}</span>
-          <span class="stat-label">粉丝</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value">{{ userInfo?.onlineMinute || 0 }}</span>
-          <span class="stat-label">在线时长</span>
-        </div>
-      </div>
-    </section>
 
-    <!-- 个人资料卡片 -->
-    <section class="info-section">
-      <h3 class="section-title">个人资料</h3>
-      <div class="info-grid">
-        <div class="info-item">
-          <span class="info-label">用户编号</span>
-          <span class="info-value">{{ userInfo?.userNo }}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">MBTI</span>
-          <span class="info-value">{{ userInfo?.mbti || "未知" }}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">在线状态</span>
-          <span class="info-value">
-            <span
-              class="status-indicator"
-              :class="{ 'is-online': userInfo?.userOnlineFlag }"
-            ></span>
-            {{ userInfo?.userOnlineFlag ? "在线" : "离线" }}
-          </span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">个人主页</span>
-          <a
-            v-if="userInfo?.userURL"
-            :href="userInfo.userURL"
-            target="_blank"
-            class="info-link"
-          >
-            {{ userInfo.userURL }}
-          </a>
-          <span v-else class="info-value">未设置</span>
-        </div>
-      </div>
-    </section>
+        <!-- 徽章展示 -->
+        <section
+          v-if="
+            userInfo?.allMetalOwned &&
+            JSON.parse(userInfo.allMetalOwned).list?.length > 0
+          "
+          class="section badges"
+        >
+          <h3>{{ isCurrentUser ? "我的勋章" : "TA的勋章" }}</h3>
+          <div class="badge-list">
+            <div
+              v-for="(badge, index) in JSON.parse(userInfo.allMetalOwned).list"
+              :key="index"
+              class="badge"
+              :style="getBadgeStyle(badge.attr)"
+            >
+              <img :src="getBadgeImage(badge.attr)" :alt="badge.name" />
+              <div class="badge-info">
+                <span class="name">{{ badge.name }}</span>
+                <span class="desc">{{ badge.description }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
-    <!-- 个人简介卡片 -->
-    <section class="bio-section">
-      <h3 class="section-title">个人简介</h3>
-      <div class="bio-content">
-        {{ userInfo?.userIntro || "这个人很懒，什么都没写~" }}
-      </div>
-    </section>
+        <!-- 个人资料 -->
+        <section class="section profile">
+          <h3>个人资料</h3>
+          <div class="info-list">
+            <div class="info-item">
+              <span class="label">用户编号</span>
+              <span class="value">{{ userInfo?.userNo }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">MBTI</span>
+              <span class="value">{{ userInfo?.mbti || "未知" }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">在线状态</span>
+              <span class="value">
+                <span
+                  class="status"
+                  :class="{ online: userInfo?.userOnlineFlag }"
+                ></span>
+                {{ userInfo?.userOnlineFlag ? "在线" : "离线" }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="label">个人主页</span>
+              <a
+                v-if="userInfo?.userURL"
+                :href="userInfo.userURL"
+                target="_blank"
+                class="link"
+              >
+                {{ userInfo.userURL }}
+              </a>
+              <span v-else class="value">未设置</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { userApi } from "../api";
+import { useUserStore } from "../stores/user";
 
 const route = useRoute();
 const router = useRouter();
 const userInfo = ref(null);
 const isFollowing = ref(false);
+
+const userStore = useUserStore();
+
+const isCurrentUser = computed(() => {
+  return userStore.userInfo?.userName === userInfo.value?.userName;
+});
+
+const getBadgeStyle = (attr) => {
+  const params = new URLSearchParams(attr);
+  return {
+    backgroundColor: params.get("backcolor") || "#ffffff",
+    color: params.get("fontcolor") || "#333333",
+  };
+};
+
+const getBadgeImage = (attr) => {
+  const params = new URLSearchParams(attr);
+  return params.get("url");
+};
+
+const handleEdit = () => {
+  router.push("/settings/profile");
+};
 
 const fetchUserInfo = async () => {
   try {
@@ -140,186 +207,329 @@ const handleFollow = async () => {
   }
 };
 
-onMounted(fetchUserInfo);
+onMounted(async () => {
+  await fetchUserInfo();
+});
 </script>
 
 <style scoped>
-.profile-container {
-  margin: 0 auto;
-  padding: 0 16px;
-  background: #ffffff;
+.profile-page {
+  display: flex;
+  flex-direction: column;
   height: 100vh;
-  overflow-y: auto;
-  box-sizing: border-box;
+  background: #fff;
+  overflow: hidden;
 }
 
-.profile-nav {
+.header {
+  position: relative;
   display: flex;
   align-items: center;
   height: 56px;
   padding: 0 16px;
-  border-bottom: 1px solid #eaeaea;
-  background: #ffffff;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  margin: 0 -16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
 }
 
-.nav-back {
-  background: none;
+.back-btn,
+.edit-btn {
+  position: absolute;
+  width: 40px;
+  height: 40px;
   border: none;
-  padding: 8px;
-  cursor: pointer;
+  background: none;
   color: #333;
   font-size: 18px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+  z-index: 1;
 }
 
-.nav-title {
-  margin-left: 16px;
+.back-btn {
+  left: 16px;
+}
+
+.edit-btn {
+  right: 16px;
+}
+
+.header h1 {
+  width: 100%;
+  margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  text-align: center;
 }
 
-.profile-card {
-  margin-top: 16px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 24px;
+.nav-placeholder {
+  position: absolute;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
 }
 
-.profile-header {
+.scrollable-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.user-header {
+  position: relative;
+  padding: 24px 16px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.user-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.4),
+    rgba(0, 0, 0, 0.2)
+  );
+}
+
+.user-info {
+  position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
-  margin-bottom: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  color: #fff;
 }
 
-.profile-avatar img {
+.avatar {
+  position: relative;
   width: 80px;
   height: 80px;
+  flex-shrink: 0;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #f0f0f0;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.profile-info {
+.role-tag {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 2px 8px;
+  background: #1890ff;
+  color: #fff;
+  font-size: 12px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.3);
+}
+
+.info {
   flex: 1;
+  min-width: 180px;
 }
 
-.profile-name {
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
+.info h2 {
   margin: 0;
+  font-size: 24px;
+  font-weight: 600;
 }
 
-.profile-username {
+.username {
+  margin: 4px 0;
   font-size: 14px;
-  color: #666;
-  margin: 4px 0 0;
+  opacity: 0.9;
 }
 
-.profile-actions {
+.user-no {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.location {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.actions {
   display: flex;
   gap: 12px;
+  flex-shrink: 0;
 }
 
-.action-btn {
+.btn {
   padding: 8px 20px;
+  border: none;
   border-radius: 20px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
-.action-btn.follow {
+.btn.follow {
   background: #1890ff;
-  color: white;
-  border: none;
+  color: #fff;
 }
 
-.action-btn.follow.is-following {
+.btn.follow.active {
   background: #f5f5f5;
   color: #666;
 }
 
-.action-btn.message {
-  background: white;
+.btn.message {
+  background: #fff;
   color: #1890ff;
   border: 1px solid #1890ff;
-  cursor: not-allowed;
 }
 
-.profile-stats {
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.main-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-bottom: 32px;
+}
+
+.stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
+  margin-bottom: 24px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .stat-item {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
   text-align: center;
 }
 
-.stat-value {
+.stat-item .value {
   display: block;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   color: #1890ff;
+  margin-bottom: 4px;
 }
 
-.stat-label {
+.stat-item .label {
   font-size: 13px;
   color: #666;
-  margin-top: 4px;
 }
 
-.info-section,
-.bio-section {
-  margin-top: 16px;
-  background: #ffffff;
+.section {
+  background: #fff;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 24px;
+  padding: 20px;
   margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
-.section-title {
+.section h3 {
+  margin: 0 0 16px;
   font-size: 16px;
   font-weight: 600;
   color: #333;
-  margin: 0 0 16px;
 }
 
-.info-grid {
+.badge-list {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  transition: transform 0.2s;
+  background: none;
+  box-shadow: none;
+}
+
+.badge:hover {
+  transform: translateY(-2px);
+}
+
+.badge img {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.badge-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.badge-info .name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.badge-info .desc {
+  font-size: 12px;
+  color: #666;
+}
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .info-item {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: none;
+  border-radius: 0;
 }
 
-.info-label {
-  font-size: 13px;
+.info-item .label {
+  font-size: 14px;
   color: #666;
 }
 
-.info-value {
+.info-item .value {
   font-size: 14px;
   color: #333;
   font-weight: 500;
 }
 
-.status-indicator {
+.status {
   display: inline-block;
   width: 8px;
   height: 8px;
@@ -328,48 +538,66 @@ onMounted(fetchUserInfo);
   margin-right: 6px;
 }
 
-.status-indicator.is-online {
+.status.online {
   background: #52c41a;
 }
 
-.info-link {
+.link {
   color: #1890ff;
   text-decoration: none;
-  font-size: 14px;
-  word-break: break-all;
 }
 
-.info-link:hover {
+.link:hover {
   text-decoration: underline;
 }
 
-.bio-content {
+/* 新增的个人简介内联样式 */
+.bio-content-inline-only {
+  width: 100%;
   font-size: 14px;
   line-height: 1.6;
-  color: #333;
-  background: #f8f9fa;
-  padding: 16px;
-  border-radius: 8px;
   white-space: pre-wrap;
+  opacity: 0.9;
 }
 
-@media (max-width: 640px) {
-  .profile-header {
+@media (max-width: 768px) {
+  .user-info {
     flex-direction: column;
+    align-items: center;
     text-align: center;
+    gap: 20px;
   }
 
-  .profile-actions {
-    width: 100%;
+  .actions {
+    width: auto;
     justify-content: center;
   }
 
-  .info-grid {
-    grid-template-columns: 1fr;
+  /* 移动端调整内联简介样式 */
+  .bio-content-inline-only {
+    margin-top: 16px;
+    text-align: center;
   }
 
-  .profile-stats {
+  .stats {
     grid-template-columns: repeat(2, 1fr);
+    padding: 16px;
+  }
+
+  .badge-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .btn {
+    padding: 6px 16px;
+    font-size: 13px;
   }
 }
 </style>
