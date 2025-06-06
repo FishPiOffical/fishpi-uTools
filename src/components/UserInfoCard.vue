@@ -18,23 +18,27 @@
         </div>
       </div>
     </div>
-    <div class="info-row">
+    <div class="info-row" v-if="userInfo?.userPoint">
       <span class="label">积分</span>
-      <span class="value">{{ userInfo?.userPoint }}</span>
+      <span class="value">{{ userInfo.userPoint }}</span>
     </div>
-    <div class="info-row">
+    <div class="info-row" v-if="userInfo?.userNo">
+      <span class="label">编号</span>
+      <span class="value"> {{ userInfo.userNo }} 号</span>
+    </div>
+    <div class="info-row" v-if="userInfo?.mbti">
       <span class="label">MBTI</span>
-      <span class="value">{{ userInfo?.mbti || "未知" }}</span>
+      <span class="value">{{ userInfo.mbti }}</span>
     </div>
-    <div class="info-row">
+    <div class="info-row" v-if="userInfo?.userCity">
       <span class="label">城市</span>
-      <span class="value">{{ userInfo?.userCity || "未知" }}</span>
+      <span class="value">{{ userInfo.userCity }}</span>
     </div>
-    <div class="info-row">
+    <div class="info-row" v-if="userInfo?.userIntro">
       <span class="label">简介</span>
-      <span class="value">{{ userInfo?.userIntro || "无" }}</span>
+      <span class="value">{{ userInfo.userIntro }}</span>
     </div>
-    <div class="card-actions">
+    <div class="card-actions" v-if="!isCurrentUser">
       <button
         class="action-btn detail"
         @click="$emit('detail', userInfo?.userName)"
@@ -52,12 +56,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { userApi } from "../api";
 const props = defineProps({
   userName: { type: String, required: true },
   x: { type: Number, default: 0 },
   y: { type: Number, default: 0 },
+  currentUser: { type: String, default: "" },
 });
 const userInfo = ref(null);
 
@@ -66,6 +71,10 @@ const fetchUserInfo = async () => {
   const res = await userApi.getUserProfile(props.userName);
   userInfo.value = res;
 };
+
+const isCurrentUser = computed(() => {
+  return props.currentUser === props.userName;
+});
 
 watch(() => props.userName, fetchUserInfo, { immediate: true });
 onMounted(fetchUserInfo);
