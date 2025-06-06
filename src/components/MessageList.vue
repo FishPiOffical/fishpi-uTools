@@ -100,7 +100,15 @@
                 }}
               </span>
             </div>
-            <div class="message-content" @click="handleImageClick">
+            <div
+              class="message-content"
+              @click="
+                (e) => {
+                  handleImageClick(e);
+                  handleLinkClick(e);
+                }
+              "
+            >
               <div style="display: flex; align-items: flex-end">
                 <div class="message-text" v-if="isMusicMessage(item.content)">
                   <div
@@ -232,6 +240,7 @@
                   v-else
                   v-html="item.content"
                   @contextmenu.prevent="onMsgContextMenu($event, item)"
+                  @load="handleImageLoad"
                 ></div>
                 <!-- +1按钮移动到气泡右侧 -->
                 <button
@@ -355,6 +364,7 @@
         :userName="selectedUserName"
         :x="userInfoCardX"
         :y="userInfoCardY"
+        :currentUser="userStore.userInfo?.userName"
         @close="closeUserInfoCard"
         @detail="handleUserDetail"
         @message="handleUserMessage"
@@ -534,17 +544,7 @@ const groupedMessages = computed(() => {
 const checkIfAtBottom = () => {
   if (messageListRef.value) {
     const { scrollTop, scrollHeight, clientHeight } = messageListRef.value;
-    isAtBottom.value = scrollHeight - scrollTop - clientHeight < 200;
-    console.log(
-      "[checkIfAtBottom] scrollTop:",
-      scrollTop,
-      "scrollHeight:",
-      scrollHeight,
-      "clientHeight:",
-      clientHeight,
-      "isAtBottom:",
-      isAtBottom.value
-    );
+    isAtBottom.value = Math.abs(scrollHeight - scrollTop - clientHeight) < 10;
   }
 };
 
@@ -562,6 +562,12 @@ watch(
         handleBarrager(newMsg);
         return;
       }
+
+      // 保存当前滚动位置
+      const scrollHeight = messageListRef.value?.scrollHeight || 0;
+      const scrollTop = messageListRef.value?.scrollTop || 0;
+      const clientHeight = messageListRef.value?.clientHeight || 0;
+      const wasAtBottom = scrollHeight - scrollTop - clientHeight < 200;
 
       nextTick(() => {
         const lastMessage = newMessages[newMessages.length - 1];
@@ -583,30 +589,51 @@ watch(
             return false;
           }
         };
+
         // 重新检测底部状态
         checkIfAtBottom();
-        setTimeout(() => {
-          // 如果上一条消息是自己发的，收到别人消息时也自动滚动到底部
-          const prevMessage = oldMessages[oldMessages.length - 1];
-          const veryCloseToBottom = (() => {
-            if (!messageListRef.value) return false;
-            const { scrollTop, scrollHeight, clientHeight } =
-              messageListRef.value;
-            return scrollHeight - scrollTop - clientHeight < 200;
-          })();
+
+        // 使用 requestAnimationFrame 确保在下一帧渲染完成后再处理滚动
+        requestAnimationFrame(() => {
           if (
-            (isAtBottom.value ||
-              veryCloseToBottom ||
-              (lastMessage && lastMessage.isSelf)) &&
+            (isAtBottom.value || wasAtBottom || lastMessage?.isSelf) &&
             lastMessage &&
             lastMessage.isHistory === false &&
             !props.isLoadingMore
           ) {
             console.log("[watch] 自动滚动到底部");
-            scrollToBottom();
+            // 检查消息中是否包含图片
+            const hasImages = /<img[^>]+src=/.test(lastMessage.content);
+            if (hasImages) {
+              // 如果包含图片，等待图片加载完成后再滚动
+              const images = document.querySelectorAll(".message-text img");
+              let loadedImages = 0;
+              const totalImages = images.length;
+
+              if (totalImages === 0) {
+                scrollToBottom();
+              } else {
+                images.forEach((img) => {
+                  if (img.complete) {
+                    loadedImages++;
+                    if (loadedImages === totalImages) {
+                      scrollToBottom();
+                    }
+                  } else {
+                    img.onload = () => {
+                      loadedImages++;
+                      if (loadedImages === totalImages) {
+                        scrollToBottom();
+                      }
+                    };
+                  }
+                });
+              }
+            } else {
+              scrollToBottom();
+            }
             hasNewMessages.value = false;
             newMessageCount.value = 0;
-            return;
           } else if (
             lastMessage &&
             lastMessage.isHistory === false &&
@@ -622,28 +649,19 @@ watch(
               }
             }
           }
-        }, 0);
+        });
       });
     }
   },
   { deep: true }
 );
 
-// 滚动到底部
+// 修改 scrollToBottom 函数
 const scrollToBottom = () => {
   if (messageListRef.value) {
-    const scrollToBottomWithCheck = () => {
-      const { scrollTop, scrollHeight, clientHeight } = messageListRef.value;
-      const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
-
-      if (!isAtBottom) {
-        messageListRef.value.scrollTop = messageListRef.value.scrollHeight;
-        // 使用 requestAnimationFrame 确保在下一帧继续检查
-        requestAnimationFrame(scrollToBottomWithCheck);
-      }
-    };
-
-    scrollToBottomWithCheck();
+    nextTick(() => {
+      messageListRef.value.scrollTop = messageListRef.value.scrollHeight;
+    });
   }
 };
 
@@ -833,8 +851,30 @@ const userInfoCardY = ref(0);
 
 const openUserInfoCard = (userName, event) => {
   selectedUserName.value = userName;
-  userInfoCardX.value = event.clientX;
-  userInfoCardY.value = event.clientY;
+
+  const cardWidth = 320; // 估算卡片宽度
+  const cardHeight = 450; // 估算卡片高度
+  const padding = 20; // 边缘边距
+
+  let clientX = event.clientX;
+  let clientY = event.clientY;
+
+  // 检查是否超出右边界
+  if (clientX + cardWidth > window.innerWidth - padding) {
+    clientX = window.innerWidth - cardWidth - padding;
+  }
+
+  // 检查是否超出下边界
+  if (clientY + cardHeight > window.innerHeight - padding) {
+    clientY = window.innerHeight - cardHeight - padding;
+  }
+
+  // 确保不会超出左边界和上边界
+  if (clientX < padding) clientX = padding;
+  if (clientY < padding) clientY = padding;
+
+  userInfoCardX.value = clientX;
+  userInfoCardY.value = clientY;
   showUserInfoModal.value = true;
 };
 const closeUserInfoCard = () => {
@@ -887,6 +927,24 @@ const msgContextMenuY = ref(0);
 const msgContextMenuItem = ref(null);
 const msgContextMenuItems = ref([]);
 
+const canRevokeMessage = (item) => {
+  const userRole = userStore.userInfo?.userRole;
+  const isAdmin = userRole === "管理员" || userRole === "OP";
+  const isSelf = item.userName === userStore.userInfo?.userName;
+
+  // 如果是管理员或OP，可以撤回任何消息
+  if (isAdmin) {
+    return true;
+  }
+
+  // 如果是自己的消息，且未撤回过
+  if (isSelf && !item.revoked) {
+    return true;
+  }
+
+  return false;
+};
+
 function onMsgContextMenu(e, item) {
   e.preventDefault();
   // 判断类型
@@ -905,13 +963,23 @@ function onMsgContextMenu(e, item) {
     msgContextMenuItems.value = [
       { label: "添加到表情", action: "add-emoji", icon: "fas fa-plus-circle" },
       { label: "复制", action: "copy-image", icon: "fas fa-copy" },
+      // 添加撤回选项，根据条件显示
+      ...(canRevokeMessage(item)
+        ? [{ label: "撤回", action: "revoke", icon: "fas fa-undo" }]
+        : []),
     ];
   } else {
     // 文字消息
+    const isSelf = item.userName === userStore.userInfo?.userName;
     msgContextMenuItems.value = [
       { label: "复制", action: "copy", icon: "fas fa-copy" },
       { label: "引用", action: "quote", icon: "fas fa-quote-right" },
-      { label: "@TA", action: "at", icon: "fas fa-at" },
+      ...(isSelf ? [] : [{ label: "@TA", action: "at", icon: "fas fa-at" }]),
+      { label: "复读机", action: "repeat", icon: "fas fa-redo" },
+      // 添加撤回选项，根据条件显示
+      ...(canRevokeMessage(item)
+        ? [{ label: "撤回", action: "revoke", icon: "fas fa-undo" }]
+        : []),
     ];
   }
   showMsgContextMenu.value = true;
@@ -919,6 +987,12 @@ function onMsgContextMenu(e, item) {
 function handleMsgContextMenuAction(type) {
   showMsgContextMenu.value = false;
   const item = msgContextMenuItem.value;
+
+  if (type === "revoke") {
+    handleRevokeMessage(item);
+    return;
+  }
+
   if (type === "copy") {
     // 复制文字
     const temp = document.createElement("div");
@@ -930,6 +1004,13 @@ function handleMsgContextMenuAction(type) {
     emit("quote", item);
   } else if (type === "at") {
     emit("at-user", item.userName);
+  } else if (type === "repeat") {
+    // 复读机功能
+    const temp = document.createElement("div");
+    temp.innerHTML = item.content;
+    const messageText = temp.innerText;
+    emit("send-same-message", messageText);
+    ElMessage.success(" 复读成功");
   } else if (type === "add-emoji") {
     emit("add-emoji", item);
   } else if (type === "copy-image") {
@@ -1004,7 +1085,6 @@ const handleImageClick = (e) => {
       document.querySelectorAll(".message-text img")
     ).map((img) => ({
       src: img.src,
-      title: "图片预览",
     }));
     previewIndex.value = allImages.findIndex((img) => img.src === imgSrc);
     previewImages.value = allImages;
@@ -1086,6 +1166,38 @@ const getRandomTop = () => {
   );
 
   return newTop;
+};
+
+// 修改链接处理函数
+const handleLinkClick = (e) => {
+  if (e.target.tagName === "A") {
+    e.preventDefault();
+    const url = e.target.href;
+    // 使用系统默认浏览器打开链接
+    utools.shellOpenExternal(url);
+  }
+};
+
+// 添加图片加载完成的处理函数
+const handleImageLoad = () => {
+  if (isAtBottom.value) {
+    nextTick(() => {
+      scrollToBottom();
+    });
+  }
+};
+
+// 处理消息撤回
+const handleRevokeMessage = async (item) => {
+  try {
+    const response = await chatApi.revokeMessage(item.oId);
+    if (response.code === 0) {
+      ElMessage.success("撤回成功");
+    }
+  } catch (error) {
+    console.error("撤回消息失败:", error);
+    ElMessage.error("撤回失败");
+  }
 };
 
 onMounted(() => {
@@ -1968,5 +2080,20 @@ onMounted(() => {
   to {
     transform: translateX(-100%);
   }
+}
+
+/* 添加链接样式 */
+.message-text :deep(a) {
+  color: #1890ff;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.message-text :deep(a:hover) {
+  text-decoration: underline;
+}
+
+.message-row-self .message-text :deep(a) {
+  color: #096dd9;
 }
 </style>
