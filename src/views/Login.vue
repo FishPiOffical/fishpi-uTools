@@ -127,6 +127,27 @@ const handleLogin = async () => {
     // 保存用户信息
     utools.dbStorage.setItem("fishpi_user_info", userInfo.data);
 
+    // 保存账号到账号列表
+    const accounts = utools.dbStorage.getItem("fishpi_accounts") || [];
+    const existingAccountIndex = accounts.findIndex(
+      (account) => account.userName === userInfo.data.userName
+    );
+
+    if (existingAccountIndex === -1) {
+      // 新账号，添加到列表
+      accounts.push({
+        ...userInfo.data,
+        apiKey: result.Key,
+      });
+    } else {
+      // 更新现有账号信息
+      accounts[existingAccountIndex] = {
+        ...userInfo.data,
+        apiKey: result.Key,
+      };
+    }
+    utools.dbStorage.setItem("fishpi_accounts", accounts);
+
     // 显示成功提示
     utools.showNotification("登录成功");
 
