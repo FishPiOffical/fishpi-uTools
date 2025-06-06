@@ -6,7 +6,9 @@
         <el-col :span="24">
           <div class="data-card welcome-data-card">
             <div class="welcome-title">
-              Hi，{{ userStore.userNickname }}，{{ greeting }}！
+              Hi，{{ userStore.userNickname || userStore.userName }}，{{
+                greeting
+              }}！
             </div>
             <div class="welcome-date">今天是{{ todayStr }}</div>
             <div class="welcome-row">
@@ -41,7 +43,12 @@
         <el-col :span="8">
           <div class="data-card">
             <div class="card-header">
-              <h2>活跃度</h2>
+              <h2>
+                活跃度
+                <el-tooltip content="点击查看活跃度说明" placement="top">
+                  <span class="help-icon" @click="openHelpLink">?</span>
+                </el-tooltip>
+              </h2>
               <span
                 class="liveness-tag"
                 :class="{ active: livenessStore.liveness >= 10 }"
@@ -67,7 +74,7 @@
             </div>
             <div class="time-display">
               <span class="time-value">{{
-                userStore.userInfo?.onlineMinute || 0
+                userStore.userOnlineMinute || 0
               }}</span>
               <span class="time-unit">分钟</span>
             </div>
@@ -118,7 +125,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, onUnmounted } from "vue";
 import { userApi } from "../api";
 import { useUserStore } from "../stores/user";
 import { useLivenessStore } from "../stores/liveness";
@@ -140,8 +147,12 @@ const currentTime = ref(new Date());
 const offWorkHour = computed(() => {
   const now = currentTime.value;
   const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
-  const endTimeStr = savedSettings.workTime?.endTime || "17:00";
-  const restDays = savedSettings.restDays || ["0", "6"]; // 默认双休
+  const currentUsername = userStore.userInfo?.userName;
+  const userSettings = currentUsername
+    ? savedSettings[currentUsername] || {}
+    : savedSettings;
+  const endTimeStr = userSettings.workTime?.endTime || "17:00";
+  const restDays = userSettings.restDays || ["0", "6"]; // 默认双休
 
   // 检查今天是否是休息日
   const today = now.getDay().toString();
@@ -211,6 +222,19 @@ onMounted(async () => {
   setInterval(() => {
     currentTime.value = new Date();
   }, 60000);
+
+  // 监听账号切换事件
+  window.addEventListener("fishpi:account-switched", async () => {
+    await livenessStore.init();
+    await fetchRewardStatus();
+  });
+});
+
+onUnmounted(() => {
+  window.removeEventListener("fishpi:account-switched", async () => {
+    await livenessStore.init();
+    await fetchRewardStatus();
+  });
 });
 
 const fetchRewardStatus = async () => {
@@ -238,12 +262,16 @@ const claimReward = async () => {
     ElMessage.error("领取失败，请稍后重试");
   }
 };
+
+const openHelpLink = () => {
+  utools.shellOpenExternal("https://fishpi.cn/article/1683775497629");
+};
 </script>
 
 <style scoped>
 .dashboard {
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background-color: #fff;
   padding: 1.5rem;
 }
 
@@ -552,5 +580,25 @@ const claimReward = async () => {
   50% {
     transform: translateY(-10px);
   }
+}
+
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  color: #6b7280;
+  font-size: 12px;
+  margin-left: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.help-icon:hover {
+  background-color: #d1d5db;
+  color: #4b5563;
 }
 </style>
