@@ -1,4 +1,7 @@
 <template>
+  <Teleport to="body">
+    <div v-if="visible" class="emoji-picker-mask" @click="$emit('close')"></div>
+  </Teleport>
   <div class="emoji-picker" v-if="visible">
     <div class="emoji-picker-header">
       <i class="fas fa-times close-btn" @click="$emit('close')"></i>
@@ -189,6 +192,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.emoji-picker-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999;
+}
+
 .emoji-picker {
   position: absolute;
   bottom: 100%;
