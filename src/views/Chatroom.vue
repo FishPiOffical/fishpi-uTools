@@ -447,10 +447,32 @@ onMounted(() => {
   nextTick(() => {
     chatInputRef.value?.focus();
   });
+
+  // 监听账号切换事件
+  window.addEventListener("fishpi:account-switched", async () => {
+    // 断开旧的连接
+    wsManager.close("chat-room");
+    // 清空消息列表
+    messages.value = [];
+    currentPage.value = 1;
+    hasMoreMessages.value = true;
+    // 重新连接并加载消息
+    await connectWebSocket();
+    await loadMessages();
+  });
 });
 
 onUnmounted(() => {
   wsManager.close("chat-room");
+  // 移除事件监听
+  window.removeEventListener("fishpi:account-switched", async () => {
+    wsManager.close("chat-room");
+    messages.value = [];
+    currentPage.value = 1;
+    hasMoreMessages.value = true;
+    await connectWebSocket();
+    await loadMessages();
+  });
 });
 </script>
 
