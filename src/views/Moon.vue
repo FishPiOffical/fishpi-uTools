@@ -159,7 +159,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   padding: 24px;
-  background-color: #f8fafc;
+  background-color: #fff;
 }
 
 .moon-header h2 {
