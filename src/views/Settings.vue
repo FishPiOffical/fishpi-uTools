@@ -149,9 +149,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed, onUnmounted } from "vue";
 import { ElMessage } from "element-plus";
+import { useUserStore } from "../stores/user";
 
+const userStore = useUserStore();
 const aboutDialogVisible = ref(false);
 const defaultNavState = ref(false);
 const startTime = ref(null);
@@ -159,16 +161,40 @@ const endTime = ref(null);
 const restDays = ref([]);
 const defaultPage = ref("dashboard");
 
+// 获取当前用户的设置
+const getUserSettings = () => {
+  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
+  const currentUsername = userStore.userInfo?.userName;
+  return currentUsername ? savedSettings[currentUsername] || {} : savedSettings;
+};
+
+// 保存当前用户的设置
+const saveUserSettings = (settings) => {
+  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
+  const currentUsername = userStore.userInfo?.userName;
+
+  if (currentUsername) {
+    savedSettings[currentUsername] = {
+      ...savedSettings[currentUsername],
+      ...settings,
+    };
+  } else {
+    Object.assign(savedSettings, settings);
+  }
+
+  utools.dbStorage.setItem("fishpi_settings", savedSettings);
+};
+
 onMounted(() => {
   // 从 utools.dbStorage 获取保存的设置
-  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
-  defaultNavState.value = savedSettings.defaultNavCollapsed || false;
-  restDays.value = savedSettings.restDays || ["0", "6"]; // 默认双休
-  defaultPage.value = savedSettings.defaultPage || "dashboard";
+  const userSettings = getUserSettings();
+  defaultNavState.value = userSettings.defaultNavCollapsed || false;
+  restDays.value = userSettings.restDays || ["0", "6"]; // 默认双休
+  defaultPage.value = userSettings.defaultPage || "dashboard";
 
   // 设置工作时间
-  const startTimeStr = savedSettings.workTime?.startTime || "09:00";
-  const endTimeStr = savedSettings.workTime?.endTime || "17:00";
+  const startTimeStr = userSettings.workTime?.startTime || "09:00";
+  const endTimeStr = userSettings.workTime?.endTime || "17:00";
 
   const [startHours, startMinutes] = startTimeStr.split(":");
   const [endHours, endMinutes] = endTimeStr.split(":");
@@ -178,12 +204,54 @@ onMounted(() => {
 
   endTime.value = new Date();
   endTime.value.setHours(parseInt(endHours), parseInt(endMinutes), 0);
+
+  // 监听账号切换事件
+  window.addEventListener("fishpi:account-switched", () => {
+    // 重新加载用户设置
+    const userSettings = getUserSettings();
+    defaultNavState.value = userSettings.defaultNavCollapsed || false;
+    restDays.value = userSettings.restDays || ["0", "6"];
+    defaultPage.value = userSettings.defaultPage || "dashboard";
+
+    // 重新设置工作时间
+    const startTimeStr = userSettings.workTime?.startTime || "09:00";
+    const endTimeStr = userSettings.workTime?.endTime || "17:00";
+
+    const [startHours, startMinutes] = startTimeStr.split(":");
+    const [endHours, endMinutes] = endTimeStr.split(":");
+
+    startTime.value = new Date();
+    startTime.value.setHours(parseInt(startHours), parseInt(startMinutes), 0);
+
+    endTime.value = new Date();
+    endTime.value.setHours(parseInt(endHours), parseInt(endMinutes), 0);
+  });
+});
+
+onUnmounted(() => {
+  // 移除账号切换事件监听
+  window.removeEventListener("fishpi:account-switched", () => {
+    const userSettings = getUserSettings();
+    defaultNavState.value = userSettings.defaultNavCollapsed || false;
+    restDays.value = userSettings.restDays || ["0", "6"];
+    defaultPage.value = userSettings.defaultPage || "dashboard";
+
+    const startTimeStr = userSettings.workTime?.startTime || "09:00";
+    const endTimeStr = userSettings.workTime?.endTime || "17:00";
+
+    const [startHours, startMinutes] = startTimeStr.split(":");
+    const [endHours, endMinutes] = endTimeStr.split(":");
+
+    startTime.value = new Date();
+    startTime.value.setHours(parseInt(startHours), parseInt(startMinutes), 0);
+
+    endTime.value = new Date();
+    endTime.value.setHours(parseInt(endHours), parseInt(endMinutes), 0);
+  });
 });
 
 const handleNavStateChange = (value) => {
-  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
-  savedSettings.defaultNavCollapsed = value;
-  utools.dbStorage.setItem("fishpi_settings", savedSettings);
+  saveUserSettings({ defaultNavCollapsed: value });
 
   ElMessage({
     message: "导航栏默认状态已更新",
@@ -202,12 +270,12 @@ const handleWorkTimeChange = () => {
     return `${hours}:${minutes}`;
   };
 
-  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
-  savedSettings.workTime = {
-    startTime: formatTime(startTime.value),
-    endTime: formatTime(endTime.value),
-  };
-  utools.dbStorage.setItem("fishpi_settings", savedSettings);
+  saveUserSettings({
+    workTime: {
+      startTime: formatTime(startTime.value),
+      endTime: formatTime(endTime.value),
+    },
+  });
 
   ElMessage({
     message: "工作时间设置已更新",
@@ -218,9 +286,7 @@ const handleWorkTimeChange = () => {
 };
 
 const handleRestDaysChange = (value) => {
-  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
-  savedSettings.restDays = value;
-  utools.dbStorage.setItem("fishpi_settings", savedSettings);
+  saveUserSettings({ restDays: value });
 
   ElMessage({
     message: "休息日设置已更新",
@@ -231,9 +297,7 @@ const handleRestDaysChange = (value) => {
 };
 
 const handleDefaultPageChange = (value) => {
-  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
-  savedSettings.defaultPage = value;
-  utools.dbStorage.setItem("fishpi_settings", savedSettings);
+  saveUserSettings({ defaultPage: value });
 
   ElMessage({
     message: "默认页面设置已更新",
@@ -255,6 +319,7 @@ const showAboutDialog = () => {
   flex-direction: column;
   padding: 20px;
   border-radius: 8px;
+  background: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
