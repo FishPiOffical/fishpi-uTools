@@ -1,9 +1,7 @@
 <template>
   <div class="chat-header">
     <div class="header-content">
-      <span class="chat-name" @click="showEditDialog = true">{{
-        chatRoomName
-      }}</span>
+      <span class="chat-name" @click="openEditDialog">{{ chatRoomName }}</span>
     </div>
 
     <el-dialog
@@ -24,19 +22,39 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { ElMessage } from "element-plus";
+import { useUserStore } from "../stores/user";
 
+const userStore = useUserStore();
 const chatRoomName = ref("摸鱼派聊天室");
 const tempChatRoomName = ref("");
 const showEditDialog = ref(false);
 
-onMounted(() => {
-  // 从本地存储获取保存的聊天室名称
+// 加载聊天室名称的函数
+const loadChatRoomName = () => {
   const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
-  if (savedSettings.chatRoomName) {
-    chatRoomName.value = savedSettings.chatRoomName;
+  const currentUsername = userStore.userInfo?.userName;
+  const userSettings = currentUsername
+    ? savedSettings[currentUsername] || {}
+    : savedSettings;
+  if (userSettings.chatRoomName) {
+    chatRoomName.value = userSettings.chatRoomName;
+  } else {
+    chatRoomName.value = "摸鱼派聊天室";
   }
+};
+
+onMounted(() => {
+  loadChatRoomName();
+
+  // 监听账号切换事件
+  window.addEventListener("fishpi:account-switched", loadChatRoomName);
+});
+
+onUnmounted(() => {
+  // 移除账号切换事件监听
+  window.removeEventListener("fishpi:account-switched", loadChatRoomName);
 });
 
 const saveChatRoomName = () => {
@@ -52,7 +70,17 @@ const saveChatRoomName = () => {
 
   chatRoomName.value = tempChatRoomName.value;
   const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
-  savedSettings.chatRoomName = chatRoomName.value;
+  const currentUsername = userStore.userInfo?.userName;
+
+  if (currentUsername) {
+    savedSettings[currentUsername] = {
+      ...savedSettings[currentUsername],
+      chatRoomName: chatRoomName.value,
+    };
+  } else {
+    savedSettings.chatRoomName = chatRoomName.value;
+  }
+
   utools.dbStorage.setItem("fishpi_settings", savedSettings);
 
   showEditDialog.value = false;
@@ -62,6 +90,12 @@ const saveChatRoomName = () => {
     duration: 2000,
     showClose: true,
   });
+};
+
+// 打开编辑对话框
+const openEditDialog = () => {
+  tempChatRoomName.value = chatRoomName.value;
+  showEditDialog.value = true;
 };
 </script>
 
