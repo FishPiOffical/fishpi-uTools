@@ -746,6 +746,25 @@ onMounted(() => {
     }
     localStorage.removeItem("private-chat-user");
   }
+
+  // 监听账号切换事件
+  window.addEventListener("fishpi:account-switched", async () => {
+    // 断开所有 WebSocket 连接
+    if (currentChatInfo.value) {
+      const receiverUserName =
+        currentChatInfo.value.senderUserName === userStore.userInfo?.userName
+          ? currentChatInfo.value.receiverUserName
+          : currentChatInfo.value.senderUserName;
+      wsManager.close(`chat-${receiverUserName}`);
+    }
+    // 清空聊天列表和当前聊天
+    chatList.value = [];
+    currentChat.value = "";
+    currentChatInfo.value = null;
+    messages.value = [];
+    // 重新加载聊天列表
+    await loadChatList();
+  });
 });
 
 onUnmounted(() => {
@@ -757,6 +776,22 @@ onUnmounted(() => {
         : currentChatInfo.value.senderUserName;
     wsManager.close(`chat-${receiverUserName}`);
   }
+
+  // 移除账号切换事件监听
+  window.removeEventListener("fishpi:account-switched", async () => {
+    if (currentChatInfo.value) {
+      const receiverUserName =
+        currentChatInfo.value.senderUserName === userStore.userInfo?.userName
+          ? currentChatInfo.value.receiverUserName
+          : currentChatInfo.value.senderUserName;
+      wsManager.close(`chat-${receiverUserName}`);
+    }
+    chatList.value = [];
+    currentChat.value = "";
+    currentChatInfo.value = null;
+    messages.value = [];
+    await loadChatList();
+  });
 });
 </script>
 
