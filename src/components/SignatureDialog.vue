@@ -2,18 +2,48 @@
   <div v-if="visible" class="signature-dialog">
     <div class="signature-content">
       <div class="dialog-header">
-        <h3>设置小尾巴</h3>
+        <h3>小尾巴</h3>
         <i class="fas fa-times close-icon" @click="handleClose"></i>
       </div>
       <div class="dialog-body">
-        <textarea
-          v-model="signatureContent"
-          placeholder="请输入小尾巴内容"
-          rows="3"
-        ></textarea>
+        <div class="tip">小尾巴会自动添加到消息下方，建议使用简短文字。</div>
+        <div class="input-area">
+          <textarea
+            v-model="signatureContent"
+            placeholder="输入小尾巴内容"
+            rows="2"
+          ></textarea>
+        </div>
+        <div class="button-group">
+          <button
+            class="random-btn"
+            @click="generateRandomQuote"
+            :disabled="isLoading"
+          >
+            <i class="fas fa-random"></i>
+            {{ isLoading ? "生成中..." : "随机生成诗句/名言" }}
+          </button>
+        </div>
+        <div class="preview" v-if="signatureContent">
+          <div class="preview-label">预览：</div>
+          <div class="preview-content">
+            <div class="message-row message-row-self">
+              <div class="message-bubble">
+                <div class="message-content">
+                  <div class="message-text">
+                    这是一条消息
+                    <blockquote v-if="signatureContent">
+                      {{ signatureContent }}
+                    </blockquote>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="dialog-footer">
-        <button @click="handleSave">保存</button>
+        <button @click="handleSave">确定</button>
       </div>
     </div>
   </div>
@@ -21,6 +51,7 @@
 
 <script setup>
 import { ref } from "vue";
+import { ElMessage } from "element-plus";
 
 const props = defineProps({
   visible: {
@@ -34,8 +65,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["close", "save"]);
-
 const signatureContent = ref(props.defaultSignature);
+const isLoading = ref(false);
 
 const handleClose = () => {
   emit("close");
@@ -44,6 +75,41 @@ const handleClose = () => {
 const handleSave = () => {
   emit("save", signatureContent.value);
   handleClose();
+};
+
+// 随机生成诗句/名言
+const generateRandomQuote = async () => {
+  try {
+    isLoading.value = true;
+    // 使用今日诗词API
+    const response = await fetch("https://v2.jinrishici.com/one.json");
+    const data = await response.json();
+
+    if (data && data.data && data.data.content) {
+      signatureContent.value = data.data.content;
+    } else {
+      // 如果API调用失败，使用备用诗句
+      const backupQuotes = [
+        "人生若只如初见，何事秋风悲画扇。",
+        "海内存知己，天涯若比邻。",
+        "春风得意马蹄疾，一日看尽长安花。",
+        "纸上得来终觉浅，绝知此事要躬行。",
+        "不畏浮云遮望眼，自缘身在最高层。",
+        "会当凌绝顶，一览众山小。",
+        "长风破浪会有时，直挂云帆济沧海。",
+        "天生我材必有用，千金散尽还复来。",
+        "欲穷千里目，更上一层楼。",
+        "莫愁前路无知己，天下谁人不识君。",
+      ];
+      const randomIndex = Math.floor(Math.random() * backupQuotes.length);
+      signatureContent.value = backupQuotes[randomIndex];
+    }
+  } catch (error) {
+    console.error("获取随机诗句失败:", error);
+    ElMessage.error("获取随机诗句失败，请重试");
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>
 
@@ -64,38 +130,136 @@ const handleSave = () => {
 .signature-content {
   background: white;
   border-radius: 8px;
-  width: 400px;
-  padding: 20px;
+  width: 380px;
+  padding: 16px;
 }
 
 .dialog-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .dialog-header h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
+  color: #333;
 }
 
 .close-icon {
   cursor: pointer;
-  font-size: 18px;
   color: #999;
 }
 
 .dialog-body {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
-.dialog-body textarea {
+.tip {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.input-area {
+  margin-bottom: 8px;
+}
+
+textarea {
   width: 100%;
-  padding: 10px;
+  padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
   resize: none;
+  margin-bottom: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #1890ff;
+}
+
+.preview {
+  background: #f5f5f5;
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 13px;
+  color: #666;
+}
+
+.preview-label {
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.preview-content {
+  line-height: 1.5;
+}
+
+.message-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.message-bubble {
+  max-width: 80%;
+  min-width: 60px;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.message-text {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  word-break: break-word;
+  line-height: 1.5;
+  font-size: 14px;
+  color: #333;
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.message-text :deep(blockquote) {
+  margin: 8px 0 0 0;
+  padding: 8px 12px;
+  border-left: 2px solid #e6e6e6;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.message-text :deep(blockquote p) {
+  margin: 0;
+}
+
+.message-text :deep(blockquote p:last-child) {
+  margin-bottom: 0;
+}
+
+.signature {
+  font-size: 12px;
+  color: #1890ff;
+  margin-top: 4px;
+  padding: 0 4px;
 }
 
 .dialog-footer {
@@ -103,7 +267,7 @@ const handleSave = () => {
 }
 
 .dialog-footer button {
-  padding: 8px 20px;
+  padding: 6px 16px;
   background-color: #1890ff;
   color: white;
   border: none;
@@ -113,5 +277,52 @@ const handleSave = () => {
 
 .dialog-footer button:hover {
   background-color: #40a9ff;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.random-btn {
+  padding: 6px 12px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  color: #666;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.random-btn:hover {
+  background: #e6e6e6;
+  border-color: #ccc;
+}
+
+.random-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.random-btn i {
+  font-size: 12px;
+}
+
+.message-row-self {
+  flex-direction: row-reverse;
+}
+
+.message-row-self .message-text {
+  background-color: #e6f4ff;
+  margin-left: auto;
+}
+
+.message-row-self .message-text :deep(blockquote) {
+  background-color: #f0f7ff;
 }
 </style>
