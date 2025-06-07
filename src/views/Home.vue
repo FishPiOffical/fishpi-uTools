@@ -137,6 +137,15 @@
             <div class="account-name">{{ account.userNickname }}</div>
             <div class="account-username">@{{ account.userName }}</div>
           </div>
+          <el-button
+            type="danger"
+            size="small"
+            circle
+            class="delete-account-btn"
+            @click="(event) => deleteAccount(account, event)"
+          >
+            <i class="fas fa-trash-alt"></i>
+          </el-button>
         </div>
       </div>
       <template #footer>
@@ -370,6 +379,33 @@ const showSwitchAccount = () => {
     (account) => account.userName !== userStore.userInfo?.userName
   );
   showAccountDialog.value = true;
+};
+
+const deleteAccount = (account, event) => {
+  event.stopPropagation(); // 阻止事件冒泡
+  ElMessageBox.confirm(
+    `确定要删除账号 ${account.userNickname} 吗？`,
+    "删除账号",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    }
+  )
+    .then(() => {
+      const accounts = utools.dbStorage.getItem("fishpi_accounts") || [];
+      const updatedAccounts = accounts.filter(
+        (acc) => acc.userName !== account.userName
+      );
+      utools.dbStorage.setItem("fishpi_accounts", updatedAccounts);
+      savedAccounts.value = updatedAccounts.filter(
+        (acc) => acc.userName !== userStore.userInfo?.userName
+      );
+      ElMessage.success("账号删除成功");
+    })
+    .catch(() => {
+      // 用户取消删除
+    });
 };
 
 const switchToAccount = (account) => {
@@ -929,6 +965,7 @@ const goToLogin = () => {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .account-item:hover {
@@ -944,23 +981,44 @@ const goToLogin = () => {
 
 .account-info {
   flex: 1;
+  min-width: 0;
 }
 
 .account-name {
   font-size: 14px;
   font-weight: 500;
   color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .account-username {
   font-size: 12px;
   color: #999;
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.delete-account-btn {
+  opacity: 0;
+  transition: all 0.3s ease;
+  margin-left: auto;
+}
+
+.account-item:hover .delete-account-btn {
+  opacity: 1;
+}
+
+.delete-account-btn:hover {
+  transform: scale(1.1);
 }
 </style>
