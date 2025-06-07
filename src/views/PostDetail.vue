@@ -982,7 +982,7 @@ const handleContentClick = (e) => {
 }
 
 .post-detail-content :deep(table) {
-  width: calc(100% - 120px);
+  width: 100%;
   border-collapse: collapse;
   margin: 1.2em 0;
 }
