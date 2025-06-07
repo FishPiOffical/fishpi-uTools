@@ -6,11 +6,8 @@
         <i class="fas fa-arrow-left"></i>
       </button>
       <h1>{{ isCurrentUser ? "我的主页" : "TA的主页" }}</h1>
-      <button v-if="isCurrentUser" class="edit-btn" @click="handleEdit">
-        <i class="fas fa-edit"></i>
-      </button>
       <!-- 添加一个占位符元素，用于在没有编辑按钮时帮助居中标题 -->
-      <div v-else class="nav-placeholder"></div>
+      <div class="nav-placeholder"></div>
     </header>
 
     <!-- 可滚动内容区域 -->
@@ -45,7 +42,7 @@
             >
               {{ isFollowing ? "已关注" : "关注" }}
             </button>
-            <button class="btn message">发消息</button>
+            <button class="btn message" @click="handleMessage">发消息</button>
           </div>
 
           <!-- 只显示个人简介内容，如果有的话 -->
@@ -175,6 +172,11 @@ const getBadgeImage = (attr) => {
 
 const handleEdit = () => {
   router.push("/settings/profile");
+};
+
+const handleUserMessage = (userName) => {
+  utools.dbStorage.setItem("private-chat-user", userName);
+  router.push(`/private-chat?user=${userName}`);
 };
 
 const fetchUserInfo = async () => {
