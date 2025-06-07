@@ -93,7 +93,12 @@
                   class="message-avatar"
                 />
                 <div class="message-bubble">
-                  <div class="message-text" v-html="item.content"></div>
+                  <div
+                    class="message-text"
+                    v-html="processMessageContent(item.content)"
+                    @click="handleImageClick"
+                    @load="handleImageLoad"
+                  ></div>
                 </div>
               </div>
             </template>
@@ -185,6 +190,14 @@
         </div>
       </div>
     </el-dialog>
+
+    <!-- 添加图片预览组件 -->
+    <vue-easy-lightbox
+      :visible="previewVisible"
+      :imgs="previewImages"
+      :index="previewIndex"
+      @hide="previewVisible = false"
+    />
   </div>
 </template>
 
@@ -196,6 +209,8 @@ import { useUserStore } from "../stores/user";
 import dayjs from "dayjs";
 import wsManager from "../utils/websocket";
 import { useRoute } from "vue-router";
+import VueEasyLightbox from "vue-easy-lightbox";
+import { ElMessage } from "element-plus";
 
 // Import the new ChatInput component
 import ChatInput from "../components/ChatInput.vue";
@@ -226,6 +241,11 @@ const searchQuery = ref("");
 const searchResults = ref([]);
 const isSearching = ref(false);
 const searchTimeout = ref(null);
+
+// 图片预览相关
+const previewVisible = ref(false);
+const previewImages = ref([]);
+const previewIndex = ref(0);
 
 // 更新聊天列表中的消息预览
 const updateChatPreview = (userSession, content) => {
@@ -364,10 +384,7 @@ const loadMessages = async (receiverUserName, page) => {
       newMessages.forEach((message) => {
         if (message.content && message.content.includes("<img")) {
           // Simple regex to find img tags and add style. Might need refinement for complex cases.
-          message.content = message.content.replace(
-            /<img(.*?)>/g,
-            '<img$1 style="max-width: 100%; height: auto;">'
-          );
+          message.content = message.content.replace(/<img(.*?)>/g, '<img$1">');
         }
       });
 
@@ -419,7 +436,7 @@ const sendMessage = async (message) => {
 
     // 添加消息到本地列表
     messages.value.push({
-      content: `<p>${message}</p>`,
+      content: message, // 直接使用原始消息内容，包含 Markdown 格式
       senderUserName: userStore.userInfo?.userName,
       senderAvatar: userStore.userInfo?.userAvatarURL,
       time: new Date().toISOString(),
@@ -436,6 +453,7 @@ const sendMessage = async (message) => {
     });
   } catch (error) {
     console.error("发送消息失败:", error);
+    ElMessage.error("发送消息失败");
   }
 };
 
@@ -474,29 +492,28 @@ const handleSelectEmoji = (emoji) => {
       ? currentChatInfo.value.receiverUserName
       : currentChatInfo.value.senderUserName;
 
-  // 发送表情包消息
-  const emojiMessage = {
-    contentType: "emoji",
-    content: {
-      type: "pack",
-      packId: emoji.id,
-      cover: emoji.cover,
-    },
-  };
+  // 使用 Markdown 格式发送表情包
+  const markdownImage = `![表情包](${emoji.cover})`;
 
-  chatApi
-    .sendPrivateMessage(receiverUserName, JSON.stringify(emojiMessage))
-    .then(() => {
-      // 重新加载消息列表
-      messages.value = [];
-      currentPage.value = 1;
-      hasMoreMessages.value = true;
-      previousScrollHeight.value = 0;
-      loadMessages(receiverUserName, 1);
-    })
-    .catch((error) => {
-      console.error("发送表情包消息失败:", error);
-    });
+  // 通过 WebSocket 发送消息
+  wsManager.send(markdownImage, `chat-${receiverUserName}`);
+
+  // 添加消息到本地列表
+  messages.value.push({
+    content: markdownImage,
+    senderUserName: userStore.userInfo?.userName,
+    senderAvatar: userStore.userInfo?.userAvatarURL,
+    time: new Date().toISOString(),
+    isSelf: true,
+  });
+
+  // 更新聊天列表中的消息预览
+  updateChatPreview(currentChat.value, "[表情包]");
+
+  // 滚动到底部
+  nextTick(() => {
+    scrollToBottom();
+  });
 };
 
 const handleSelectImage = () => {
@@ -507,33 +524,37 @@ const handleSelectImage = () => {
 // 处理转账成功
 const handleTransferSuccess = async (transferData) => {
   try {
-    // 发送转账消息
+    // 获取接收者用户名
     const receiverUserName =
       currentChatInfo.value.senderUserName === userStore.userInfo?.userName
         ? currentChatInfo.value.receiverUserName
         : currentChatInfo.value.senderUserName;
 
-    const transferMessage = {
-      contentType: "transfer",
-      content: {
-        amount: transferData.amount,
-        memo: transferData.memo || "无备注",
-      },
-    };
+    // 构建转账消息
+    const transferMessage = `转账 ${transferData.amount} 积分给 ${receiverUserName}`;
 
-    await chatApi.sendPrivateMessage(
-      receiverUserName,
-      JSON.stringify(transferMessage)
-    );
+    // 通过 WebSocket 发送消息
+    wsManager.send(transferMessage, `chat-${receiverUserName}`);
 
-    // 重新加载消息列表
-    messages.value = [];
-    currentPage.value = 1;
-    hasMoreMessages.value = true;
-    previousScrollHeight.value = 0;
-    await loadMessages(receiverUserName, 1);
+    // 添加消息到本地列表
+    messages.value.push({
+      content: transferMessage,
+      senderUserName: userStore.userInfo?.userName,
+      senderAvatar: userStore.userInfo?.userAvatarURL,
+      time: new Date().toISOString(),
+      isSelf: true,
+    });
+
+    // 更新聊天列表中的消息预览
+    updateChatPreview(currentChat.value, transferMessage);
+
+    // 滚动到底部
+    nextTick(() => {
+      scrollToBottom();
+    });
   } catch (error) {
     console.error("发送转账消息失败:", error);
+    ElMessage.error("发送转账消息失败");
   }
 };
 
@@ -721,6 +742,36 @@ const startChat = async (user) => {
 
     chatList.value.unshift(newChat);
     await selectChat(newChat);
+  }
+};
+
+// 处理图片点击
+const handleImageClick = (e) => {
+  if (e.target.tagName === "IMG") {
+    const imgSrc = e.target.src;
+    const allImages = Array.from(
+      document.querySelectorAll(".message-text img")
+    ).map((img) => ({
+      src: img.src,
+    }));
+    previewIndex.value = allImages.findIndex((img) => img.src === imgSrc);
+    previewImages.value = allImages;
+    previewVisible.value = true;
+  }
+};
+
+// 处理消息内容，将 Markdown 图片转换为 HTML
+const processMessageContent = (content) => {
+  // 将 Markdown 图片语法转换为 HTML
+  return content.replace(/!\[.*?\]\((.*?)\)/g, '<img src="$1" alt="图片" />');
+};
+
+// 处理图片加载完成
+const handleImageLoad = () => {
+  if (isAtBottom.value) {
+    nextTick(() => {
+      scrollToBottom();
+    });
   }
 };
 
@@ -1230,5 +1281,19 @@ onUnmounted(() => {
   text-align: center;
   color: #999;
   padding: 20px;
+}
+
+/* 添加图片相关样式 */
+.message-text :deep(img) {
+  max-width: 200px;
+  height: auto;
+  border-radius: 8px;
+  margin: 4px 0;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.message-text :deep(img:hover) {
+  transform: scale(1.02);
 }
 </style>
