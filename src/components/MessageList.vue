@@ -72,6 +72,11 @@
             <span class="message-content">{{ item.content }}</span>
           </div>
         </div>
+        <!-- 弹幕消息 -->
+        <div
+          v-else-if="item.type === 'barrager'"
+          class="barrager-message"
+        ></div>
         <!-- 消息内容 -->
         <div
           v-else
@@ -513,7 +518,7 @@ const groupedMessages = computed(() => {
     }
     buffer = [];
   };
-  for (const message of props.messages) {
+  for (const message of displayedMessages.value) {
     // 跳过特殊类型
     if (
       message.type === "time-separator" ||
@@ -557,7 +562,7 @@ watch(
       const newMsg = newMessages[newMessages.length - 1];
       console.log("新消息:", newMsg);
 
-      // 如果是弹幕消息，直接处理
+      // 如果是弹幕消息，直接处理并返回，不进行后续处理
       if (newMsg.type === "barrager") {
         handleBarrager(newMsg);
         return;
@@ -571,6 +576,11 @@ watch(
 
       nextTick(() => {
         const lastMessage = newMessages[newMessages.length - 1];
+        // 如果是弹幕消息，不进行后续处理
+        if (lastMessage.type === "barrager") {
+          return;
+        }
+
         const isSystemOrSpecialMsg = (msg) => {
           if (
             msg.type === "discuss-changed" ||
@@ -1121,6 +1131,7 @@ let barragerId = 0;
 
 // 处理弹幕消息
 const handleBarrager = (data) => {
+  console.log(data);
   // 确保数据完整性
   if (!data.content || !data.userAvatarURL48) {
     console.warn("弹幕消息数据不完整:", data);
@@ -1129,21 +1140,20 @@ const handleBarrager = (data) => {
 
   const barrager = {
     id: barragerId++,
-    content: data.barragerContent,
+    content: data.content,
     avatar: data.userAvatarURL48,
     color: data.barragerColor || "rgba(255,255,255,1)",
-    // 随机生成弹幕位置，但避免重叠
     top: getRandomTop(),
-    duration: 8 + Math.random() * 4, // 8-12秒的随机持续时间
+    duration: 8, // 固定动画时间为8秒
   };
 
   // 添加到弹幕列表
   barragers.value.push(barrager);
 
-  // 动画结束后移除弹幕
+  // 动画结束后移除弹幕，确保动画完整播放
   setTimeout(() => {
     barragers.value = barragers.value.filter((b) => b.id !== barrager.id);
-  }, barrager.duration * 1000);
+  }, barrager.duration * 1000 + 100); // 额外添加100ms的缓冲时间
 };
 
 // 获取随机弹幕位置，避免重叠
@@ -1192,7 +1202,7 @@ const handleRevokeMessage = async (item) => {
   try {
     const response = await chatApi.revokeMessage(item.oId);
     if (response.code === 0) {
-      ElMessage.success("撤回成功");
+      ElMessage.success(response.msg || "撤回成功");
     }
   } catch (error) {
     console.error("撤回消息失败:", error);
@@ -1211,6 +1221,7 @@ onMounted(() => {
   overflow-y: auto;
   padding: 10px;
   background-color: #f5f7fa;
+  position: relative; /* 添加相对定位，作为弹幕容器的定位参考 */
 }
 
 .messages {
@@ -1421,7 +1432,6 @@ onMounted(() => {
 }
 
 .message-row-self .message-text :deep(blockquote) {
-  border-left-color: #91caff;
   background-color: #f0f7ff;
 }
 .message-text :deep(p) {
@@ -2036,19 +2046,19 @@ onMounted(() => {
 
 /* 弹幕样式 */
 .barrager-container {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
   overflow: hidden;
-  z-index: 1000;
+  z-index: 9999;
 }
 
 .barrager-item {
-  position: absolute;
-  right: 0;
+  position: fixed;
+  left: 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2058,6 +2068,8 @@ onMounted(() => {
   white-space: nowrap;
   animation: barrager-move linear;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .barrager-avatar {
@@ -2075,10 +2087,10 @@ onMounted(() => {
 
 @keyframes barrager-move {
   from {
-    transform: translateX(100%);
+    transform: translate3d(100vw, 0, 0);
   }
   to {
-    transform: translateX(-100%);
+    transform: translate3d(-100%, 0, 0);
   }
 }
 
@@ -2095,5 +2107,10 @@ onMounted(() => {
 
 .message-row-self .message-text :deep(a) {
   color: #096dd9;
+}
+
+/* 添加弹幕消息的隐藏样式 */
+.barrager-message {
+  display: none;
 }
 </style>
