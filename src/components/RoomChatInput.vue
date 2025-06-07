@@ -15,7 +15,7 @@
     <div class="input-icons">
       <!-- 表情图标 -->
       <div class="emoji-icon-wrapper">
-        <i class="fas fa-smile icon" @mouseenter="openEmojiPicker"></i>
+        <i class="fas fa-smile icon" @click="openEmojiPicker" title="表情"></i>
         <EmojiPicker
           :visible="showEmojiPicker"
           @select="handleEmojiSelect"
@@ -23,24 +23,31 @@
         />
       </div>
       <!-- 图片图标 -->
-      <i class="fas fa-image icon" @click="openImagePicker"></i>
+      <i class="fas fa-image icon" @click="openImagePicker" title="图片"></i>
       <!-- 红包图标 -->
-      <i class="fas fa-gift icon" @click="openRedPacketDialog"></i>
+      <i class="fas fa-gift icon" @click="openRedPacketDialog" title="红包"></i>
       <!-- 弹幕图标 -->
-      <i class="fas fa-comment-dots icon" @click="openDanmakuDialog"></i>
+      <i
+        class="fas fa-comment-dots icon"
+        @click="openDanmakuDialog"
+        title="弹幕"
+      ></i>
       <!-- 小尾巴图标 -->
-      <i class="fas fa-pen-fancy icon" @click="openSignatureDialog"></i>
+      <i
+        class="fas fa-pen-fancy icon"
+        @click="openSignatureDialog"
+        title="小尾巴"
+      ></i>
     </div>
     <div class="input-wrapper">
-      <textarea
+      <div
         ref="textareaRef"
-        v-model="message"
-        placeholder=""
-        @keyup.enter.exact="sendMessage"
-        @keyup.enter.shift.exact="newLine"
+        class="input-content"
+        contenteditable="true"
+        @keydown="handleKeyDown"
         @input="handleInput"
         @focus="showEmojiPicker = false"
-      ></textarea>
+      ></div>
       <!-- @提及用户列表 -->
       <div v-if="showMentionList" class="mention-list">
         <div
@@ -133,8 +140,6 @@ onUnmounted(() => {
 
 // 处理粘贴事件
 const handlePaste = async (e) => {
-  console.log("开始粘贴");
-
   const items = e.clipboardData?.items;
   if (!items) return;
 
@@ -142,13 +147,38 @@ const handlePaste = async (e) => {
     if (item.type.indexOf("image") !== -1) {
       e.preventDefault();
       const file = item.getAsFile();
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        // 使用utools API粘贴图片
-        console.log("粘贴图片");
-        utools.hideMainWindowPasteImage(reader.result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        // 显示加载提示
+        const loadingMessage = ElMessage({
+          message: "正在上传图片...",
+          type: "info",
+          duration: 0,
+          showClose: true,
+        });
+
+        // 使用现有的上传方法上传图片
+        const uploadRes = await userApi.uploadImage(file);
+        if (uploadRes.code === 0 && uploadRes.data.succMap) {
+          const newUrl = uploadRes.data.succMap[file.name];
+          if (newUrl) {
+            // 创建图片元素并设置样式
+            const img = document.createElement("img");
+            img.src = newUrl;
+            img.style.maxWidth = "120px";
+            img.style.verticalAlign = "middle";
+            img.style.margin = "0 4px";
+            img.style.objectFit = "contain";
+            document.execCommand("insertHTML", false, img.outerHTML);
+
+            // 关闭加载提示
+            loadingMessage.close();
+            ElMessage.success("图片上传成功");
+          }
+        }
+      } catch (error) {
+        console.error("上传图片失败:", error);
+        ElMessage.error("上传图片失败");
+      }
       return;
     }
   }
@@ -159,18 +189,24 @@ const focus = () => {
 };
 
 const insertAtUser = (userName) => {
-  const textarea = textareaRef.value;
-  if (!textarea) return;
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  const before = message.value.slice(0, start);
-  const after = message.value.slice(end);
-  message.value = before + "@" + userName + " " + after;
-  nextTick(() => {
-    textarea.focus();
-    const pos = before.length + userName.length + 2;
-    textarea.setSelectionRange(pos, pos);
-  });
+  console.log("insertAtUser", userName);
+  const selection = window.getSelection();
+  const range = selection.getRangeAt(0);
+  const text = `@${userName} `; // 确保用户名后面有空格
+  range.deleteContents();
+
+  // 使用innerHTML来插入内容，这样可以保持空格
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = text.replace(/ /g, "&nbsp;");
+  range.insertNode(tempDiv.firstChild);
+
+  range.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  textareaRef.value.focus();
+
+  // 更新消息内容
+  message.value = textareaRef.value.innerHTML.replace(/&nbsp;/g, " ");
 };
 
 // 插入话题
@@ -185,7 +221,7 @@ const quoteContent = computed(() => {
   const temp = document.createElement("div");
   temp.innerHTML = quoteData.value.content;
   const text = temp.innerText;
-  const maxLength = 40; // 最大显示长度
+  const maxLength = 20; // 最大显示长度
   if (text.length > maxLength) {
     return `${quoteData.value.userName}：${text.slice(0, maxLength)}...`;
   }
@@ -216,13 +252,14 @@ defineExpose({
 });
 
 // 处理输入事件
-const handleInput = () => {
+const handleInput = (e) => {
+  // 将&nbsp;转换回空格
+  message.value = e.target.innerHTML.replace(/&nbsp;/g, " ");
   const text = message.value;
   const lastAtIndex = text.lastIndexOf("@");
 
   if (lastAtIndex !== -1) {
     const textAfterAt = text.slice(lastAtIndex + 1);
-    // 只要输入了@就显示用户列表
     if (!textAfterAt.includes(" ")) {
       showMentionList.value = true;
       mentionStartIndex.value = lastAtIndex;
@@ -257,14 +294,35 @@ const selectMention = (user) => {
   const afterMention = message.value
     .slice(mentionStartIndex.value + 1)
     .replace(/[^ ]*$/, "");
-  message.value = `${beforeMention}@${user.userName} ${afterMention}`;
+  const mentionText = `@${user.userName} `; // 确保用户名后面有空格
+  message.value = `${beforeMention}${mentionText}${afterMention}`;
+
+  // 使用innerHTML来保持空格
+  textareaRef.value.innerHTML = message.value.replace(/ /g, "&nbsp;");
   showMentionList.value = false;
+
+  // 设置光标位置到@用户名后面
+  const range = document.createRange();
+  const sel = window.getSelection();
+  const textNode = textareaRef.value.firstChild || textareaRef.value;
+  const newPosition = mentionStartIndex.value + mentionText.length;
+  range.setStart(textNode, newPosition);
+  range.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(range);
+
   textareaRef.value?.focus();
 };
 
 const sendMessage = () => {
   if (message.value.trim()) {
     let content = message.value;
+
+    // 检查是否为图片链接
+    const imageUrlPattern = /^(https?:\/\/.*\.(jpg|jpeg|png|gif|webp))$/i;
+    if (imageUrlPattern.test(content.trim())) {
+      content = `![图片](${content.trim()})`;
+    }
 
     // 处理引用消息
     if (quoteData.value) {
@@ -280,28 +338,83 @@ const sendMessage = () => {
 
     // 添加小尾巴
     if (signature.value) {
-      content = `${content}\n\n---\n${signature.value}`;
+      const trimmedContent = content.trim();
+      const shouldAddSignature =
+        trimmedContent.length > 0 &&
+        !trimmedContent.startsWith("凌 ") &&
+        !trimmedContent.startsWith("鸽 ") &&
+        !trimmedContent.startsWith("小冰 ") &&
+        !trimmedContent.startsWith("点歌 ") &&
+        !trimmedContent.startsWith("TTS ") &&
+        !trimmedContent.startsWith("朗读 ");
+
+      if (shouldAddSignature) {
+        content = `${content}\n\n> ${signature.value}`;
+      }
     }
 
     emit("send-message", content);
     message.value = "";
+    textareaRef.value.innerHTML = "";
     quotedTopic.value = "";
     currentTopic.value = "";
-    quoteData.value = null; // 发送后清除引用
+    quoteData.value = null;
   }
 };
 
 const newLine = () => {
-  message.value += "\n";
+  document.execCommand("insertLineBreak");
 };
 
 const openEmojiPicker = () => {
-  showEmojiPicker.value = true;
+  showEmojiPicker.value = !showEmojiPicker.value;
 };
 
+// 处理表情选择
 const handleEmojiSelect = (emoji) => {
   if (typeof emoji === "string") {
-    message.value += emoji;
+    console.log(emoji);
+
+    // 检查是否是图片链接
+    const imageUrlPattern = /^(https?:\/\/.*\.(jpg|jpeg|png|gif|webp))$/i;
+    if (imageUrlPattern.test(emoji.trim())) {
+      // 创建图片元素
+      const img = document.createElement("img");
+      img.src = emoji.trim();
+      img.style.maxWidth = "120px";
+      img.style.verticalAlign = "middle";
+      img.style.margin = "0 4px";
+      img.style.objectFit = "contain";
+
+      // 在光标位置插入图片
+      const inputContent = textareaRef.value;
+      const currentContent = inputContent.innerHTML;
+      inputContent.innerHTML = currentContent + img.outerHTML;
+      // 更新输入框内容
+      message.value = inputContent.innerHTML;
+      // 保持焦点并将光标移到末尾
+      inputContent.focus();
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(inputContent);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } else {
+      const inputContent = textareaRef.value;
+      const currentContent = inputContent.innerHTML;
+      inputContent.innerHTML = currentContent + emoji;
+      // 更新输入框内容
+      message.value = inputContent.innerHTML;
+      // 保持焦点并将光标移到末尾
+      inputContent.focus();
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(inputContent);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
   } else {
     emit("select-emoji", emoji);
   }
@@ -360,6 +473,14 @@ const openSignatureDialog = () => {
 
 const handleSignatureSave = (newSignature) => {
   signature.value = newSignature;
+};
+
+// 处理按键事件
+const handleKeyDown = (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
 };
 </script>
 
@@ -491,41 +612,7 @@ const handleSignatureSave = (newSignature) => {
   z-index: 1000;
 }
 
-.quoted-topic {
-  background-color: #fff;
-  border-radius: 4px;
-  padding: 6px 12px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  border: 1px solid #e8e8e8;
-}
-
-.quoted-topic-label {
-  color: #999;
-  font-size: 13px;
-  margin-right: 4px;
-}
-
-.quoted-topic-text {
-  color: #1890ff;
-  font-size: 13px;
-  flex: 1;
-  margin-right: 8px;
-}
-
-.close-icon {
-  color: #999;
-  cursor: pointer;
-  font-size: 12px;
-  transition: color 0.2s ease;
-  padding: 4px;
-}
-
-.close-icon:hover {
-  color: #666;
-}
-
+.quoted-topic,
 .quoted-message {
   background-color: #f5f7fa;
   padding: 8px 12px;
@@ -534,14 +621,18 @@ const handleSignatureSave = (newSignature) => {
   display: flex;
   align-items: flex-start;
   gap: 8px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
+.quoted-topic-label,
 .quoted-message-label {
   color: #666;
   font-size: 13px;
   white-space: nowrap;
 }
 
+.quoted-topic-text,
 .quoted-message-content {
   flex: 1;
   color: #333;
@@ -549,5 +640,57 @@ const handleSignatureSave = (newSignature) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.close-icon {
+  color: #999;
+  cursor: pointer;
+  font-size: 12px;
+  transition: color 0.2s ease;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.close-icon:hover {
+  color: #666;
+}
+
+.input-content {
+  width: 100%;
+  min-height: 60px;
+  max-height: 100px;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-y: auto;
+  outline: none;
+  caret-color: #1890ff;
+}
+
+.input-content:focus {
+  outline: none;
+}
+
+/* 自定义滚动条样式 */
+.input-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.input-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.input-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.input-content::-webkit-scrollbar-thumb:hover {
+  background: #999;
 }
 </style>
