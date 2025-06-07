@@ -25,7 +25,7 @@ export const chatApi = {
   sendMessage(content) {
     return request.post("/chat-room/send", {
       content,
-      client: "PC/utools V1.0.0",
+      client: import.meta.env.VITE_CLIENT,
     });
   },
 
