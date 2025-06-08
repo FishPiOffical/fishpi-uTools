@@ -1,7 +1,12 @@
 <template>
   <div class="moon-container">
     <div class="moon-header">
-      <h2>清风明月</h2>
+      <h2>
+        清风明月
+        <el-tooltip content="点击查看什么是清风明月" placement="top">
+          <span class="help-icon" @click="openHelpLink">?</span>
+        </el-tooltip>
+      </h2>
     </div>
 
     <div class="moon-list" ref="moonListRef">
@@ -63,6 +68,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { breezemoonApi } from "../api";
 import PublishBreezemoon from "../components/PublishBreezemoon.vue";
+import { ElTooltip } from "element-plus";
 
 const breezemoons = ref([]);
 const loading = ref(false);
@@ -135,6 +141,11 @@ const handlePublishSuccess = () => {
   if (moonListRef.value) {
     moonListRef.value.scrollTop = 0;
   }
+};
+
+// 打开帮助链接
+const openHelpLink = () => {
+  utools.shellOpenExternal("https://fishpi.cn/article/1630938317106");
 };
 
 onMounted(() => {
@@ -390,5 +401,25 @@ onUnmounted(() => {
   color: #666;
   font-size: 24px;
   transition: color 0.3s;
+}
+
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  color: #6b7280;
+  font-size: 12px;
+  margin-left: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.help-icon:hover {
+  background-color: #d1d5db;
+  color: #4b5563;
 }
 </style>
