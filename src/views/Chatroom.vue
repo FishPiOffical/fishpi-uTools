@@ -1,10 +1,10 @@
 <template>
   <div class="chatroom-container">
     <div class="chat-area">
-      <!-- ChatHeader component will go here -->
+      <!-- 聊天头部组件 -->
       <ChatHeader />
 
-      <!-- MessageList component will go here -->
+      <!-- 消息列表组件 -->
       <MessageList
         :messages="messages"
         :is-loading-more="isLoadingMore"
@@ -16,7 +16,7 @@
         @add-emoji="handleAddEmoji"
       />
 
-      <!-- MessageInput component will go here -->
+      <!-- 消息输入组件 -->
       <RoomChatInput
         ref="chatInputRef"
         :online-users="onlineUsers"
@@ -28,7 +28,7 @@
     </div>
 
     <div class="sidebar">
-      <!-- Sidebar component will go here -->
+      <!-- 侧边栏组件 -->
       <Sidebar
         :online-users="onlineUsers"
         :current-topic="currentTopic"
@@ -58,13 +58,13 @@ const currentPage = ref(1);
 const isLoadingMore = ref(false);
 const hasMoreMessages = ref(true);
 
-// 新增：在线用户和话题
+// 在线用户和话题
 const onlineUsers = ref([]);
 const currentTopic = ref("");
 
 const userStore = useUserStore();
 
-// 新增：消息处理器映射
+// 消息处理器映射
 const messageHandlers = {
   online: (data) => {
     console.log("处理在线用户消息:", data);
@@ -368,7 +368,7 @@ const handleAtUser = (userName) => {
   chatInputRef.value?.insertAtUser(userName);
 };
 
-// 新增：处理+1按钮
+// 处理+1按钮
 const handleSendSameMessage = (content) => {
   handleSendMessage(content);
 };
