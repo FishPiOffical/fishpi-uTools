@@ -1,5 +1,5 @@
 <template>
-  <div v-if="visible" class="danmaku-dialog">
+  <div v-if="visible" class="danmaku-dialog" @click.self="handleClose">
     <div class="danmaku-content">
       <div class="dialog-header">
         <h3>发送弹幕</h3>
@@ -68,9 +68,9 @@ const handleSend = () => {
 
 .danmaku-content {
   background: white;
-  border-radius: 12px;
-  width: 400px;
-  padding: 24px;
+  border-radius: 8px;
+  width: 380px;
+  padding: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   animation: slideUp 0.3s ease;
 }
@@ -79,51 +79,41 @@ const handleSend = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 16px;
 }
 
 .dialog-header h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   color: #333;
-  font-weight: 600;
 }
 
 .close-icon {
   cursor: pointer;
-  font-size: 18px;
   color: #999;
-  transition: color 0.3s;
-  padding: 4px;
-}
-
-.close-icon:hover {
-  color: #666;
 }
 
 .dialog-body {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .dialog-body textarea {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #e8e8e8;
-  border-radius: 8px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   resize: none;
+  margin-bottom: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  transition: all 0.3s;
-  background: #fafafa;
+  color: #333;
 }
 
 .dialog-body textarea:focus {
   outline: none;
   border-color: #1890ff;
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
 }
 
 .text-count {
@@ -152,25 +142,16 @@ const handleSend = () => {
 }
 
 .dialog-footer button {
-  padding: 8px 24px;
+  padding: 6px 16px;
   background-color: #1890ff;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s;
 }
 
 .dialog-footer button:hover {
   background-color: #40a9ff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
-}
-
-.dialog-footer button:active {
-  transform: translateY(0);
 }
 
 @keyframes fadeIn {
