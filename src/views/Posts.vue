@@ -14,6 +14,11 @@
       </div>
     </div>
 
+    <!-- 发帖按钮 -->
+    <div class="publish-btn" @click="goToPublish">
+      <i class="fas fa-pen"></i>
+    </div>
+
     <div class="posts-list" ref="postsListRef">
       <div v-if="loading && articles.length === 0" class="loading">
         <div class="loading-spinner"></div>
@@ -272,6 +277,11 @@ onBeforeRouteLeave((to, from, next) => {
   }
   next();
 });
+
+// 跳转到发帖页面
+const goToPublish = () => {
+  utools.shellOpenExternal("https://fishpi.cn/pre-post");
+};
 
 onMounted(() => {
   console.log("Posts组件挂载");
@@ -572,5 +582,36 @@ onUnmounted(() => {
   padding: 24px;
   color: #64748b;
   font-size: 0.875rem;
+}
+
+.publish-btn {
+  position: fixed;
+  right: 25px;
+  bottom: 35px;
+  width: 56px;
+  height: 56px;
+  background-color: #ff9800;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+  z-index: 100;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.publish-btn:hover {
+  background-color: #f57c00;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.publish-btn i {
+  font-size: 24px;
+  color: #fff;
 }
 </style>
