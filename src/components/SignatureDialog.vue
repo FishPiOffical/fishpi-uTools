@@ -1,5 +1,5 @@
 <template>
-  <div v-if="visible" class="signature-dialog">
+  <div v-if="visible" class="signature-dialog" @click.self="handleClose">
     <div class="signature-content">
       <div class="dialog-header">
         <h3>小尾巴</h3>
@@ -125,6 +125,7 @@ const generateRandomQuote = async () => {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: fadeIn 0.3s ease;
 }
 
 .signature-content {
@@ -132,6 +133,8 @@ const generateRandomQuote = async () => {
   border-radius: 8px;
   width: 380px;
   padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s ease;
 }
 
 .dialog-header {
@@ -324,5 +327,25 @@ textarea:focus {
 
 .message-row-self .message-text :deep(blockquote) {
   background-color: #f0f7ff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 </style>
