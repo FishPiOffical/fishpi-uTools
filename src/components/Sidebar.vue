@@ -124,7 +124,7 @@ const handleTopicClick = () => {
 .sidebar-container {
   padding: 0; /* 移除容器内边距，由内部section控制 */
   width: 150px; /* 根据 Chatroom.vue 中的样式调整 */
-  background-color: #f8f9fa; /* 根据 Chatroom.vue 中的样式调整 */
+  background-color: #fff; /* 根据 Chatroom.vue 中的样式调整 */
   border-left: 1px solid #eee; /* 添加左侧边框 */
   display: flex; /* 使用flex布局 */
   flex-direction: column; /* 垂直排列子元素 */
