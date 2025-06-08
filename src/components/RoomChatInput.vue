@@ -47,6 +47,7 @@
         @keydown="handleKeyDown"
         @input="handleInput"
         @focus="showEmojiPicker = false"
+        @click="handleImageClick"
       ></div>
       <!-- @提及用户列表 -->
       <div v-if="showMentionList" class="mention-list">
@@ -82,6 +83,13 @@
       @close="showSignatureDialog = false"
       @save="handleSignatureSave"
     />
+    <!-- 图片预览组件 -->
+    <vue-easy-lightbox
+      :visible="previewVisible"
+      :imgs="previewImages"
+      :index="previewIndex"
+      @hide="previewVisible = false"
+    />
   </div>
 </template>
 
@@ -101,6 +109,7 @@ import DanmakuDialog from "./DanmakuDialog.vue";
 import SignatureDialog from "./SignatureDialog.vue";
 import { userApi } from "../api/user";
 import { ElMessage } from "element-plus";
+import VueEasyLightbox from "vue-easy-lightbox";
 
 const props = defineProps({
   onlineUsers: {
@@ -128,6 +137,11 @@ const emit = defineEmits([
 ]);
 
 const textareaRef = ref(null);
+
+// 图片预览相关
+const previewVisible = ref(false);
+const previewImages = ref([]);
+const previewIndex = ref(0);
 
 // 添加粘贴事件监听
 onMounted(() => {
@@ -165,9 +179,10 @@ const handlePaste = async (e) => {
             const img = document.createElement("img");
             img.src = newUrl;
             img.style.maxWidth = "120px";
-            img.style.verticalAlign = "middle";
+            img.style.verticalAlign = "text-bottom";
             img.style.margin = "0 4px";
             img.style.objectFit = "contain";
+            img.style.cursor = "pointer";
             document.execCommand("insertHTML", false, img.outerHTML);
 
             // 关闭加载提示
@@ -189,6 +204,7 @@ const focus = () => {
 };
 
 const insertAtUser = (userName) => {
+  textareaRef.value?.focus();
   console.log("insertAtUser", userName);
   const selection = window.getSelection();
   const range = selection.getRangeAt(0);
@@ -382,9 +398,10 @@ const handleEmojiSelect = (emoji) => {
       const img = document.createElement("img");
       img.src = emoji.trim();
       img.style.maxWidth = "120px";
-      img.style.verticalAlign = "middle";
+      img.style.verticalAlign = "text-bottom";
       img.style.margin = "0 4px";
       img.style.objectFit = "contain";
+      img.style.cursor = "pointer";
 
       // 在光标位置插入图片
       const inputContent = textareaRef.value;
@@ -480,6 +497,21 @@ const handleKeyDown = (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     sendMessage();
+  }
+};
+
+// 处理图片点击
+const handleImageClick = (e) => {
+  if (e.target.tagName === "IMG") {
+    const imgSrc = e.target.src;
+    const allImages = Array.from(
+      document.querySelectorAll(".input-content img")
+    ).map((img) => ({
+      src: img.src,
+    }));
+    previewIndex.value = allImages.findIndex((img) => img.src === imgSrc);
+    previewImages.value = allImages;
+    previewVisible.value = true;
   }
 };
 </script>
@@ -669,10 +701,18 @@ const handleKeyDown = (e) => {
   overflow-y: auto;
   outline: none;
   caret-color: #1890ff;
+  display: inline-block;
 }
 
-.input-content:focus {
-  outline: none;
+.input-content img {
+  vertical-align: text-bottom;
+  margin: 0 4px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.input-content img:hover {
+  transform: scale(1.02);
 }
 
 /* 自定义滚动条样式 */
