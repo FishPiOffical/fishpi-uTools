@@ -110,6 +110,7 @@ import SignatureDialog from "./SignatureDialog.vue";
 import { userApi } from "../api/user";
 import { ElMessage } from "element-plus";
 import VueEasyLightbox from "vue-easy-lightbox";
+import { useUserStore } from "../stores/user";
 
 const props = defineProps({
   onlineUsers: {
@@ -121,6 +122,7 @@ const props = defineProps({
 const message = ref("");
 const showEmojiPicker = ref(false);
 const showRedPacketDialog = ref(false);
+const userStore = useUserStore();
 const showMentionList = ref(false);
 const mentionStartIndex = ref(-1);
 const quotedTopic = ref("");
@@ -146,10 +148,27 @@ const previewIndex = ref(0);
 // 添加粘贴事件监听
 onMounted(() => {
   textareaRef.value?.addEventListener("paste", handlePaste);
+
+  // 获取当前用户的小尾巴
+  const savedSignatures = utools.dbStorage.getItem("fishpi_signatures") || {};
+  const currentUsername = userStore.userInfo?.userName;
+  signature.value = currentUsername
+    ? savedSignatures[currentUsername] || ""
+    : savedSignatures.default || "";
+
+  // 监听账号切换事件
+  window.addEventListener("fishpi:account-switched", () => {
+    const savedSignatures = utools.dbStorage.getItem("fishpi_signatures") || {};
+    const currentUsername = userStore.userInfo?.userName;
+    signature.value = currentUsername
+      ? savedSignatures[currentUsername] || ""
+      : savedSignatures.default || "";
+  });
 });
 
 onUnmounted(() => {
   textareaRef.value?.removeEventListener("paste", handlePaste);
+  window.removeEventListener("fishpi:account-switched", () => {});
 });
 
 // 处理粘贴事件
