@@ -94,10 +94,6 @@
       <div class="comments-area">
         <div class="comments-header">
           <h3>评论</h3>
-          <button class="comment-btn" @click="showCommentDialog = true">
-            <i class="fas fa-edit"></i>
-            <span>写评论</span>
-          </button>
         </div>
 
         <!-- 评论列表 -->
@@ -324,6 +320,11 @@
   <div class="back-to-list" @click="goBack">
     <i class="fas fa-arrow-left"></i>
     <span>返回列表</span>
+  </div>
+  <!-- 添加写评论悬浮按钮 -->
+  <div class="write-comment" @click="showCommentDialog = true">
+    <i class="fas fa-edit"></i>
+    <span>写评论</span>
   </div>
   <!-- 在 template 最后添加图片预览组件 -->
   <vue-easy-lightbox
@@ -1617,6 +1618,67 @@ const handleContentClick = (e) => {
 }
 
 .back-to-list:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+}
+
+/* 添加写评论悬浮按钮样式 */
+.write-comment {
+  position: fixed;
+  right: 32px;
+  bottom: 96px; /* 调整位置到返回按钮上方 */
+  background: #ff9800;
+  color: #fff;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  overflow: hidden;
+  will-change: width, border-radius, transform;
+}
+
+.write-comment:hover {
+  width: 120px;
+  border-radius: 24px;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 152, 0, 0.3);
+}
+
+.write-comment i {
+  font-size: 20px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.write-comment span {
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  width: 0;
+  white-space: nowrap;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(-10px);
+}
+
+.write-comment:hover span {
+  opacity: 1;
+  width: auto;
+  margin-left: 6px;
+  transform: translateX(0);
+}
+
+.write-comment:hover i {
+  font-size: 16px;
+  transform: scale(0.9);
+}
+
+.write-comment:active {
   transform: translateY(0);
   box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
 }
