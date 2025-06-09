@@ -507,11 +507,11 @@ const groupedMessages = computed(() => {
       groups.push({
         ...buffer[0],
         isGrouped: true,
-        groupUsers: buffer.map((m) => ({
+        groupUsers: buffer.slice(1).map((m) => ({
           userName: m.userName,
           userAvatarURL48: m.userAvatarURL48,
         })),
-        groupCount: buffer.length,
+        groupCount: buffer.length - 1,
       });
     } else {
       groups.push(...buffer);
