@@ -1221,7 +1221,6 @@ onMounted(() => {
   overflow-y: auto;
   padding: 10px;
   background-color: #f5f7fa;
-  position: relative; /* 添加相对定位，作为弹幕容器的定位参考 */
 }
 
 .messages {
