@@ -50,8 +50,9 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { ElMessage } from "element-plus";
+import { useUserStore } from "../stores/user";
 
 const props = defineProps({
   visible: {
@@ -67,14 +68,59 @@ const props = defineProps({
 const emit = defineEmits(["close", "save"]);
 const signatureContent = ref(props.defaultSignature);
 const isLoading = ref(false);
+const userStore = useUserStore();
 
 const handleClose = () => {
   emit("close");
 };
 
+// 获取当前用户的小尾巴
+const getUserSignature = () => {
+  const savedSignatures = utools.dbStorage.getItem("fishpi_signatures") || {};
+  const currentUsername = userStore.userInfo?.userName;
+  return currentUsername
+    ? savedSignatures[currentUsername] || ""
+    : savedSignatures;
+};
+
+// 保存当前用户的小尾巴
+const saveUserSignature = (signature) => {
+  const savedSignatures = utools.dbStorage.getItem("fishpi_signatures") || {};
+  const currentUsername = userStore.userInfo?.userName;
+
+  if (currentUsername) {
+    savedSignatures[currentUsername] = signature;
+  } else {
+    Object.assign(savedSignatures, { default: signature });
+  }
+
+  utools.dbStorage.setItem("fishpi_signatures", savedSignatures);
+};
+
+onMounted(() => {
+  // 从 utools.dbStorage 获取保存的小尾巴
+  const userSignature = getUserSignature();
+  signatureContent.value = userSignature || props.defaultSignature;
+
+  // 监听账号切换事件
+  window.addEventListener("fishpi:account-switched", () => {
+    // 重新加载用户小尾巴
+    const userSignature = getUserSignature();
+    signatureContent.value = userSignature || props.defaultSignature;
+  });
+});
+
 const handleSave = () => {
+  saveUserSignature(signatureContent.value);
   emit("save", signatureContent.value);
   handleClose();
+
+  ElMessage({
+    message: "小尾巴已保存",
+    type: "success",
+    duration: 2000,
+    showClose: true,
+  });
 };
 
 // 随机生成诗句/名言
