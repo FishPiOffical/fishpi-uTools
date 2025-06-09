@@ -447,6 +447,15 @@ const newMessageCount = ref(0);
 const lastMessageCount = ref(0);
 const isReceiving = ref(false);
 const router = useRouter();
+const isPageVisible = ref(true);
+
+// 监听页面可见性变化
+onMounted(() => {
+  document.addEventListener("visibilitychange", () => {
+    console.log("页面监听页面可见性变化");
+    isPageVisible.value = document.visibilityState === "visible";
+  });
+});
 
 // 时间分隔阈值（分钟）
 const TIME_SEPARATOR_THRESHOLD_MINUTES = 5;
@@ -568,6 +577,12 @@ watch(
         return;
       }
 
+      // 如果页面不可见，不处理新消息
+      if (!isPageVisible.value) {
+        console.log("页面不可见，不处理新消息");
+        return;
+      }
+
       // 保存当前滚动位置
       const scrollHeight = messageListRef.value?.scrollHeight || 0;
       const scrollTop = messageListRef.value?.scrollTop || 0;
@@ -656,6 +671,7 @@ watch(
               const newCount = newMessages.length - oldMessages.length;
               if (newCount > 0) {
                 newMessageCount.value += newCount;
+                lastMessageCount.value = newMessageCount.value; // 保存原始消息数量
               }
             }
           }
@@ -678,13 +694,27 @@ const scrollToBottom = () => {
 // 处理滚动事件
 const handleScroll = () => {
   if (messageListRef.value) {
-    const { scrollTop } = messageListRef.value;
+    const { scrollTop, scrollHeight, clientHeight } = messageListRef.value;
+    const distanceToBottom = scrollHeight - scrollTop - clientHeight;
     checkIfAtBottom();
 
     // 如果滚动到底部，清除新消息提示
     if (isAtBottom.value) {
       hasNewMessages.value = false;
       newMessageCount.value = 0;
+    } else if (hasNewMessages.value && newMessageCount.value > 0) {
+      // 计算滚动比例，用于动态更新新消息数量
+      const maxDistance = 500; // 最大滚动距离阈值
+      const scrollRatio = Math.min(distanceToBottom / maxDistance, 1);
+      const originalCount = lastMessageCount.value;
+      const newCount = Math.max(Math.floor(originalCount * scrollRatio), 0);
+
+      if (newCount !== newMessageCount.value) {
+        newMessageCount.value = newCount;
+        if (newCount === 0) {
+          hasNewMessages.value = false;
+        }
+      }
     }
 
     if (scrollTop === 0 && !props.isLoadingMore && props.hasMoreMessages) {
