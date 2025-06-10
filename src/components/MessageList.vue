@@ -380,6 +380,7 @@
       :visible="showContextMenu"
       :x="contextMenuX"
       :y="contextMenuY"
+      :items="userContextMenuItems"
       @action="handleContextMenuAction"
     />
 
@@ -1243,6 +1244,13 @@ const handleRevokeMessage = async (item) => {
 onMounted(() => {
   scrollToBottom();
 });
+
+const userContextMenuItems = computed(() => [
+  { label: "发送消息", action: "message", icon: "fas fa-comment-dots" },
+  { label: "@TA", action: "at", icon: "fas fa-at" },
+  { divider: true },
+  { label: "查看资料", action: "profile", icon: "fas fa-user" },
+]);
 </script>
 
 <style scoped>
