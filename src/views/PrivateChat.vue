@@ -86,6 +86,7 @@
                   'message-row-self':
                     item.senderUserName === userStore.userInfo?.userName,
                 }"
+                @contextmenu.prevent="handleContextMenu($event, item)"
               >
                 <img
                   :src="item.senderAvatar"
@@ -198,6 +199,15 @@
       :index="previewIndex"
       @hide="previewVisible = false"
     />
+
+    <!-- 使用 MsgContextMenu 组件 -->
+    <MsgContextMenu
+      :visible="contextMenuVisible"
+      :x="contextMenuX"
+      :y="contextMenuY"
+      :items="contextMenuItems"
+      @action="handleContextMenuAction"
+    />
   </div>
 </template>
 
@@ -211,6 +221,7 @@ import wsManager from "../utils/websocket";
 import { useRoute } from "vue-router";
 import VueEasyLightbox from "vue-easy-lightbox";
 import { ElMessage } from "element-plus";
+import MsgContextMenu from "../components/MsgContextMenu.vue";
 
 // Import the new ChatInput component
 import ChatInput from "../components/ChatInput.vue";
@@ -246,6 +257,34 @@ const searchTimeout = ref(null);
 const previewVisible = ref(false);
 const previewImages = ref([]);
 const previewIndex = ref(0);
+
+// 右键菜单相关状态
+const contextMenuVisible = ref(false);
+const contextMenuX = ref(0);
+const contextMenuY = ref(0);
+const selectedMessage = ref(null);
+
+// 右键菜单选项
+const contextMenuItems = computed(() => {
+  const items = [
+    {
+      label: "复制",
+      action: "copy",
+      icon: "fas fa-copy",
+    },
+  ];
+
+  // 如果消息包含图片，添加"添加表情"选项
+  if (selectedMessage.value?.content?.includes("<img")) {
+    items.push({
+      label: "添加表情",
+      action: "addEmoji",
+      icon: "fas fa-smile",
+    });
+  }
+
+  return items;
+});
 
 // 更新聊天列表中的消息预览
 const updateChatPreview = (userSession, content) => {
@@ -775,6 +814,98 @@ const handleImageLoad = () => {
   }
 };
 
+// 处理右键菜单
+const handleContextMenu = (event, message) => {
+  selectedMessage.value = message;
+  contextMenuX.value = event.clientX;
+  contextMenuY.value = event.clientY;
+  contextMenuVisible.value = true;
+
+  // 点击其他地方关闭菜单
+  const closeMenu = () => {
+    contextMenuVisible.value = false;
+    document.removeEventListener("click", closeMenu);
+  };
+  document.addEventListener("click", closeMenu);
+};
+
+// 处理右键菜单动作
+const handleContextMenuAction = async (action) => {
+  if (!selectedMessage.value) return;
+
+  switch (action) {
+    case "copy":
+      // 移除HTML标签，保留纯文本
+      const text = selectedMessage.value.content.replace(/<[^>]+>/g, "");
+      try {
+        await navigator.clipboard.writeText(text);
+        ElMessage.success("复制成功");
+      } catch {
+        ElMessage.error("复制失败");
+      }
+      break;
+
+    case "addEmoji":
+      try {
+        // 从消息内容中提取图片URL
+        const match = selectedMessage.value.content.match(
+          /<img[^>]+src=["']([^"']+)["']/
+        );
+        if (!match || !match[1]) {
+          ElMessage.warning("无法提取表情图片地址");
+          return;
+        }
+
+        const imgSrc = match[1];
+        // 获取当前表情包列表
+        const res = await userApi.getEmotionPack("emojis");
+
+        if (res.code !== 0) {
+          ElMessage.error("获取表情包列表失败");
+          return;
+        }
+
+        // 解析表情包数据，处理空数据的情况
+        let urls = [];
+        try {
+          urls = res.data ? JSON.parse(res.data) : [];
+          if (!Array.isArray(urls)) {
+            urls = [];
+          }
+        } catch (e) {
+          console.warn("解析表情包数据失败，将使用空数组", e);
+          urls = [];
+        }
+
+        // 检查是否已存在相同的表情
+        if (urls.includes(imgSrc)) {
+          ElMessage.warning("该表情已存在");
+          return;
+        }
+
+        // 添加新的图片URL
+        urls.push(imgSrc);
+
+        // 同步到服务器
+        const syncRes = await userApi.syncEmotionPack(
+          "emojis",
+          JSON.stringify(urls)
+        );
+        if (syncRes.code === 0) {
+          ElMessage.success("添加表情成功");
+        } else {
+          ElMessage.error("同步表情包失败");
+        }
+      } catch (error) {
+        console.error("添加表情失败:", error);
+        ElMessage.error("添加表情失败：" + (error.message || "未知错误"));
+      }
+      break;
+  }
+
+  contextMenuVisible.value = false;
+};
+
 onMounted(() => {
   loadChatList();
   // 自动发起私聊
@@ -1296,4 +1427,6 @@ onUnmounted(() => {
 .message-text :deep(img:hover) {
   transform: scale(1.02);
 }
+
+/* 删除之前的右键菜单相关样式 */
 </style>
