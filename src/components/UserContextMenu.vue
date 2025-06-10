@@ -5,19 +5,17 @@
     :style="{ top: y + 'px', left: x + 'px' }"
     @click.stop
   >
-    <div class="menu-item" @click="onAction('message')">
-      <i class="menu-icon fas fa-comment-dots"></i>
-      <span>发送消息</span>
-    </div>
-    <div class="menu-item" @click="onAction('at')">
-      <i class="menu-icon fas fa-at"></i>
-      <span>@TA</span>
-    </div>
-    <div class="menu-divider"></div>
-    <div class="menu-item" @click="onAction('profile')">
-      <i class="menu-icon fas fa-user"></i>
-      <span>查看资料</span>
-    </div>
+    <template v-for="(item, idx) in items" :key="idx">
+      <div
+        v-if="!item.divider"
+        class="menu-item"
+        @click="onAction(item.action)"
+      >
+        <i v-if="item.icon" :class="['menu-icon', item.icon]"></i>
+        <span>{{ item.label }}</span>
+      </div>
+      <div v-else class="menu-divider"></div>
+    </template>
   </div>
 </template>
 
@@ -26,6 +24,7 @@ const props = defineProps({
   visible: Boolean,
   x: Number,
   y: Number,
+  items: Array, // [{label, action, icon, divider}]
 });
 const emit = defineEmits(["action"]);
 function onAction(type) {
