@@ -53,10 +53,7 @@ const dialogVisible = ref(false);
 
 // 判断是否为新用户
 const isNewUser = () => {
-  return (
-    userStore.userInfo?.userPoint === 500 &&
-    userStore.userInfo?.userRole === "新人"
-  );
+  return userStore.userInfo?.userRole === "新人";
 };
 
 const openManual = () => {
