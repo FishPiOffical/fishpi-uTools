@@ -265,7 +265,11 @@ const quoteContent = computed(() => {
 
 // 设置引用消息
 const setQuote = (quote) => {
-  quoteData.value = quote;
+  quoteData.value = {
+    content: quote.md,
+    userName: quote.userName,
+    userNickname: quote.userNickname
+  };
 };
 
 // 清除引用消息
