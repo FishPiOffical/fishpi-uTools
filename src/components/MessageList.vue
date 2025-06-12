@@ -1042,15 +1042,14 @@ function handleMsgContextMenuAction(type) {
       ElMessage.success("复制成功");
     });
   } else if (type === "quote") {
-    emit("quote", item);
+    emit("quote", msgContextMenuItem.value);
   } else if (type === "at") {
     emit("at-user", item.userName);
   } else if (type === "repeat") {
     // 复读机功能
     const temp = document.createElement("div");
     temp.innerHTML = item.content;
-    const messageText = temp.innerText;
-    emit("send-same-message", messageText);
+    emit("send-same-message", item.md);
     ElMessage.success(" 复读成功");
   } else if (type === "add-emoji") {
     emit("add-emoji", item);
