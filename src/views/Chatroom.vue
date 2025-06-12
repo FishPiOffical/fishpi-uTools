@@ -306,7 +306,7 @@ const handleLoadMore = () => {
 
 // 处理发送消息
 const handleSendMessage = async (content) => {
-  if (!content.trim()) return;
+  if (!content || !content.trim()) return;
 
   try {
     await chatApi.sendMessage(content);
@@ -370,6 +370,7 @@ const handleAtUser = (userName) => {
 
 // 处理+1按钮
 const handleSendSameMessage = (content) => {
+  if (!content) return;
   handleSendMessage(content);
 };
 
