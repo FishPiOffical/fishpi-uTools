@@ -46,7 +46,7 @@
             <el-input-number
               v-model="form.money"
               :min="1"
-              :max="1000"
+              :max="999999999"
               :default-value="32"
               controls-position="right"
             />
@@ -57,7 +57,7 @@
             <el-input-number
               v-model="form.count"
               :min="form.type === 'heartbeat' ? 5 : 1"
-              :max="100"
+              :max="9999999"
               :default-value="form.type === 'heartbeat' ? 5 : 2"
               controls-position="right"
               :disabled="form.type === 'specify'"
