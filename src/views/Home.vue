@@ -213,6 +213,15 @@ const handleMessage = (data) => {
     console.log("处理新私信消息");
     unreadPrivateCount.value++;
 
+    // 获取用户设置
+    const userSettings = utools.dbStorage.getItem("fishpi_settings") || {};
+    const currentUsername = userStore.userInfo?.userName;
+    const settings = currentUsername
+      ? userSettings[currentUsername] || {}
+      : userSettings;
+    const enableBackgroundNotification =
+      settings.enableBackgroundNotification !== false;
+
     // 如果页面可见，使用 ElMessage
     if (document.visibilityState === "visible") {
       ElMessage({
@@ -234,8 +243,8 @@ const handleMessage = (data) => {
           });
         },
       });
-    } else {
-      // 如果页面不可见，使用 utools 通知
+    } else if (enableBackgroundNotification) {
+      // 如果页面不可见且开启了后台通知，使用 utools 通知
       utools.showNotification(
         `收到来自 ${data.senderUserName} 的私信：${data.preview}`,
         "fishpi"
@@ -254,6 +263,15 @@ const handleMessage = (data) => {
         window.dispatchEvent(event);
       }
 
+      // 获取用户设置
+      const userSettings = utools.dbStorage.getItem("fishpi_settings") || {};
+      const currentUsername = userStore.userInfo?.userName;
+      const settings = currentUsername
+        ? userSettings[currentUsername] || {}
+        : userSettings;
+      const enableBackgroundNotification =
+        settings.enableBackgroundNotification !== false;
+
       // 如果页面可见，使用 ElMessage
       if (document.visibilityState === "visible") {
         ElMessage({
@@ -263,8 +281,8 @@ const handleMessage = (data) => {
           showClose: true,
           position: "top-right",
         });
-      } else {
-        // 如果页面不可见，使用 utools 通知
+      } else if (enableBackgroundNotification) {
+        // 如果页面不可见且开启了后台通知，使用 utools 通知
         utools.showNotification("有新的通知！", "fishpi");
       }
     }
