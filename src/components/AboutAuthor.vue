@@ -3,19 +3,38 @@
     <div class="modal-overlay" @click="close"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h3>关于作者</h3>
+        <h3>关于插件</h3>
         <button class="close-btn" @click="close">×</button>
       </div>
       <div class="modal-body">
-        <div class="author-info">
-          <h4>马达</h4>
-          <p>一个会点编程和热爱摸鱼的开发者</p>
+        <div class="section">
+          <h5>作者信息</h5>
+          <div class="author-info">
+            <h4>
+              <span class="cursor-link" @click="openExternalLink(LINKS.AUTHOR)"
+                >马达</span
+              >
+            </h4>
+            <p>热爱编程的摸鱼达人 | 开源爱好者</p>
+          </div>
+        </div>
+        <div class="section">
+          <h5>插件简介</h5>
           <p class="info-text">
-            嗨，我是马达！平时喜欢写写代码，摸摸鱼，捣鼓一些有趣的小工具。这个插件希望能让摸鱼的小伙伴们用得更顺手一些。如果你觉得这个插件还不错的话，欢迎给个好评和评论噢，这对我来说是最大的鼓励！
+            这是一个基于 uTools 平台的<span
+              class="cursor-link"
+              @click="openExternalLink(LINKS.FISHPI)"
+            >
+              摸鱼派 </span
+            >社区插件，基于开放 API
+            开发，让您可以更方便地访问和使用摸鱼派社区的功能。
+          </p>
+          <p class="info-text">
+            如果你觉得这个插件还不错，欢迎给个好评和评论，您的支持是我持续改进的最大动力！
           </p>
         </div>
-        <div class="project-links">
-          <h5>项目相关</h5>
+        <div class="section">
+          <h5>项目地址</h5>
           <div class="link-buttons">
             <button class="link-btn" @click="openExternalLink(LINKS.GITHUB)">
               <i class="fas fa-code-branch"></i> 开源仓库
@@ -25,6 +44,7 @@
             </button>
           </div>
         </div>
+
         <div class="cursor-ai-info-wrapper">
           <p class="ai-assisted-text">
             本项目由
@@ -62,7 +82,9 @@ const openExternalLink = (url) => {
 const LINKS = {
   GITHUB: "https://github.com/FishPiOffical/fishpi-uTools",
   ISSUES: "https://github.com/FishPiOffical/fishpi-uTools/issues",
-  CURSOR: "https://www.cursor.com/cn",
+  CURSOR: "https://www.cursor.com",
+  FISHPI: "https://fishpi.cn/",
+  AUTHOR: "https://fishpi.cn/member/otis1026",
 };
 </script>
 
@@ -116,9 +138,19 @@ const LINKS = {
   padding: 0 28px 28px;
 }
 
+.section {
+  margin-bottom: 28px;
+}
+
+.section h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1f36;
+  margin-bottom: 16px;
+}
+
 .author-info {
   text-align: left;
-  margin-bottom: 28px;
 }
 
 .author-info h4 {
@@ -135,23 +167,11 @@ const LINKS = {
   font-size: 0.95rem;
 }
 
-.author-info .info-text {
+.info-text {
   margin-top: 12px;
   color: #697386;
   font-size: 0.9rem;
   line-height: 1.6;
-}
-
-.project-links {
-  margin-top: 24px;
-  text-align: left;
-}
-
-.project-links h5 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1a1f36;
-  margin-bottom: 16px;
 }
 
 .link-buttons {
