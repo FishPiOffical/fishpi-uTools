@@ -1,6 +1,6 @@
 <template>
   <div class="chatroom-container">
-    <div class="chat-area">
+    <div class="chat-area" :class="{ 'full-width': !showSidebar }">
       <!-- 聊天头部组件 -->
       <ChatHeader />
 
@@ -27,7 +27,18 @@
       />
     </div>
 
-    <div class="sidebar">
+    <!-- 侧边栏切换按钮 -->
+    <div
+      class="sidebar-toggle"
+      :class="{ 'sidebar-hidden': !showSidebar }"
+      @click="toggleSidebar"
+    >
+      <i
+        :class="showSidebar ? 'fas fa-chevron-right' : 'fas fa-chevron-left'"
+      ></i>
+    </div>
+
+    <div class="sidebar" v-show="showSidebar">
       <!-- 侧边栏组件 -->
       <Sidebar
         :online-users="onlineUsers"
@@ -49,8 +60,10 @@ import wsManager from "../utils/websocket";
 import { useUserStore } from "../stores/user";
 import { userApi } from "../api/user";
 import { ElMessage } from "element-plus";
+import { ArrowLeft, ArrowRight } from "@element-plus/icons-vue";
 
 const chatInputRef = ref(null);
+const userStore = useUserStore();
 
 // 聊天室状态
 const messages = ref([]);
@@ -62,7 +75,41 @@ const hasMoreMessages = ref(true);
 const onlineUsers = ref([]);
 const currentTopic = ref("");
 
-const userStore = useUserStore();
+// 侧边栏状态
+const showSidebar = ref(true);
+
+// 获取用户设置
+const getUserSettings = () => {
+  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
+  const currentUsername = userStore.userInfo?.userName;
+  return currentUsername ? savedSettings[currentUsername] || {} : savedSettings;
+};
+
+// 切换侧边栏显示状态
+const toggleSidebar = () => {
+  showSidebar.value = !showSidebar.value;
+  // 保存到设置中
+  const userSettings = getUserSettings();
+  userSettings.defaultChatSidebarCollapsed = !showSidebar.value;
+  saveUserSettings(userSettings);
+};
+
+// 保存用户设置
+const saveUserSettings = (settings) => {
+  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
+  const currentUsername = userStore.userInfo?.userName;
+
+  if (currentUsername) {
+    savedSettings[currentUsername] = {
+      ...savedSettings[currentUsername],
+      ...settings,
+    };
+  } else {
+    Object.assign(savedSettings, settings);
+  }
+
+  utools.dbStorage.setItem("fishpi_settings", savedSettings);
+};
 
 // 消息处理器映射
 const messageHandlers = {
@@ -70,6 +117,8 @@ const messageHandlers = {
     console.log("处理在线用户消息:", data);
     onlineUsers.value = data.users || [];
     currentTopic.value = data.discussing || "";
+    // 保存在线用户列表到 utools.dbStorage
+    utools.dbStorage.setItem("fishpi_online_users", data.users || []);
   },
   msg: (data) => {
     console.log("处理聊天消息:", data);
@@ -441,7 +490,27 @@ const handleAddEmoji = async (item) => {
   }
 };
 
+// 定义账号切换处理函数
+const handleAccountSwitch = async () => {
+  // 断开旧的连接
+  wsManager.close("chat-room");
+  // 清空消息列表
+  messages.value = [];
+  currentPage.value = 1;
+  hasMoreMessages.value = true;
+  // 重新连接并加载消息
+  await connectWebSocket();
+  await loadMessages();
+  // 重新获取侧边栏状态
+  const userSettings = getUserSettings();
+  showSidebar.value = !userSettings.defaultChatSidebarCollapsed;
+};
+
 onMounted(() => {
+  // 从设置中获取侧边栏状态
+  const userSettings = getUserSettings();
+  showSidebar.value = !userSettings.defaultChatSidebarCollapsed;
+
   connectWebSocket();
   loadMessages();
   // 设置输入框焦点
@@ -450,53 +519,75 @@ onMounted(() => {
   });
 
   // 监听账号切换事件
-  window.addEventListener("fishpi:account-switched", async () => {
-    // 断开旧的连接
-    wsManager.close("chat-room");
-    // 清空消息列表
-    messages.value = [];
-    currentPage.value = 1;
-    hasMoreMessages.value = true;
-    // 重新连接并加载消息
-    await connectWebSocket();
-    await loadMessages();
-  });
+  window.addEventListener("fishpi:account-switched", handleAccountSwitch);
 });
 
 onUnmounted(() => {
   wsManager.close("chat-room");
   // 移除事件监听
-  window.removeEventListener("fishpi:account-switched", async () => {
-    wsManager.close("chat-room");
-    messages.value = [];
-    currentPage.value = 1;
-    hasMoreMessages.value = true;
-    await connectWebSocket();
-    await loadMessages();
-  });
+  window.removeEventListener("fishpi:account-switched", handleAccountSwitch);
 });
 </script>
 
 <style scoped>
 .chatroom-container {
-  display: flex; /* 使用 Flexbox 布局 */
-  height: 100vh; /* 填充整个视口高度 */
-  overflow: hidden; /* 防止内容溢出导致滚动条出现 */
-  background-color: #fff; /* 添加背景颜色 */
-  border-radius: 8px; /* 添加圆角 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 添加阴影 */
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 .chat-area {
-  flex: 1; /* 聊天区域占据剩余空间 */
+  flex: 1;
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.chat-area.full-width {
+  margin-right: 0;
 }
 
 .sidebar {
-  width: 150px; /* 侧边栏固定宽度 */
-  background-color: #f8f9fa; /* 给侧边栏一个背景色以便区分，与 PrivateChat 的 chat-list 背景相似 */
-  border-left: 1px solid #eee; /* 添加分隔线 */
+  width: 150px;
+  background-color: #f8f9fa;
+  border-left: 1px solid #eee;
+  transition: all 0.3s ease;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  right: 150px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 40px;
+  background-color: #f8f9fa;
+  border: 1px solid #eee;
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.sidebar-toggle.sidebar-hidden {
+  right: 0;
+}
+
+.sidebar-toggle:hover {
+  background-color: #e9ecef;
+}
+
+.sidebar-toggle i {
+  font-size: 12px;
+  color: #666;
 }
 
 /* 通知消息样式 */
