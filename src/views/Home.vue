@@ -331,7 +331,7 @@ onMounted(async () => {
 
   // 从 utools.dbStorage 获取导航栏状态
   const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
-  isCollapsed.value = savedSettings.defaultNavCollapsed || false;
+  isCollapsed.value = savedSettings.defaultNavCollapsed ?? true; // 默认收起
 
   // 如果未登录，跳转到登录页
   if (!userStore.isLoggedIn) {
