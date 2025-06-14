@@ -92,6 +92,7 @@
                   :src="item.senderAvatar"
                   alt="avatar"
                   class="message-avatar"
+                  @click="showUserProfile(item.senderUserName)"
                 />
                 <div class="message-bubble">
                   <div
@@ -175,7 +176,27 @@
           </template>
         </el-input>
 
-        <div v-if="searchResults.length > 0" class="search-results">
+        <!-- 在线用户列表 -->
+        <div v-if="!searchQuery" class="online-users-section">
+          <div class="section-title">
+            <i class="fas fa-circle text-success"></i>
+            <span>在线用户（{{ onlineUsers.length }}） </span>
+          </div>
+          <div class="online-users-list">
+            <div
+              v-for="user in onlineUsers"
+              :key="user.userName"
+              class="search-result-item"
+              @click="startChat(user)"
+            >
+              <img :src="user.userAvatarURL" alt="avatar" class="user-avatar" />
+              <span class="user-name">{{ user.userName }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 搜索结果 -->
+        <div v-else-if="searchResults.length > 0" class="search-results">
           <div
             v-for="user in searchResults"
             :key="user.userName"
@@ -218,17 +239,16 @@ import { userApi } from "../api/user";
 import { useUserStore } from "../stores/user";
 import dayjs from "dayjs";
 import wsManager from "../utils/websocket";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import VueEasyLightbox from "vue-easy-lightbox";
 import { ElMessage } from "element-plus";
 import MsgContextMenu from "../components/MsgContextMenu.vue";
-
-// Import the new ChatInput component
 import ChatInput from "../components/ChatInput.vue";
 
 const userStore = useUserStore();
 const chatList = ref([]);
 const route = useRoute();
+const router = useRouter();
 const currentChat = ref("");
 const currentChatInfo = ref(null);
 const messages = ref([]);
@@ -266,25 +286,35 @@ const selectedMessage = ref(null);
 
 // 右键菜单选项
 const contextMenuItems = computed(() => {
-  const items = [
-    {
-      label: "复制",
-      action: "copy",
-      icon: "fas fa-copy",
-    },
-  ];
+  const items = [];
 
-  // 如果消息包含图片，添加"添加表情"选项
   if (selectedMessage.value?.content?.includes("<img")) {
-    items.push({
-      label: "添加表情",
-      action: "addEmoji",
-      icon: "fas fa-smile",
-    });
+    // 图片消息
+    items.push(
+      { label: "复制图片", action: "copy-image", icon: "fas fa-copy" },
+      { label: "添加表情", action: "addEmoji", icon: "fas fa-smile" }
+    );
+  } else {
+    // 文字消息
+    items.push({ label: "复制", action: "copy", icon: "fas fa-copy" });
   }
 
   return items;
 });
+
+// 添加在线用户列表状态
+const onlineUsers = ref([]);
+
+// 获取在线用户列表
+const getOnlineUsers = () => {
+  try {
+    const users = utools.dbStorage.getItem("fishpi_online_users") || [];
+    onlineUsers.value = users;
+  } catch (error) {
+    console.error("获取在线用户列表失败:", error);
+    onlineUsers.value = [];
+  }
+};
 
 // 更新聊天列表中的消息预览
 const updateChatPreview = (userSession, content) => {
@@ -736,11 +766,27 @@ const handleSearch = () => {
   isSearching.value = true;
   searchTimeout.value = setTimeout(async () => {
     try {
-      const response = await userApi.getUsernameSuggestions(searchQuery.value);
-      if (response.code === 0) {
-        searchResults.value = response.data;
+      // 先检查在线用户列表
+      const onlineMatches = onlineUsers.value.filter((user) =>
+        user.userName.toLowerCase().includes(searchQuery.value.toLowerCase())
+      );
+
+      if (onlineMatches.length > 0) {
+        // 如果在线用户中有匹配的，直接显示
+        searchResults.value = onlineMatches.map((user) => ({
+          userName: user.userName,
+          userAvatarURL: user.userAvatarURL,
+        }));
       } else {
-        searchResults.value = [];
+        // 如果在线用户中没有匹配的，则搜索所有用户
+        const response = await userApi.getUsernameSuggestions(
+          searchQuery.value
+        );
+        if (response.code === 0) {
+          searchResults.value = response.data;
+        } else {
+          searchResults.value = [];
+        }
       }
     } catch (error) {
       console.error("搜索用户失败:", error);
@@ -813,7 +859,10 @@ const handleImageLoad = () => {
     });
   }
 };
-
+// 查看用户信息
+const showUserProfile = (userName) => {
+  router.push(`/user/${userName}`);
+};
 // 处理右键菜单
 const handleContextMenu = (event, message) => {
   selectedMessage.value = message;
@@ -835,13 +884,38 @@ const handleContextMenuAction = async (action) => {
 
   switch (action) {
     case "copy":
-      // 移除HTML标签，保留纯文本
-      const text = selectedMessage.value.content.replace(/<[^>]+>/g, "");
-      try {
-        await navigator.clipboard.writeText(text);
+      // 复制文字
+      const temp = document.createElement("div");
+      temp.innerHTML = selectedMessage.value.content;
+      navigator.clipboard.writeText(temp.innerText).then(() => {
         ElMessage.success("复制成功");
-      } catch {
-        ElMessage.error("复制失败");
+      });
+      break;
+
+    case "copy-image":
+      // 复制图片
+      const match = selectedMessage.value.content.match(
+        /<img[^>]+src=["']([^"']+)["']/
+      );
+      if (match && match[1]) {
+        const imgSrc = match[1];
+        if (imgSrc.startsWith("data:image")) {
+          // 如果是base64图片，直接复制
+          utools.copyImage(imgSrc);
+          ElMessage.success("复制成功");
+        } else {
+          // 如果是URL图片，先下载再复制
+          fetch(imgSrc)
+            .then((res) => res.blob())
+            .then((blob) => {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                utools.copyImage(reader.result);
+                ElMessage.success("复制成功");
+              };
+              reader.readAsDataURL(blob);
+            });
+        }
       }
       break;
 
@@ -908,6 +982,7 @@ const handleContextMenuAction = async (action) => {
 
 onMounted(() => {
   loadChatList();
+  getOnlineUsers(); // 获取在线用户列表
   // 自动发起私聊
   let userName = route.query.user;
   if (!userName) {
@@ -995,7 +1070,7 @@ onUnmounted(() => {
 }
 
 .chat-list-header {
-  padding: 20px;
+  padding: 15px 20px;
   border-bottom: 1px solid #eee;
   background-color: #fff;
   display: flex;
@@ -1071,7 +1146,7 @@ onUnmounted(() => {
 }
 
 .chat-header {
-  padding: 20px;
+  padding: 15px;
   border-bottom: 1px solid #eee;
   text-align: center;
   background-color: #fff;
@@ -1429,4 +1504,51 @@ onUnmounted(() => {
 }
 
 /* 删除之前的右键菜单相关样式 */
+.online-users-section {
+  margin-top: 16px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #666;
+  font-size: 14px;
+}
+
+.text-success {
+  color: #52c41a;
+  font-size: 8px;
+}
+
+.online-users-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.search-result-item:hover {
+  background-color: #f5f5f5;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.user-name {
+  font-size: 14px;
+  color: #333;
+}
 </style>
