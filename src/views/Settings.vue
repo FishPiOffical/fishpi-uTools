@@ -3,6 +3,10 @@
     <div class="settings-container">
       <div class="settings-header">
         <h2>系统设置</h2>
+        <button class="about-btn" @click="showAboutAuthor">
+          <i class="fas fa-info-circle"></i>
+          关于插件
+        </button>
       </div>
 
       <div class="settings-content">
@@ -27,6 +31,29 @@
               <el-switch
                 v-model="defaultNavState"
                 @change="handleNavStateChange"
+                active-text="收起"
+                inactive-text="展开"
+                inline-prompt
+              />
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-title">
+                <span>聊天室侧边栏</span>
+                <el-tooltip
+                  content="设置聊天室侧边栏在页面加载时的默认展开/收起状态"
+                  placement="top"
+                  effect="light"
+                >
+                  <i class="fas fa-question-circle"></i>
+                </el-tooltip>
+              </div>
+            </div>
+            <div class="settings-item-right">
+              <el-switch
+                v-model="defaultChatSidebarState"
+                @change="handleChatSidebarStateChange"
                 active-text="收起"
                 inactive-text="展开"
                 inline-prompt
@@ -172,14 +199,6 @@
           </div>
         </div>
       </div>
-      <div class="settings-footer">
-        <div class="footer-content">
-          <button class="about-btn" @click="showAboutAuthor">
-            <i class="fas fa-user"></i>
-            关于作者
-          </button>
-        </div>
-      </div>
     </div>
     <AboutAuthor v-model:visible="aboutAuthorVisible" />
   </div>
@@ -200,6 +219,7 @@ const endTime = ref(null);
 const restDays = ref([]);
 const defaultPage = ref("dashboard");
 const enableBackgroundNotification = ref(true);
+const defaultChatSidebarState = ref(false);
 
 // 获取当前用户的设置
 const getUserSettings = () => {
@@ -233,6 +253,8 @@ onMounted(() => {
   defaultPage.value = userSettings.defaultPage || "dashboard";
   enableBackgroundNotification.value =
     userSettings.enableBackgroundNotification !== false; // 默认开启
+  defaultChatSidebarState.value =
+    userSettings.defaultChatSidebarCollapsed || false;
 
   // 设置工作时间
   const startTimeStr = userSettings.workTime?.startTime || "09:00";
@@ -256,6 +278,8 @@ onMounted(() => {
     defaultPage.value = userSettings.defaultPage || "dashboard";
     enableBackgroundNotification.value =
       userSettings.enableBackgroundNotification !== false;
+    defaultChatSidebarState.value =
+      userSettings.defaultChatSidebarCollapsed || false;
 
     // 重新设置工作时间
     const startTimeStr = userSettings.workTime?.startTime || "09:00";
@@ -281,6 +305,8 @@ onUnmounted(() => {
     defaultPage.value = userSettings.defaultPage || "dashboard";
     enableBackgroundNotification.value =
       userSettings.enableBackgroundNotification !== false;
+    defaultChatSidebarState.value =
+      userSettings.defaultChatSidebarCollapsed || false;
 
     const startTimeStr = userSettings.workTime?.startTime || "09:00";
     const endTimeStr = userSettings.workTime?.endTime || "17:00";
@@ -358,6 +384,17 @@ const handleBackgroundNotificationChange = (value) => {
 
   ElMessage({
     message: "后台通知设置已更新",
+    type: "success",
+    duration: 2000,
+    showClose: true,
+  });
+};
+
+const handleChatSidebarStateChange = (value) => {
+  saveUserSettings({ defaultChatSidebarCollapsed: value });
+
+  ElMessage({
+    message: "聊天室侧边栏状态已更新",
     type: "success",
     duration: 2000,
     showClose: true,
