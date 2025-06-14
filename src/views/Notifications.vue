@@ -258,7 +258,17 @@ const currentNotificationComponent = computed(() => {
 });
 
 const hasUnreadNotifications = computed(() => {
-  return Object.values(stats.value).some((count) => count > 0);
+  return (
+    stats.value.unreadNotificationCnt > 0 ||
+    stats.value.unreadReplyNotificationCnt > 0 ||
+    stats.value.unreadAtNotificationCnt > 0 ||
+    stats.value.unreadBroadcastNotificationCnt > 0 ||
+    stats.value.unreadSysAnnounceNotificationCnt > 0 ||
+    stats.value.unreadNewFollowerNotificationCnt > 0 ||
+    stats.value.unreadFollowingNotificationCnt > 0 ||
+    stats.value.unreadCommentedNotificationCnt > 0 ||
+    stats.value.unreadPointNotificationCnt > 0
+  );
 });
 
 const switchToUnreadTab = () => {
