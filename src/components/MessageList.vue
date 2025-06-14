@@ -281,83 +281,12 @@
     </div>
 
     <!-- 红包详情弹窗 -->
-    <div
-      class="red-packet-modal"
-      v-if="showRedPacketModal"
-      @click.self="closeRedPacketModal"
-    >
-      <div class="red-packet-modal-content">
-        <div class="red-packet-modal-header">
-          <div class="red-packet-modal-close" @click="closeRedPacketModal">
-            ×
-          </div>
-          <div class="red-packet-sender">
-            <img
-              :src="currentRedPacket?.info?.userAvatarURL48"
-              class="sender-avatar"
-              alt="avatar"
-            />
-            <span class="sender-name">{{
-              currentRedPacket?.info?.userName
-            }}</span>
-          </div>
-          <div class="red-packet-message">
-            {{ currentRedPacket?.info?.msg }}
-          </div>
-          <div class="red-packet-amount">
-            {{ currentRedPacket?.money }} <span class="unit">积分</span>
-          </div>
-          <div class="red-packet-info">
-            {{ currentRedPacket?.info?.got }}/{{
-              currentRedPacket?.info?.count
-            }}个红包
-          </div>
-        </div>
-        <div class="red-packet-modal-body">
-          <div class="red-packet-modal-title">领取记录</div>
-          <div class="red-packet-modal-receivers">
-            <div
-              v-for="receiver in currentRedPacket?.who"
-              :key="receiver.userId"
-              class="receiver-item"
-            >
-              <img
-                :src="receiver.avatar"
-                class="receiver-avatar"
-                alt="avatar"
-              />
-              <div class="receiver-info">
-                <div>
-                  <div class="receiver-name">
-                    {{ receiver.userName }}
-                    <span
-                      v-if="receiver.userName === userStore.userInfo?.userName"
-                      class="current-user-tag"
-                      >我</span
-                    >
-                    <span v-if="isLuckyKing(receiver)" class="lucky-king-tag"
-                      >手气王</span
-                    >
-                  </div>
-                  <div class="receiver-time">
-                    {{ formatTime(receiver.time) }}
-                  </div>
-                </div>
-                <div class="receiver-amount">{{ receiver.userMoney }} 积分</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="red-packet-modal-footer">
-          <button
-            class="red-packet-modal-button default"
-            @click="closeRedPacketModal"
-          >
-            关闭
-          </button>
-        </div>
-      </div>
-    </div>
+    <RedPacketModal
+      :visible="showRedPacketModal"
+      :red-packet="currentRedPacket"
+      :current-user="userStore.userInfo?.userName"
+      @close="closeRedPacketModal"
+    />
 
     <!-- 用户信息卡片弹窗 -->
     <div
@@ -414,6 +343,7 @@ import UserContextMenu from "./UserContextMenu.vue";
 import MsgContextMenu from "./MsgContextMenu.vue";
 import { ElMessage } from "element-plus";
 import VueEasyLightbox from "vue-easy-lightbox";
+import RedPacketModal from "./RedPacketModal.vue";
 
 const props = defineProps({
   messages: {
@@ -1004,6 +934,7 @@ function onMsgContextMenu(e, item) {
     msgContextMenuItems.value = [
       { label: "添加到表情", action: "add-emoji", icon: "fas fa-plus-circle" },
       { label: "复制", action: "copy-image", icon: "fas fa-copy" },
+      { label: "复读机", action: "repeat", icon: "fas fa-redo" },
       // 添加撤回选项，根据条件显示
       ...(canRevokeMessage(item)
         ? [{ label: "撤回", action: "revoke", icon: "fas fa-undo" }]
@@ -1447,6 +1378,7 @@ const userContextMenuItems = computed(() => [
   border-radius: 8px;
   margin: 4px 0;
   cursor: pointer;
+  display: block; /* 确保图片独占一行 */
 }
 .message-text :deep(blockquote) {
   margin: 8px 0;
@@ -1471,7 +1403,15 @@ const userContextMenuItems = computed(() => [
   background-color: #f0f7ff;
 }
 .message-text :deep(p) {
-  margin: 0;
+  margin: 8px 0 0 0; /* 调整段落间距，特别是图片后的文字 */
+}
+
+.message-text :deep(p:first-child) {
+  margin-top: 0; /* 第一个段落不需要上边距 */
+}
+
+.message-text :deep(p:last-child) {
+  margin-bottom: 0; /* 最后一个段落不需要下边距 */
 }
 
 /* 时间分隔符样式 */
@@ -2012,14 +1952,6 @@ const userContextMenuItems = computed(() => [
   border-radius: 10px;
   margin-left: 6px;
   line-height: 1.5;
-}
-
-.red-packet-modal-header {
-  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
-  padding: 24px;
-  color: #fff;
-  text-align: center;
-  position: relative;
 }
 
 .red-packet-message {
