@@ -143,8 +143,45 @@
             </div>
           </div>
         </div>
+        <div class="data-card">
+          <div class="card-header">
+            <h2>通知设置</h2>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-title">
+                <span>后台通知</span>
+                <el-tooltip
+                  content="设置是否在应用处于后台时显示通知"
+                  placement="top"
+                  effect="light"
+                >
+                  <i class="fas fa-question-circle"></i>
+                </el-tooltip>
+              </div>
+            </div>
+            <div class="settings-item-right">
+              <el-switch
+                v-model="enableBackgroundNotification"
+                @change="handleBackgroundNotificationChange"
+                active-text="开启"
+                inactive-text="关闭"
+                inline-prompt
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="settings-footer">
+        <div class="footer-content">
+          <button class="about-btn" @click="showAboutAuthor">
+            <i class="fas fa-user"></i>
+            关于作者
+          </button>
+        </div>
       </div>
     </div>
+    <AboutAuthor v-model:visible="aboutAuthorVisible" />
   </div>
 </template>
 
@@ -152,14 +189,17 @@
 import { ref, onMounted, computed, onUnmounted } from "vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "../stores/user";
+import AboutAuthor from "../components/AboutAuthor.vue";
 
 const userStore = useUserStore();
+const aboutAuthorVisible = ref(false);
 const aboutDialogVisible = ref(false);
 const defaultNavState = ref(false);
 const startTime = ref(null);
 const endTime = ref(null);
 const restDays = ref([]);
 const defaultPage = ref("dashboard");
+const enableBackgroundNotification = ref(true);
 
 // 获取当前用户的设置
 const getUserSettings = () => {
@@ -191,6 +231,8 @@ onMounted(() => {
   defaultNavState.value = userSettings.defaultNavCollapsed || false;
   restDays.value = userSettings.restDays || ["0", "6"]; // 默认双休
   defaultPage.value = userSettings.defaultPage || "dashboard";
+  enableBackgroundNotification.value =
+    userSettings.enableBackgroundNotification !== false; // 默认开启
 
   // 设置工作时间
   const startTimeStr = userSettings.workTime?.startTime || "09:00";
@@ -212,6 +254,8 @@ onMounted(() => {
     defaultNavState.value = userSettings.defaultNavCollapsed || false;
     restDays.value = userSettings.restDays || ["0", "6"];
     defaultPage.value = userSettings.defaultPage || "dashboard";
+    enableBackgroundNotification.value =
+      userSettings.enableBackgroundNotification !== false;
 
     // 重新设置工作时间
     const startTimeStr = userSettings.workTime?.startTime || "09:00";
@@ -235,6 +279,8 @@ onUnmounted(() => {
     defaultNavState.value = userSettings.defaultNavCollapsed || false;
     restDays.value = userSettings.restDays || ["0", "6"];
     defaultPage.value = userSettings.defaultPage || "dashboard";
+    enableBackgroundNotification.value =
+      userSettings.enableBackgroundNotification !== false;
 
     const startTimeStr = userSettings.workTime?.startTime || "09:00";
     const endTimeStr = userSettings.workTime?.endTime || "17:00";
@@ -307,8 +353,19 @@ const handleDefaultPageChange = (value) => {
   });
 };
 
-const showAboutDialog = () => {
-  aboutDialogVisible.value = true;
+const handleBackgroundNotificationChange = (value) => {
+  saveUserSettings({ enableBackgroundNotification: value });
+
+  ElMessage({
+    message: "后台通知设置已更新",
+    type: "success",
+    duration: 2000,
+    showClose: true,
+  });
+};
+
+const showAboutAuthor = () => {
+  aboutAuthorVisible.value = true;
 };
 </script>
 
@@ -481,5 +538,27 @@ const showAboutDialog = () => {
 
 .about-item a:hover {
   text-decoration: underline;
+}
+
+.about-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #f3f4f6;
+  color: #1a1f36;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.about-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.about-btn i {
+  font-size: 16px;
 }
 </style>
