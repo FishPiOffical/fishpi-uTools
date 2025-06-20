@@ -122,21 +122,21 @@ const handleTopicClick = () => {
 
 <style scoped>
 .sidebar-container {
-  padding: 0; /* 移除容器内边距，由内部section控制 */
-  width: 150px; /* 根据 Chatroom.vue 中的样式调整 */
-  background-color: #fff; /* 根据 Chatroom.vue 中的样式调整 */
-  border-left: 1px solid #eee; /* 添加左侧边框 */
-  display: flex; /* 使用flex布局 */
-  flex-direction: column; /* 垂直排列子元素 */
-  overflow: hidden; /* 防止整体侧边栏溢出 */
-  height: 100%; /* 确保sidebar-container填充父容器高度 */
+  padding: 0;
+  width: 150px;
+  background-color: var(--sidebar-bg);
+  border-left: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
 }
 
 .sidebar-section {
   padding: 15px 20px;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 0; /* 移除margin-bottom */
-  flex-shrink: 0; /* 防止section被压缩 */
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0;
+  flex-shrink: 0;
 }
 
 .sidebar-section:last-of-type {
@@ -145,49 +145,49 @@ const handleTopicClick = () => {
 
 .sidebar-section h4 {
   margin-top: 0;
-  margin-bottom: 8px; /* 调整h4底部间距 */
-  font-size: 15px; /* 调整h4字体大小 */
-  color: #555;
-  display: flex; /* 使用flex布局让编辑图标对齐 */
-  justify-content: space-between; /* 将标题和图标推开 */
-  align-items: center; /* 垂直居中 */
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: var(--text-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .edit-icon {
   font-size: 14px;
-  color: #999;
+  color: var(--sub-text-color);
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .edit-icon:hover {
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .topic-text {
   margin: 0;
   font-size: 14px;
-  color: #666;
+  color: var(--sub-text-color);
   word-break: break-word;
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .topic-text:hover {
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .online-users-section {
   padding: 15px 20px;
-  border-bottom: 1px solid #eee;
-  height: calc(100% - 80px); /* 减去顶部话题区域的高度 */
+  border-bottom: 1px solid var(--border-color);
+  height: calc(100% - 80px);
 }
 
 .online-users-section h4 {
   margin-top: 0;
   margin-bottom: 8px;
   font-size: 15px;
-  color: #555;
+  color: var(--text-color);
 }
 
 .online-users-list {
@@ -196,12 +196,12 @@ const handleTopicClick = () => {
   margin: 0;
   height: calc(100% - 40px);
   overflow-y: auto;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .online-users-list::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 
 .user-item {
@@ -209,17 +209,17 @@ const handleTopicClick = () => {
   align-items: center;
   margin-bottom: 8px;
   font-size: 14px;
-  color: #555;
+  color: var(--text-color);
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .user-item:last-child {
-  margin-bottom: 0; /* 最后一个item无底部间距 */
+  margin-bottom: 0;
 }
 
 .user-item:hover {
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .user-avatar {
@@ -228,7 +228,7 @@ const handleTopicClick = () => {
   border-radius: 50%;
   margin-right: 10px;
   flex-shrink: 0;
-  border: 1px solid #eee;
+  border: 1px solid var(--border-color);
 }
 
 .user-name {
@@ -238,20 +238,15 @@ const handleTopicClick = () => {
   white-space: nowrap;
 }
 
-.placeholder-section {
-  /* 如果需要特定样式可以单独设置 */
-}
-
 .placeholder-section h4 {
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .placeholder-text {
-  color: #999;
+  color: var(--sub-text-color);
   font-style: italic;
 }
 
-/* Dialog Styles */
 .dialog-overlay {
   position: fixed;
   top: 0;
@@ -266,7 +261,7 @@ const handleTopicClick = () => {
 }
 
 .dialog-content {
-  background-color: white;
+  background-color: var(--card-bg);
   padding: 20px;
   border-radius: 8px;
   width: 90%;
@@ -276,13 +271,13 @@ const handleTopicClick = () => {
 
 .dialog-content h3 {
   margin: 0 0 16px 0;
-  color: #333;
+  color: var(--text-color);
   font-size: 18px;
 }
 
 .dialog-info {
   margin-bottom: 16px;
-  color: #666;
+  color: var(--sub-text-color);
   font-size: 14px;
 }
 
@@ -293,15 +288,17 @@ const handleTopicClick = () => {
 .topic-input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
   margin-bottom: 16px;
+  background: var(--card-bg);
+  color: var(--text-color);
 }
 
 .topic-input:focus {
   outline: none;
-  border-color: #1890ff;
+  border-color: var(--primary-color);
 }
 
 .dialog-buttons {
@@ -319,21 +316,21 @@ const handleTopicClick = () => {
 }
 
 .cancel-btn {
-  background-color: #f5f5f5;
-  color: #666;
+  background-color: var(--hover-bg);
+  color: var(--sub-text-color);
 }
 
 .cancel-btn:hover {
-  background-color: #e8e8e8;
+  background-color: var(--background-color);
 }
 
 .confirm-btn {
-  background-color: #1890ff;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--button-text);
 }
 
 .confirm-btn:hover:not(:disabled) {
-  background-color: #40a9ff;
+  background-color: var(--button-bg);
 }
 
 .confirm-btn:disabled {

@@ -219,7 +219,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #fff;
+  background: var(--background-color);
   overflow: hidden;
 }
 
@@ -229,7 +229,7 @@ onMounted(async () => {
   align-items: center;
   height: 56px;
   padding: 0 16px;
-  background: #fff;
+  background: var(--card-bg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
 }
@@ -241,7 +241,7 @@ onMounted(async () => {
   height: 40px;
   border: none;
   background: none;
-  color: #333;
+  color: var(--text-color);
   font-size: 18px;
   cursor: pointer;
   border-radius: 50%;
@@ -264,6 +264,7 @@ onMounted(async () => {
   font-size: 18px;
   font-weight: 600;
   text-align: center;
+  color: var(--text-color);
 }
 
 .nav-placeholder {
@@ -324,7 +325,7 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 3px solid #fff;
+  border: 3px solid var(--avatar-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -333,7 +334,7 @@ onMounted(async () => {
   bottom: 0;
   right: 0;
   padding: 2px 8px;
-  background: #1890ff;
+  background: var(--primary-color);
   color: #fff;
   font-size: 12px;
   border-radius: 10px;
@@ -349,17 +350,20 @@ onMounted(async () => {
   margin: 0;
   font-size: 24px;
   font-weight: 600;
+  color: #fff;
 }
 
 .username {
   margin: 4px 0;
   font-size: 14px;
   opacity: 0.9;
+  color: #fff;
 }
 
 .user-no {
   margin: 4px 0;
   font-size: 14px;
+  color: #fff;
 }
 
 .location {
@@ -369,6 +373,7 @@ onMounted(async () => {
   margin: 0;
   font-size: 14px;
   opacity: 0.9;
+  color: #fff;
 }
 
 .actions {
@@ -388,19 +393,19 @@ onMounted(async () => {
 }
 
 .btn.follow {
-  background: #1890ff;
+  background: var(--primary-color);
   color: #fff;
 }
 
 .btn.follow.active {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--hover-bg);
+  color: var(--sub-text-color);
 }
 
 .btn.message {
-  background: #fff;
-  color: #1890ff;
-  border: 1px solid #1890ff;
+  background: var(--card-bg);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
 }
 
 .btn:hover {
@@ -420,7 +425,7 @@ onMounted(async () => {
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 24px;
-  background: #fff;
+  background: var(--card-bg);
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
@@ -438,17 +443,17 @@ onMounted(async () => {
   display: block;
   font-size: 20px;
   font-weight: 600;
-  color: #1890ff;
+  color: var(--primary-color);
   margin-bottom: 4px;
 }
 
 .stat-item .label {
   font-size: 13px;
-  color: #666;
+  color: var(--sub-text-color);
 }
 
 .section {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 16px;
@@ -459,7 +464,7 @@ onMounted(async () => {
   margin: 0 0 16px;
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .badge-list {
@@ -498,11 +503,12 @@ onMounted(async () => {
 .badge-info .name {
   font-size: 14px;
   font-weight: 500;
+  color: var(--text-color);
 }
 
 .badge-info .desc {
   font-size: 12px;
-  color: #666;
+  color: var(--sub-text-color);
 }
 
 .info-list {
@@ -522,12 +528,12 @@ onMounted(async () => {
 
 .info-item .label {
   font-size: 14px;
-  color: #666;
+  color: var(--sub-text-color);
 }
 
 .info-item .value {
   font-size: 14px;
-  color: #333;
+  color: var(--text-color);
   font-weight: 500;
 }
 
@@ -536,16 +542,16 @@ onMounted(async () => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #999;
+  background: var(--border-color);
   margin-right: 6px;
 }
 
 .status.online {
-  background: #52c41a;
+  background: var(--signed-color);
 }
 
 .link {
-  color: #1890ff;
+  color: var(--primary-color);
   text-decoration: none;
 }
 
@@ -560,6 +566,7 @@ onMounted(async () => {
   line-height: 1.6;
   white-space: pre-wrap;
   opacity: 0.9;
+  color: #fff;
 }
 
 @media (max-width: 768px) {

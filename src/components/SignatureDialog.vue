@@ -175,11 +175,12 @@ const generateRandomQuote = async () => {
 }
 
 .signature-content {
-  background: white;
+  background: var(--card-bg);
   border-radius: 8px;
   width: 380px;
   padding: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color);
   animation: slideUp 0.3s ease;
 }
 
@@ -193,12 +194,12 @@ const generateRandomQuote = async () => {
 .dialog-header h3 {
   margin: 0;
   font-size: 16px;
-  color: #333;
+  color: var(--text-color);
 }
 
 .close-icon {
   cursor: pointer;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .dialog-body {
@@ -207,7 +208,7 @@ const generateRandomQuote = async () => {
 
 .tip {
   font-size: 12px;
-  color: #999;
+  color: var(--sub-text-color);
   margin-bottom: 8px;
 }
 
@@ -218,7 +219,7 @@ const generateRandomQuote = async () => {
 textarea {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   resize: none;
   margin-bottom: 12px;
@@ -226,24 +227,26 @@ textarea {
     "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #333;
+  color: var(--text-color);
+  background: var(--card-bg);
+  transition: border-color 0.2s;
 }
 
 textarea:focus {
   outline: none;
-  border-color: #1890ff;
+  border-color: var(--primary-color);
 }
 
 .preview {
-  background: #f5f5f5;
+  background: var(--hover-bg);
   border-radius: 4px;
   padding: 12px;
   font-size: 13px;
-  color: #666;
+  color: var(--sub-text-color);
 }
 
 .preview-label {
-  color: #999;
+  color: var(--sub-text-color);
   margin-bottom: 8px;
 }
 
@@ -274,12 +277,12 @@ textarea:focus {
 .message-text {
   padding: 10px 12px;
   border-radius: 12px;
-  background-color: #fff;
+  background-color: var(--bubble-bg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   word-break: break-word;
   line-height: 1.5;
   font-size: 14px;
-  color: #333;
+  color: var(--text-color);
   position: relative;
   width: fit-content;
   max-width: 100%;
@@ -288,10 +291,10 @@ textarea:focus {
 .message-text :deep(blockquote) {
   margin: 8px 0 0 0;
   padding: 8px 12px;
-  border-left: 2px solid #e6e6e6;
-  background-color: #f9f9f9;
+  border-left: 2px solid var(--border-color);
+  background-color: var(--hover-bg);
   border-radius: 4px;
-  color: #666;
+  color: var(--sub-text-color);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -306,7 +309,7 @@ textarea:focus {
 
 .signature {
   font-size: 12px;
-  color: #1890ff;
+  color: var(--primary-color);
   margin-top: 4px;
   padding: 0 4px;
 }
@@ -317,15 +320,16 @@ textarea:focus {
 
 .dialog-footer button {
   padding: 6px 16px;
-  background-color: #1890ff;
-  color: white;
+  background-color: var(--button-bg);
+  color: var(--button-text);
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 .dialog-footer button:hover {
-  background-color: #40a9ff;
+  background-color: var(--primary-color);
 }
 
 .button-group {
@@ -336,10 +340,10 @@ textarea:focus {
 
 .random-btn {
   padding: 6px 12px;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
+  background: var(--hover-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #666;
+  color: var(--sub-text-color);
   font-size: 13px;
   cursor: pointer;
   display: flex;
@@ -349,8 +353,8 @@ textarea:focus {
 }
 
 .random-btn:hover {
-  background: #e6e6e6;
-  border-color: #ccc;
+  background: var(--card-bg);
+  border-color: var(--primary-color);
 }
 
 .random-btn:disabled {
@@ -367,12 +371,12 @@ textarea:focus {
 }
 
 .message-row-self .message-text {
-  background-color: #e6f4ff;
+  background-color: var(--bubble-bg);
   margin-left: auto;
 }
 
 .message-row-self .message-text :deep(blockquote) {
-  background-color: #f0f7ff;
+  background-color: var(--hover-bg);
 }
 
 @keyframes fadeIn {

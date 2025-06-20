@@ -107,9 +107,9 @@ const formatTime = (time) => {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 2px solid #fff;
+  border: 2px solid var(--avatar-border);
   flex-shrink: 0;
-  background: #f8fafc;
+  background: var(--card-bg);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
@@ -121,21 +121,21 @@ const formatTime = (time) => {
 }
 
 .user-name {
-  color: #1a1f36;
+  color: var(--text-color);
 }
 
 .user-action {
-  color: #64748b;
+  color: var(--sub-text-color);
   font-weight: 400;
 }
 
 .notification-message {
-  color: #1a1f36;
+  color: var(--text-color);
   line-height: 1.7;
   word-break: break-word;
   font-size: 0.875rem;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--hover-bg);
   border-radius: 8px;
   margin: 8px 0;
 }
@@ -152,7 +152,7 @@ const formatTime = (time) => {
 }
 
 .notification-message :deep(a) {
-  color: #3b82f6;
+  color: var(--primary-color);
   text-decoration: none;
 }
 
@@ -161,7 +161,7 @@ const formatTime = (time) => {
 }
 
 .notification-message :deep(.name-at) {
-  color: #3b82f6;
+  color: var(--primary-color);
   font-weight: 500;
 }
 
@@ -169,7 +169,7 @@ const formatTime = (time) => {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #64748b;
+  color: var(--sub-text-color);
   font-size: 0.75rem;
 }
 
@@ -184,13 +184,13 @@ const formatTime = (time) => {
 }
 
 .deleted {
-  color: #94a3b8;
+  color: var(--sub-text-color);
   font-style: italic;
 }
 
 .deleted-message {
-  color: #94a3b8;
+  color: var(--sub-text-color);
   font-style: italic;
-  background: rgba(0, 0, 0, 0.01);
+  background: var(--card-bg);
 }
 </style>

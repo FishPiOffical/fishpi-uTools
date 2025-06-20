@@ -86,13 +86,14 @@ onMounted(fetchUserInfo);
   z-index: 3000;
   min-width: 240px;
   max-width: 280px;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
   padding: 24px 20px 16px 20px;
-  color: #333;
+  color: var(--text-color);
   font-family: inherit;
   animation: fadeIn 0.18s;
+  border: 1px solid var(--border-color);
 }
 
 @keyframes fadeIn {
@@ -109,18 +110,32 @@ onMounted(fetchUserInfo);
   position: absolute;
   top: 12px;
   right: 12px;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--card-bg);
   border: none;
   border-radius: 50%;
   width: 28px;
   height: 28px;
   font-size: 20px;
-  color: #888;
+  color: var(--sub-text-color);
   cursor: pointer;
-  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s,
+    opacity 0.18s;
+  box-shadow: none;
+  opacity: 0.85;
 }
 .close-btn:hover {
-  background: #eee;
+  background: var(--primary-color);
+  color: var(--button-text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: scale(1.08);
+  opacity: 1;
+}
+.close-btn:active {
+  opacity: 0.7;
+  transform: scale(0.96);
 }
 .avatar-section {
   display: flex;
@@ -132,7 +147,7 @@ onMounted(fetchUserInfo);
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: 2px solid #fff;
+  border: 2px solid var(--avatar-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   object-fit: cover;
 }
@@ -145,7 +160,7 @@ onMounted(fetchUserInfo);
 .nickname {
   font-size: 18px;
   font-weight: 600;
-  color: #222;
+  color: var(--text-color);
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -153,7 +168,7 @@ onMounted(fetchUserInfo);
 }
 .username {
   font-size: 13px;
-  color: #888;
+  color: var(--sub-text-color);
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -170,11 +185,11 @@ onMounted(fetchUserInfo);
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #bbb;
+  background: var(--border-color);
   display: inline-block;
 }
 .status-indicator.online {
-  background: #52c41a;
+  background: var(--signed-color);
 }
 .info-row {
   display: flex;
@@ -185,10 +200,10 @@ onMounted(fetchUserInfo);
   padding: 0 2px;
 }
 .label {
-  color: #888;
+  color: var(--sub-text-color);
 }
 .value {
-  color: #333;
+  color: var(--text-color);
   font-weight: 500;
   max-width: 180px;
   text-align: right;
@@ -212,17 +227,17 @@ onMounted(fetchUserInfo);
   transition: all 0.2s;
 }
 .action-btn.detail {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--hover-bg);
+  color: var(--sub-text-color);
 }
 .action-btn.detail:hover {
-  background: #e8e8e8;
+  background: var(--card-bg);
 }
 .action-btn.message {
-  background: #1890ff;
-  color: #fff;
+  background: var(--button-bg);
+  color: var(--button-text);
 }
 .action-btn.message:hover {
-  background: #40a9ff;
+  background: var(--primary-color);
 }
 </style>

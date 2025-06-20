@@ -413,7 +413,7 @@ const showAboutAuthor = () => {
   flex-direction: column;
   padding: 20px;
   border-radius: 8px;
-  background: #fff;
+  background: var(--card-bg, #fff);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -432,7 +432,7 @@ const showAboutAuthor = () => {
 
 .settings-header h2 {
   margin: 0;
-  color: #333;
+  color: var(--text-color, #333);
   font-size: 24px;
   font-weight: 600;
 }
@@ -443,28 +443,10 @@ const showAboutAuthor = () => {
   padding-right: 10px;
 }
 
-.settings-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.settings-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.settings-content::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
-}
-
-.settings-content::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
 .settings-footer {
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color, #eee);
 }
 
 .footer-content {
@@ -472,16 +454,16 @@ const showAboutAuthor = () => {
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  color: #697386;
+  color: var(--sub-text-color, #697386);
   font-size: 14px;
 }
 
 .app-info {
-  color: #1a1f36;
+  color: var(--text-color, #1a1f36);
 }
 
 .data-card {
-  background: #fff;
+  background: var(--card-bg, #fff);
   border-radius: 12px;
   padding: 1.25rem;
   margin-bottom: 1rem;
@@ -498,7 +480,7 @@ const showAboutAuthor = () => {
 .card-header h2 {
   font-size: 1rem;
   font-weight: 600;
-  color: #1a1f36;
+  color: var(--text-color, #1a1f36);
   margin: 0;
 }
 
@@ -520,18 +502,18 @@ const showAboutAuthor = () => {
   gap: 8px;
   font-size: 15px;
   font-weight: 500;
-  color: #1a1f36;
+  color: var(--text-color, #1a1f36);
   margin-bottom: 4px;
 }
 
 .settings-item-title i {
-  color: #697386;
+  color: var(--sub-text-color, #697386);
   cursor: help;
 }
 
 .settings-item-description {
   font-size: 13px;
-  color: #697386;
+  color: var(--sub-text-color, #697386);
   line-height: 1.4;
 }
 
@@ -564,12 +546,12 @@ const showAboutAuthor = () => {
 
 .about-item .label {
   font-weight: 500;
-  color: #1a1f36;
+  color: var(--text-color, #1a1f36);
   margin-right: 0.5rem;
 }
 
 .about-item a {
-  color: #3b82f6;
+  color: var(--primary-color, #3b82f6);
   text-decoration: none;
 }
 
@@ -584,15 +566,15 @@ const showAboutAuthor = () => {
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
-  background-color: #f3f4f6;
-  color: #1a1f36;
+  background-color: var(--hover-bg, #f3f4f6);
+  color: var(--text-color, #1a1f36);
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .about-btn:hover {
-  background-color: #e5e7eb;
+  background-color: var(--hover-bg, #e5e7eb);
 }
 
 .about-btn i {

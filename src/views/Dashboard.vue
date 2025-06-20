@@ -271,7 +271,7 @@ const openHelpLink = () => {
 <style scoped>
 .dashboard {
   min-height: 100vh;
-  background-color: #fff;
+  background-color: var(--background-color);
   padding: 1.5rem;
 }
 
@@ -289,8 +289,8 @@ const openHelpLink = () => {
 
 /* 欢迎卡片样式 */
 .welcome-data-card {
-  background: linear-gradient(135deg, #f6f8fc 0%, #e9ecef 100%);
-  color: #2c3e50;
+  background: var(--card-bg, #f6f8fc);
+  color: var(--text-color, #2c3e50);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
   border-radius: 16px;
   padding: 2rem;
@@ -299,13 +299,13 @@ const openHelpLink = () => {
 .welcome-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-color, #1e293b);
   margin-bottom: 0.75rem;
 }
 
 .welcome-date {
   font-size: 0.95rem;
-  color: #64748b;
+  color: var(--sub-text-color, #64748b);
   margin-bottom: 1rem;
 }
 
@@ -313,14 +313,14 @@ const openHelpLink = () => {
   display: flex;
   align-items: center;
   font-size: 1rem;
-  color: #334155;
+  color: var(--sub-text-color, #334155);
 }
 
 .welcome-row .highlight {
   font-size: 1.1rem;
   font-weight: 500;
-  color: #3b82f6;
-  background: #eff6ff;
+  color: var(--primary-color, #3b82f6);
+  background: var(--hover-bg, #eff6ff);
   border-radius: 8px;
   padding: 0.5rem 1rem;
   line-height: 1.4;
@@ -374,8 +374,8 @@ const openHelpLink = () => {
 }
 
 .data-card {
-  min-height: 120px; /* 你 可以根据实际内容调整高度 */
-  background: #fff;
+  min-height: 120px;
+  background: var(--card-bg, #fff);
   border-radius: 12px;
   padding: 1.25rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
@@ -391,7 +391,7 @@ const openHelpLink = () => {
 .card-header h2 {
   font-size: 1rem;
   font-weight: 600;
-  color: #1a1f36;
+  color: var(--text-color, #1a1f36);
   margin: 0;
 }
 
@@ -427,7 +427,7 @@ const openHelpLink = () => {
 .progress-value {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1a1f36;
+  color: var(--text-color, #1a1f36);
 }
 .time-display {
   text-align: center;
@@ -435,11 +435,11 @@ const openHelpLink = () => {
 .time-value {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1a1f36;
+  color: var(--text-color, #1a1f36);
 }
 .time-unit {
   font-size: 0.875rem;
-  color: #697386;
+  color: var(--sub-text-color, #697386);
   margin-left: 0.25rem;
 }
 .reward-button {
@@ -451,8 +451,8 @@ const openHelpLink = () => {
   padding: 0.75rem;
   border: none;
   border-radius: 8px;
-  background: #3b82f6;
-  color: white;
+  background: var(--primary-color, #3b82f6);
+  color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -540,7 +540,7 @@ const openHelpLink = () => {
   :deep(.el-dialog__title) {
     font-size: 1.2rem;
     font-weight: 600;
-    color: #1a1f36;
+    color: var(--text-color, #1a1f36);
   }
 
   :deep(.el-dialog__body) {
@@ -568,7 +568,7 @@ const openHelpLink = () => {
 .reward-message {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #1a1f36;
+  color: var(--text-color, #1a1f36);
   text-align: center;
 }
 

@@ -140,7 +140,7 @@ const getRockPaperScissorsType = (type) => {
 
 .red-packet-modal-content {
   width: 310px;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -186,7 +186,7 @@ const getRockPaperScissorsType = (type) => {
 
 .red-packet-modal-title {
   font-size: 15px;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 16px;
   font-weight: 500;
   flex-shrink: 0;
@@ -205,25 +205,25 @@ const getRockPaperScissorsType = (type) => {
 }
 
 .red-packet-modal-receivers::-webkit-scrollbar-track {
-  background: #f5f5f5;
+  background: var(--chatroom-bg);
   border-radius: 3px;
 }
 
 .red-packet-modal-receivers::-webkit-scrollbar-thumb {
-  background: #d9d9d9;
+  background: var(--border-color);
   border-radius: 3px;
   transition: all 0.3s;
 }
 
 .red-packet-modal-receivers::-webkit-scrollbar-thumb:hover {
-  background: #bfbfbf;
+  background: var(--sub-text-color);
 }
 
 .receiver-item {
   display: flex;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .receiver-item:last-child {
@@ -252,7 +252,7 @@ const getRockPaperScissorsType = (type) => {
 
 .receiver-name {
   font-size: 14px;
-  color: #333;
+  color: var(--text-color);
   margin-right: 8px;
   white-space: nowrap;
   overflow: hidden;
@@ -261,7 +261,7 @@ const getRockPaperScissorsType = (type) => {
 
 .receiver-time {
   font-size: 12px;
-  color: #999;
+  color: var(--sub-text-color);
   white-space: nowrap;
 }
 
@@ -275,7 +275,7 @@ const getRockPaperScissorsType = (type) => {
 
 .red-packet-modal-footer {
   padding: 16px 20px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
 }
@@ -290,12 +290,12 @@ const getRockPaperScissorsType = (type) => {
 }
 
 .red-packet-modal-button.default {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--hover-bg);
+  color: var(--sub-text-color);
 }
 
 .red-packet-modal-button.default:hover {
-  background: #e8e8e8;
+  background: var(--background-color);
 }
 
 .red-packet-sender {
@@ -325,7 +325,7 @@ const getRockPaperScissorsType = (type) => {
 
 .current-user-tag {
   display: inline-block;
-  background: #1890ff;
+  background: var(--primary-color);
   color: #fff;
   font-size: 12px;
   padding: 0 6px;

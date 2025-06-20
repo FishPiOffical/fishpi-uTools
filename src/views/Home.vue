@@ -190,6 +190,7 @@ const navItems = [
   { path: "/private-chat", name: "康康私信", icon: "fas fa-envelope" },
   { path: "/posts", name: "康康帖子", icon: "fas fa-book-reader" },
   { path: "/moon", name: "清风明月", icon: "fas fa-moon" },
+  { path: "/games", name: "鱼排游戏", icon: "fas fa-gamepad" },
   { path: "/notifications", name: "消息通知", icon: "fas fa-bell" },
   { path: "/settings", name: "系统设置", icon: "fas fa-cog" },
 ];
@@ -474,17 +475,17 @@ const goToLogin = () => {
 .main-layout {
   display: flex;
   height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--background-color);
 }
 
 .sidebar {
   width: 200px;
-  background-color: #fff;
+  background-color: var(--sidebar-bg, #fff);
   padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border-right: 1px solid #eee;
+  border-right: 1px solid var(--border-color, #eee);
   flex-shrink: 0;
   transition: all 0.3s ease;
   position: relative;
@@ -500,7 +501,6 @@ const goToLogin = () => {
   font-size: 24px;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -531,7 +531,7 @@ const goToLogin = () => {
 }
 
 .navigation li:hover {
-  background-color: #f0f0f0;
+  background-color: var(--hover-bg, #f0f0f0);
 }
 
 .navigation i {
@@ -541,7 +541,7 @@ const goToLogin = () => {
 
 .user-info-container {
   padding: 10px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color, #eee);
 }
 
 .user-info-details {
@@ -555,7 +555,7 @@ const goToLogin = () => {
 }
 
 .user-info-details:hover {
-  background-color: #f0f0f0;
+  background-color: var(--hover-bg, #f0f0f0);
 }
 
 .user-avatar {
@@ -565,7 +565,7 @@ const goToLogin = () => {
   overflow: hidden;
   margin-right: 10px;
   flex-shrink: 0;
-  border: 2px solid #fff;
+  border: 2px solid var(--avatar-border, #fff);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -583,7 +583,7 @@ const goToLogin = () => {
 .username {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -594,7 +594,7 @@ const goToLogin = () => {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #ff4d4f;
+  color: var(--point-color, #ff4d4f);
   font-size: 12px;
 }
 
@@ -612,7 +612,7 @@ const goToLogin = () => {
   padding: 8px;
   background-color: transparent;
   border: none;
-  color: #666;
+  color: var(--sub-text-color, #666);
   cursor: pointer;
   font-size: 13px;
   border-radius: 6px;
@@ -621,8 +621,8 @@ const goToLogin = () => {
 }
 
 .logout-button:hover {
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: var(--hover-bg, #f5f5f5);
+  color: var(--text-color);
 }
 
 .logout-button i {
@@ -637,7 +637,7 @@ const goToLogin = () => {
 /* Placeholder styles for content areas */
 .content-area > div {
   height: 100%;
-  background-color: #fff;
+  background-color: var(--card-bg, #fff);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -649,7 +649,7 @@ const goToLogin = () => {
   cursor: pointer;
   transition: all 0.3s ease;
   margin: 4px 0;
-  color: #8c8c8c;
+  color: var(--sub-text-color, #8c8c8c);
   white-space: nowrap;
 }
 
@@ -663,11 +663,11 @@ const goToLogin = () => {
 }
 
 .nav-item:hover {
-  color: #666;
+  color: var(--hover-text-color, #666);
 }
 
 .nav-item.active {
-  color: #333;
+  color: var(--text-color);
   font-weight: 500;
 }
 
@@ -683,8 +683,8 @@ const goToLogin = () => {
 }
 
 .notification-badge {
-  background-color: #ff4d4f;
-  color: white;
+  background-color: var(--badge-bg, #ff4d4f);
+  color: var(--badge-text, #fff);
   border-radius: 10px;
   padding: 2px 6px;
   font-size: 12px;
@@ -729,8 +729,8 @@ const goToLogin = () => {
   transform: translateY(-50%);
   width: 24px;
   height: 24px;
-  background-color: #fff;
-  border: 1px solid #eee;
+  background-color: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #eee);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -741,7 +741,7 @@ const goToLogin = () => {
 }
 
 .collapse-button:hover {
-  background-color: #f5f5f5;
+  background-color: var(--hover-bg, #f5f5f5);
 }
 
 .tooltip {
@@ -749,8 +749,8 @@ const goToLogin = () => {
   left: 100%;
   top: 50%;
   transform: translateY(-50%);
-  background-color: #333;
-  color: white;
+  background-color: var(--tooltip-bg, #333);
+  color: var(--tooltip-text, #fff);
   padding: 6px 12px;
   border-radius: 4px;
   font-size: 14px;
@@ -770,7 +770,7 @@ const goToLogin = () => {
   transform: translateY(-50%);
   border-width: 6px;
   border-style: solid;
-  border-color: transparent #333 transparent transparent;
+  border-color: transparent var(--tooltip-bg, #333) transparent transparent;
 }
 
 .nav-item:hover .tooltip,
@@ -785,8 +785,8 @@ const goToLogin = () => {
   left: 100%;
   top: 50%;
   transform: translateY(-50%);
-  background-color: #333;
-  color: white;
+  background-color: var(--tooltip-bg, #333);
+  color: var(--tooltip-text, #fff);
   padding: 6px 12px;
   border-radius: 4px;
   font-size: 14px;
@@ -806,7 +806,7 @@ const goToLogin = () => {
   transform: translateY(-50%);
   border-width: 6px;
   border-style: solid;
-  border-color: transparent #333 transparent transparent;
+  border-color: transparent var(--tooltip-bg, #333) transparent transparent;
 }
 
 .user-info-details:hover .bottom-tooltip,
@@ -835,8 +835,8 @@ const goToLogin = () => {
   }
 
   .el-button--primary {
-    background-color: #409eff;
-    border-color: #409eff;
+    background-color: var(--primary-color, #409eff);
+    border-color: var(--primary-color, #409eff);
   }
 
   a {
@@ -857,7 +857,7 @@ const goToLogin = () => {
   position: absolute;
   left: 100%;
   top: 0;
-  background-color: #fff;
+  background-color: var(--card-bg, #fff);
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   padding: 8px 0;
@@ -875,12 +875,12 @@ const goToLogin = () => {
 }
 
 .user-card-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--hover-bg, #f5f5f5);
 }
 
 .user-card-item i {
   width: 16px;
-  color: #666;
+  color: var(--sub-text-color, #666);
 }
 
 .user-actions {
@@ -889,7 +889,7 @@ const goToLogin = () => {
 
 .divider {
   height: 1px;
-  background-color: #eee;
+  background-color: var(--border-color, #eee);
   margin-bottom: 8px;
 }
 
@@ -903,7 +903,7 @@ const goToLogin = () => {
   padding: 8px;
   background-color: transparent;
   border: none;
-  color: #666;
+  color: var(--sub-text-color, #666);
   cursor: pointer;
   font-size: 13px;
   border-radius: 6px;
@@ -913,8 +913,8 @@ const goToLogin = () => {
 
 .switch-account-button:hover,
 .logout-button:hover {
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: var(--hover-bg, #f5f5f5);
+  color: var(--text-color);
 }
 
 .switch-account-button i,
@@ -934,23 +934,23 @@ const goToLogin = () => {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #ff4d4f;
+  color: var(--point-color, #ff4d4f);
 }
 
 .collapsed-liveness .liveness-info.signed {
-  color: #52c41a;
+  color: var(--signed-color, #52c41a);
 }
 
 .user-points {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #ff4d4f;
+  color: var(--point-color, #ff4d4f);
   font-size: 12px;
 }
 
 .user-points.signed {
-  color: #52c41a;
+  color: var(--signed-color, #52c41a);
 }
 
 .account-switch-dialog :deep(.el-dialog__body) {
@@ -968,7 +968,7 @@ const goToLogin = () => {
   align-items: center;
   gap: 8px;
   padding: 20px;
-  color: #999;
+  color: var(--sub-text-color, #999);
 }
 
 .no-accounts i {
@@ -987,7 +987,7 @@ const goToLogin = () => {
 }
 
 .account-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--hover-bg, #f5f5f5);
 }
 
 .account-avatar {
@@ -1005,7 +1005,7 @@ const goToLogin = () => {
 .account-name {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1013,7 +1013,7 @@ const goToLogin = () => {
 
 .account-username {
   font-size: 12px;
-  color: #999;
+  color: var(--sub-text-color, #999);
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;

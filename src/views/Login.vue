@@ -181,7 +181,7 @@ const goToForgetPwd = () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: #ffffff;
+  background: var(--background-color);
   position: relative;
   overflow: hidden;
 }
@@ -189,24 +189,24 @@ const goToForgetPwd = () => {
 .login-content {
   display: flex;
   width: 900px;
-  background: white;
+  background: var(--card-bg);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--border-color);
 }
 
 .login-box {
   width: 380px;
-  background: white;
+  background: var(--card-bg);
   padding: 40px;
-  border-right: 1px solid #f0f0f0;
+  border-right: 1px solid var(--border-color);
 }
 
 .welcome-section {
   flex: 1;
   padding: 40px;
-  background: #fafafa;
+  background: var(--hover-bg);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -216,18 +216,18 @@ const goToForgetPwd = () => {
   margin: 0 0 20px;
   font-size: 28px;
   font-weight: 500;
-  color: #000;
+  color: var(--text-color);
 }
 
 .welcome-subtitle {
   margin: 0 0 24px;
   font-size: 16px;
-  color: #666;
+  color: var(--sub-text-color);
   line-height: 1.6;
 }
 
 .welcome-text {
-  color: #666;
+  color: var(--sub-text-color);
   font-size: 14px;
   line-height: 1.8;
 }
@@ -249,13 +249,13 @@ const goToForgetPwd = () => {
   margin: 0;
   font-size: 24px;
   font-weight: 500;
-  color: #000;
+  color: var(--text-color);
 }
 
 .login-subtitle {
   margin: 8px 0 0;
   font-size: 14px;
-  color: #666;
+  color: var(--sub-text-color);
 }
 
 .form-content {
@@ -275,7 +275,7 @@ const goToForgetPwd = () => {
 .input-wrapper i {
   position: absolute;
   left: 12px;
-  color: #999;
+  color: var(--sub-text-color);
   font-size: 16px;
   transition: color 0.3s ease;
 }
@@ -283,16 +283,17 @@ const goToForgetPwd = () => {
 input {
   width: 100%;
   padding: 10px 10px 10px 35px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
   transition: all 0.3s ease;
-  background: #ffffff;
+  background: var(--background-color);
+  color: var(--text-color);
 }
 
 input:focus {
-  border-color: #000;
-  background: #fff;
+  border-color: var(--primary-color);
+  background: var(--card-bg);
   box-shadow: none;
   outline: none;
 }
@@ -300,8 +301,8 @@ input:focus {
 .login-btn {
   width: 100%;
   padding: 10px;
-  background: #000;
-  color: #fff;
+  background: var(--text-color);
+  color: var(--background-color);
   border: none;
   border-radius: 4px;
   font-size: 16px;
@@ -311,9 +312,9 @@ input:focus {
 }
 
 .login-btn:disabled {
-  background: #e0e0e0;
+  background: var(--border-color);
   cursor: not-allowed;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .form-footer {
@@ -323,7 +324,7 @@ input:focus {
 }
 
 .footer-link {
-  color: #666;
+  color: var(--sub-text-color);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -334,12 +335,12 @@ input:focus {
 }
 
 .footer-link:hover {
-  color: #000;
+  color: var(--primary-color);
 }
 
 .divider {
   margin: 0 10px;
-  color: #e0e0e0;
+  color: var(--border-color);
   font-weight: 400;
 }
 </style>

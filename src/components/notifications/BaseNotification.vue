@@ -26,39 +26,39 @@ const handleClick = () => {
 };
 </script>
 
-<style scoped>
+<style>
 .notification-item {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border-color);
 }
 
 .notification-item.unread {
-  background: #f8fafc;
+  background: var(--hover-bg);
 }
 
 .notification-item.unread :deep(.user-name),
 .notification-item.unread :deep(.system-title),
 .notification-item.unread :deep(.point-change) {
-  color: #1a1f36;
+  color: var(--text-color);
   font-weight: 600;
 }
 
 .notification-item.unread :deep(.notification-time) {
-  color: #64748b;
+  color: var(--sub-text-color);
 }
 
 .notification-item.unread :deep(.notification-time i) {
-  color: #ff9800;
+  color: var(--primary-color);
 }
 
 :deep(a) {
-  color: #3b82f6;
+  color: var(--primary-color);
   text-decoration: none;
 }
 
@@ -67,7 +67,7 @@ const handleClick = () => {
 }
 
 :deep(.name-at) {
-  color: #3b82f6;
+  color: var(--primary-color);
   font-weight: 500;
 }
 </style>

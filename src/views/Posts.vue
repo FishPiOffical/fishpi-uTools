@@ -322,7 +322,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   padding: 24px;
-  background-color: #f8fafc;
+  background-color: var(--background-color);
 }
 
 .posts-header {
@@ -334,7 +334,7 @@ onUnmounted(() => {
 
 .posts-header h2 {
   margin: 0;
-  color: #1a1f36;
+  color: var(--text-color);
   font-size: 1.5rem;
   font-weight: 600;
 }
@@ -346,7 +346,7 @@ onUnmounted(() => {
 
 .article-types span {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--sub-text-color);
   cursor: pointer;
   padding-bottom: 4px;
   border-bottom: 2px solid transparent;
@@ -354,13 +354,13 @@ onUnmounted(() => {
 }
 
 .article-types span:hover {
-  color: #ff9800;
+  color: var(--primary-color);
 }
 
 .article-types span.active {
-  color: #ff9800;
+  color: var(--primary-color);
   font-weight: 600;
-  border-bottom-color: #ff9800;
+  border-bottom-color: var(--primary-color);
 }
 
 .posts-list {
@@ -370,24 +370,7 @@ onUnmounted(() => {
   padding-bottom: 24px;
 }
 
-/* 滚动条样式优化 */
-.posts-list::-webkit-scrollbar {
-  width: 8px;
-}
-
-.posts-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.posts-list::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
-}
-
-.posts-list::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
+/* 删除滚动条样式，继承全局 */
 
 .loading {
   display: flex;
@@ -395,7 +378,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 40px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .loading-more-spinner {
@@ -407,8 +390,8 @@ onUnmounted(() => {
 .loading-spinner {
   width: 30px;
   height: 30px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #ff9800;
+  border: 3px solid var(--hover-bg);
+  border-top: 3px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 0;
@@ -429,13 +412,13 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 40px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .empty-tip i {
   font-size: 40px;
   margin-bottom: 10px;
-  color: #d9d9d9;
+  color: var(--border-color);
 }
 
 .posts-items {
@@ -445,14 +428,14 @@ onUnmounted(() => {
 }
 
 .post-item {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border-color);
   cursor: pointer;
 }
 
@@ -474,7 +457,7 @@ onUnmounted(() => {
 
 .post-title {
   font-weight: 600;
-  color: #1a1f36;
+  color: var(--text-color);
   font-size: 1rem;
   line-height: 1.5;
   display: -webkit-box;
@@ -499,27 +482,27 @@ onUnmounted(() => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 2px solid #fff;
+  border: 2px solid var(--avatar-border);
   flex-shrink: 0;
-  background: #f8fafc;
+  background: var(--hover-bg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .author-name {
-  color: #1a1f36;
+  color: var(--text-color);
   font-weight: 500;
   font-size: 0.875rem;
 }
 
 .publish-time {
-  color: #64748b;
+  color: var(--sub-text-color);
   font-size: 0.75rem;
 }
 
 .stats {
   display: flex;
   gap: 12px;
-  color: #64748b;
+  color: var(--sub-text-color);
   font-size: 0.75rem;
 }
 
@@ -530,7 +513,7 @@ onUnmounted(() => {
 }
 
 .stat-item i {
-  color: #ff9800;
+  color: var(--primary-color);
   font-size: 0.75rem;
 }
 
@@ -541,7 +524,7 @@ onUnmounted(() => {
 }
 
 .post-preview {
-  color: #64748b;
+  color: var(--sub-text-color);
   line-height: 1.7;
   font-size: 0.875rem;
   display: -webkit-box;
@@ -555,7 +538,7 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 8px;
   padding-top: 12px;
-  border-top: 1px solid rgba(0, 0, 0, 0.03);
+  border-top: 1px solid var(--border-color);
 }
 
 .post-tags {
@@ -565,22 +548,22 @@ onUnmounted(() => {
 }
 
 .tag {
-  background-color: #f1f5f9;
-  color: #64748b;
+  background-color: var(--hover-bg);
+  color: var(--sub-text-color);
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 0.75rem;
 }
 
 .tag:hover {
-  background-color: #f1f5f9;
-  color: #64748b;
+  background-color: var(--hover-bg);
+  color: var(--sub-text-color);
 }
 
 .end-tip {
   text-align: center;
   padding: 24px;
-  color: #64748b;
+  color: var(--sub-text-color);
   font-size: 0.875rem;
 }
 
@@ -590,7 +573,7 @@ onUnmounted(() => {
   bottom: 35px;
   width: 56px;
   height: 56px;
-  background-color: #ff9800;
+  background-color: var(--primary-color);
   color: #fff;
   border: none;
   border-radius: 50%;
@@ -601,7 +584,7 @@ onUnmounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s;
   z-index: 100;
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border-color);
 }
 
 .publish-btn:hover {

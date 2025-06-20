@@ -534,7 +534,7 @@ onUnmounted(() => {
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background-color: #fff;
+  background-color: var(--background-color);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: relative;
@@ -553,8 +553,8 @@ onUnmounted(() => {
 
 .sidebar {
   width: 150px;
-  background-color: #f8f9fa;
-  border-left: 1px solid #eee;
+  background-color: var(--hover-bg);
+  border-left: 1px solid var(--border-color);
   transition: all 0.3s ease;
 }
 
@@ -565,8 +565,8 @@ onUnmounted(() => {
   transform: translateY(-50%);
   width: 20px;
   height: 40px;
-  background-color: #f8f9fa;
-  border: 1px solid #eee;
+  background-color: var(--hover-bg);
+  border: 1px solid var(--border-color);
   border-right: none;
   border-radius: 4px 0 0 4px;
   display: flex;
@@ -582,18 +582,18 @@ onUnmounted(() => {
 }
 
 .sidebar-toggle:hover {
-  background-color: #e9ecef;
+  background-color: var(--border-color);
 }
 
 .sidebar-toggle i {
   font-size: 12px;
-  color: #666;
+  color: var(--sub-text-color);
 }
 
 /* 通知消息样式 */
 .notification-message {
   text-align: center;
-  color: #999;
+  color: var(--sub-text-color);
   font-size: 12px;
   margin: 8px auto;
   padding: 4px 0;
@@ -604,12 +604,12 @@ onUnmounted(() => {
 }
 
 .notification-message .changer {
-  color: #1890ff;
+  color: var(--primary-color);
   font-weight: 500;
 }
 
 .notification-message .new-topic {
-  color: #1890ff;
+  color: var(--primary-color);
   font-weight: 500;
   font-style: italic;
 }

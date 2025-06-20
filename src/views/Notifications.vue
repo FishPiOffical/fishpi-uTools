@@ -360,7 +360,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   padding: 20px;
-  background-color: #fff;
+  background-color: var(--background-color);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -374,7 +374,7 @@ onUnmounted(() => {
 
 .notifications-header h2 {
   margin: 0;
-  color: #333;
+  color: var(--text-color);
   font-size: 24px;
   font-weight: 600;
 }
@@ -390,27 +390,27 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background-color: #f8f9fa;
+  background-color: var(--hover-bg);
   border-radius: 8px;
   transition: all 0.3s;
 }
 
 .stat-item:hover {
-  background-color: #f0f0f0;
+  background-color: var(--border-color);
 }
 
 .stat-item i {
-  color: #ff9800;
+  color: var(--primary-color);
   font-size: 14px;
 }
 
 .stat-item .label {
-  color: #666;
+  color: var(--sub-text-color);
   font-size: 13px;
 }
 
 .stat-item .value {
-  color: #ff4d4f;
+  color: var(--point-color);
   font-weight: bold;
   font-size: 13px;
 }
@@ -419,7 +419,7 @@ onUnmounted(() => {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 10px;
 }
 
@@ -429,18 +429,18 @@ onUnmounted(() => {
   position: relative;
   border-radius: 4px;
   font-size: 14px;
-  color: #666;
+  color: var(--sub-text-color);
   transition: all 0.3s;
 }
 
 .tab-item:hover {
-  background-color: #f5f5f5;
-  color: #ff9800;
+  background-color: var(--hover-bg);
+  color: var(--primary-color);
 }
 
 .tab-item.active {
-  background-color: #fff3e0;
-  color: #ff9800;
+  background-color: var(--hover-bg);
+  color: var(--primary-color);
   font-weight: 500;
 }
 
@@ -448,8 +448,8 @@ onUnmounted(() => {
   position: absolute;
   top: -5px;
   right: -5px;
-  background-color: #ff4d4f;
-  color: white;
+  background-color: var(--badge-bg);
+  color: var(--badge-text);
   border-radius: 10px;
   padding: 2px 8px;
   font-size: 12px;
@@ -461,24 +461,6 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
   padding-right: 10px;
-}
-
-.notification-list::-webkit-scrollbar {
-  width: 8px;
-}
-
-.notification-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.notification-list::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
-}
-
-.notification-list::-webkit-scrollbar-thumb:hover {
-  background: #555;
 }
 
 .notification-items {
@@ -494,21 +476,21 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 40px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .loading i,
 .empty-tip i {
   font-size: 40px;
   margin-bottom: 10px;
-  color: #d9d9d9;
+  color: var(--border-color);
 }
 
 .loading-spinner {
   width: 30px;
   height: 30px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #ff9800;
+  border: 3px solid var(--hover-bg);
+  border-top: 3px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 10px;
@@ -536,7 +518,7 @@ onUnmounted(() => {
 .end-tip {
   text-align: center;
   padding: 20px;
-  color: #999;
+  color: var(--sub-text-color);
   font-size: 14px;
 }
 
@@ -545,8 +527,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background-color: #ffd699;
-  color: #ff9800;
+  background-color: var(--hover-bg);
+  color: var(--primary-color);
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -555,7 +537,7 @@ onUnmounted(() => {
 }
 
 .mark-all-read-btn:hover {
-  background-color: #ffe0b3;
+  background-color: var(--border-color);
 }
 
 .mark-all-read-btn i {

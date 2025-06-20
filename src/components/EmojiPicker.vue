@@ -206,7 +206,7 @@ onMounted(() => {
   bottom: 100%;
   left: 0;
   width: 320px;
-  background: white;
+  background: var(--card-bg);
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
   z-index: 1000;
@@ -221,20 +221,20 @@ onMounted(() => {
   justify-content: flex-end;
   align-items: center;
   padding: 8px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
 }
 
 .close-btn {
   cursor: pointer;
-  color: #999;
+  color: var(--sub-text-color);
   font-size: 16px;
   padding: 4px;
   transition: color 0.3s;
 }
 
 .close-btn:hover {
-  color: #666;
+  color: var(--primary-color);
 }
 
 .emoji-picker-content {
@@ -250,7 +250,7 @@ onMounted(() => {
 
 .emoji-picker-footer {
   padding: 8px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
   flex-shrink: 0;
 }
 
@@ -263,7 +263,7 @@ onMounted(() => {
 
 .tab {
   cursor: pointer;
-  color: #666;
+  color: var(--sub-text-color);
   font-size: 20px;
   padding: 8px;
   border-radius: 4px;
@@ -274,13 +274,13 @@ onMounted(() => {
 }
 
 .tab:hover {
-  color: #1890ff;
-  background: rgba(24, 144, 255, 0.1);
+  color: var(--primary-color);
+  background: var(--hover-bg);
 }
 
 .tab.active {
-  color: #1890ff;
-  background: rgba(24, 144, 255, 0.1);
+  color: var(--primary-color);
+  background: var(--hover-bg);
 }
 
 .emoji-grid {
@@ -311,7 +311,7 @@ onMounted(() => {
 }
 
 .emoji-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--hover-bg);
 }
 
 .emoji-pack-grid {
@@ -339,15 +339,15 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
-  border: 2px dashed #ddd;
-  color: #666;
+  background: var(--hover-bg);
+  border: 2px dashed var(--border-color);
+  color: var(--sub-text-color);
   gap: 8px;
 }
 
 .upload-btn:hover {
-  background: #e8e8e8;
-  border-color: #ccc;
+  background: var(--background-color);
+  border-color: var(--primary-color);
 }
 
 .upload-btn i {

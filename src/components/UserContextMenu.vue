@@ -36,12 +36,12 @@ function onAction(type) {
 .user-context-menu {
   position: fixed;
   z-index: 3000;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 12px;
   box-shadow: 0 6px 32px rgba(0, 0, 0, 0.18);
   padding: 6px 0;
   min-width: 148px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--border-color);
   animation: fadeIn 0.18s;
 }
 @keyframes fadeIn {
@@ -61,29 +61,29 @@ function onAction(type) {
   padding: 10px 22px 10px 18px;
   cursor: pointer;
   font-size: 15px;
-  color: #333;
+  color: var(--text-color);
   transition: background 0.18s, color 0.18s;
   border-radius: 6px;
   user-select: none;
 }
 .menu-item:hover {
-  background: #e6f4ff;
-  color: #1890ff;
+  background: var(--hover-bg);
+  color: var(--primary-color);
 }
 .menu-icon {
   width: 18px;
   text-align: center;
   font-size: 15px;
-  color: #8c8c8c;
+  color: var(--sub-text-color);
   flex-shrink: 0;
 }
 .menu-item:hover .menu-icon {
-  color: #1890ff;
+  color: var(--primary-color);
 }
 .menu-divider {
   height: 1px;
-  background: #f0f0f0;
-  margin: 4px 0 4px 18px;
+  background: var(--border-color);
+  margin: 4px 0 4px 8px;
   width: calc(100% - 18px);
 }
 </style>

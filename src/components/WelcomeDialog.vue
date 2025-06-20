@@ -74,7 +74,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style>
 .welcome-overlay {
   position: fixed;
   top: 0;
@@ -90,12 +90,13 @@ onMounted(() => {
 }
 
 .welcome-dialog {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
   width: 400px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   animation: slideUp 0.4s ease;
   overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
 .welcome-header {
@@ -103,7 +104,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, #409eff 0%, #66b1ff 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #66b1ff 100%);
 }
 
 .header-left {
@@ -114,19 +115,19 @@ onMounted(() => {
 
 .header-left i {
   font-size: 24px;
-  color: white;
+  color: var(--button-text);
 }
 
 .header-left span {
   font-size: 18px;
   font-weight: 600;
-  color: white;
+  color: var(--button-text);
 }
 
 .close-btn {
   background: rgba(255, 255, 255, 0.2);
   border: none;
-  color: white;
+  color: var(--button-text);
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -140,6 +141,7 @@ onMounted(() => {
 
 .close-btn:hover {
   background: rgba(255, 255, 255, 0.3);
+  color: var(--primary-color);
   transform: rotate(90deg);
 }
 
@@ -154,13 +156,13 @@ onMounted(() => {
 
 .welcome-message h3 {
   font-size: 20px;
-  color: #333;
+  color: var(--text-color);
   margin: 0 0 8px 0;
 }
 
 .welcome-message p {
   font-size: 14px;
-  color: #666;
+  color: var(--sub-text-color);
   margin: 0;
   line-height: 1.6;
 }
@@ -177,26 +179,26 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: #f8f9fa;
+  background: var(--hover-bg);
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .feature-item:hover {
-  background: #f0f9ff;
+  background: var(--card-bg);
   transform: translateX(4px);
 }
 
 .feature-item i {
   font-size: 18px;
-  color: #409eff;
+  color: var(--primary-color);
   width: 24px;
   text-align: center;
 }
 
 .feature-item span {
   font-size: 14px;
-  color: #333;
+  color: var(--text-color);
 }
 
 .action-area {
@@ -207,8 +209,8 @@ onMounted(() => {
 .manual-btn {
   flex: 1;
   padding: 12px;
-  background: #409eff;
-  color: white;
+  background: var(--button-bg);
+  color: var(--button-text);
   border: none;
   border-radius: 8px;
   font-size: 14px;
@@ -222,15 +224,16 @@ onMounted(() => {
 }
 
 .manual-btn:hover {
-  background: #66b1ff;
+  background: var(--primary-color);
+  color: var(--button-text);
   transform: translateY(-1px);
 }
 
 .start-btn {
   flex: 1;
   padding: 12px;
-  background: #f5f5f5;
-  color: #666;
+  background: var(--hover-bg);
+  color: var(--sub-text-color);
   border: none;
   border-radius: 8px;
   font-size: 14px;
@@ -239,8 +242,8 @@ onMounted(() => {
 }
 
 .start-btn:hover {
-  background: #e8e8e8;
-  color: #333;
+  background: var(--card-bg);
+  color: var(--text-color);
 }
 
 @keyframes fadeIn {

@@ -270,7 +270,7 @@ const handleSend = async () => {
 
 .red-packet-container {
   width: 380px;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   overflow: hidden;
@@ -350,7 +350,7 @@ const handleSend = async () => {
 }
 
 .type-card {
-  background: #f8f9fa;
+  background: var(--hover-bg);
   border-radius: 8px;
   padding: 12px;
   cursor: pointer;
@@ -359,11 +359,11 @@ const handleSend = async () => {
 }
 
 .type-card:hover {
-  background: #fff1f0;
+  background: var(--background-color);
 }
 
 .type-card.active {
-  background: #fff1f0;
+  background: var(--background-color);
   border-color: #ff4d4f;
 }
 
@@ -377,14 +377,14 @@ const handleSend = async () => {
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 2px;
 }
 
 .type-desc {
   display: block;
   font-size: 11px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .form-content {
@@ -402,7 +402,7 @@ const handleSend = async () => {
 .item-label {
   width: 50px;
   font-size: 13px;
-  color: #666;
+  color: var(--sub-text-color);
   flex-shrink: 0;
 }
 
@@ -418,7 +418,7 @@ const handleSend = async () => {
   align-items: center;
   gap: 4px;
   padding: 8px;
-  background: #f8f9fa;
+  background: var(--hover-bg);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s;
@@ -426,11 +426,11 @@ const handleSend = async () => {
 }
 
 .gesture-item:hover {
-  background: #fff1f0;
+  background: var(--background-color);
 }
 
 .gesture-item.active {
-  background: #fff1f0;
+  background: var(--background-color);
   border-color: #ff4d4f;
 }
 
@@ -440,30 +440,30 @@ const handleSend = async () => {
 
 .gesture-name {
   font-size: 12px;
-  color: #666;
+  color: var(--sub-text-color);
 }
 
 .red-packet-footer {
   padding: 12px 16px;
-  background: #fafafa;
+  background: var(--hover-bg);
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-color);
 }
 
 .cancel-btn {
   padding: 8px 16px;
   font-weight: 500;
   border: none;
-  background: #f5f5f5;
-  color: #666;
+  background: var(--hover-bg);
+  color: var(--sub-text-color);
   font-size: 13px;
 }
 
 .cancel-btn:hover {
-  background: #e8e8e8;
-  color: #333;
+  background: var(--background-color);
+  color: var(--text-color);
 }
 
 .send-btn {

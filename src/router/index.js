@@ -11,6 +11,7 @@ import Notifications from "../views/Notifications.vue";
 import Dashboard from "../views/Dashboard.vue";
 import PrivateChat from "../views/PrivateChat.vue";
 import UserProfile from "../views/UserProfile.vue";
+import Games from "../views/Games.vue";
 
 const routes = [
   {
@@ -45,6 +46,11 @@ const routes = [
         meta: {
           keepAlive: true,
         },
+      },
+      {
+        path: "/games",
+        name: "Games",
+        component: Games,
       },
       {
         path: "/moon",

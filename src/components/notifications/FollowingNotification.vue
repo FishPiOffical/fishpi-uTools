@@ -116,9 +116,9 @@ const formatTime = (time) => {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 2px solid #fff;
+  border: 2px solid var(--avatar-border);
   flex-shrink: 0;
-  background: #f8fafc;
+  background: var(--card-bg);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
@@ -130,27 +130,27 @@ const formatTime = (time) => {
 }
 
 .user-name {
-  color: #1a1f36;
+  color: var(--text-color);
 }
 
 .user-action {
-  color: #64748b;
+  color: var(--sub-text-color);
   font-weight: 400;
 }
 
 .notification-message {
-  color: #1a1f36;
+  color: var(--text-color);
   line-height: 1.7;
   word-break: break-word;
   font-size: 0.875rem;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--hover-bg);
   border-radius: 8px;
   margin: 8px 0;
 }
 
 .article-title {
-  color: #3b82f6;
+  color: var(--primary-color);
   text-decoration: none;
   font-weight: 500;
   display: block;
@@ -174,10 +174,10 @@ const formatTime = (time) => {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  background: rgba(59, 130, 246, 0.1);
+  background: var(--hover-bg);
   border-radius: 4px;
   font-size: 12px;
-  color: #3b82f6;
+  color: var(--primary-color);
 }
 
 .tag-icon {
@@ -190,7 +190,7 @@ const formatTime = (time) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #64748b;
+  color: var(--sub-text-color);
   font-size: 0.75rem;
 }
 
@@ -224,7 +224,7 @@ const formatTime = (time) => {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #f59e0b;
+  color: var(--point-color);
   font-weight: 500;
 }
 
@@ -233,13 +233,13 @@ const formatTime = (time) => {
 }
 
 .deleted {
-  color: #94a3b8;
+  color: var(--sub-text-color);
   font-style: italic;
 }
 
 .deleted-message {
-  color: #94a3b8;
+  color: var(--sub-text-color);
   font-style: italic;
-  background: rgba(0, 0, 0, 0.01);
+  background: var(--card-bg);
 }
 </style>

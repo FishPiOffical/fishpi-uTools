@@ -68,7 +68,7 @@ const formatTime = (time) => {
 
 <style scoped>
 .notification-item {
-  background: #fff;
+  background: var(--card-bg);
   transition: box-shadow 0.2s;
 }
 
@@ -81,7 +81,7 @@ const formatTime = (time) => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #fff3e0;
+  background: var(--hover-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -89,7 +89,7 @@ const formatTime = (time) => {
 }
 
 .notification-icon i {
-  color: #ff9800;
+  color: var(--primary-color);
   font-size: 1rem;
 }
 
@@ -106,15 +106,15 @@ const formatTime = (time) => {
 }
 
 .point-increase {
-  color: #10b981;
+  color: var(--signed-color);
 }
 
 .point-decrease {
-  color: #ef4444;
+  color: var(--point-color);
 }
 
 .point-reason {
-  color: #64748b;
+  color: var(--sub-text-color);
   font-size: 0.875rem;
 }
 
@@ -122,7 +122,7 @@ const formatTime = (time) => {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #64748b;
+  color: var(--sub-text-color);
   font-size: 0.75rem;
 }
 

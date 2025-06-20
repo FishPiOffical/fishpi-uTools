@@ -153,16 +153,16 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   font-size: 12px;
-  color: #8a8a8a;
+  color: var(--sub-text-color);
   margin-left: 6px;
 }
 
 .client-text {
-  color: #8a8a8a;
+  color: var(--sub-text-color);
 }
 
 .client-detail {
   margin-left: 4px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 </style>

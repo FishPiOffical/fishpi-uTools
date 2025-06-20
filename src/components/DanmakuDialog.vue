@@ -67,7 +67,7 @@ const handleSend = () => {
 }
 
 .danmaku-content {
-  background: white;
+  background: var(--card-bg);
   border-radius: 8px;
   width: 380px;
   padding: 16px;
@@ -85,12 +85,12 @@ const handleSend = () => {
 .dialog-header h3 {
   margin: 0;
   font-size: 16px;
-  color: #333;
+  color: var(--text-color);
 }
 
 .close-icon {
   cursor: pointer;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .dialog-body {
@@ -100,7 +100,7 @@ const handleSend = () => {
 .dialog-body textarea {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   resize: none;
   margin-bottom: 12px;
@@ -108,23 +108,24 @@ const handleSend = () => {
     "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #333;
+  color: var(--text-color);
+  background: var(--card-bg);
 }
 
 .dialog-body textarea:focus {
   outline: none;
-  border-color: #1890ff;
+  border-color: var(--primary-color);
 }
 
 .text-count {
   text-align: right;
-  color: #999;
+  color: var(--sub-text-color);
   font-size: 12px;
   margin-top: 8px;
 }
 
 .points-tip {
-  color: #ff4d4f;
+  color: var(--point-color);
   font-size: 12px;
   margin-top: 8px;
   display: flex;
@@ -143,15 +144,15 @@ const handleSend = () => {
 
 .dialog-footer button {
   padding: 6px 16px;
-  background-color: #1890ff;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--button-text);
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 
 .dialog-footer button:hover {
-  background-color: #40a9ff;
+  background-color: var(--button-bg);
 }
 
 @keyframes fadeIn {

@@ -112,12 +112,14 @@ const LINKS = {
 
 .modal-content {
   position: relative;
-  background: white;
+  background: var(--card-bg);
   border-radius: 20px;
   width: 90%;
   max-width: 420px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   z-index: 1001;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
 }
 
 .modal-header {
@@ -129,7 +131,7 @@ const LINKS = {
 
 .modal-header h3 {
   margin: 0;
-  color: #1a1f36;
+  color: var(--text-color);
   font-size: 1.4rem;
   font-weight: 600;
 }
@@ -145,7 +147,7 @@ const LINKS = {
 .section h5 {
   font-size: 1rem;
   font-weight: 600;
-  color: #1a1f36;
+  color: var(--text-color);
   margin-bottom: 16px;
 }
 
@@ -155,21 +157,21 @@ const LINKS = {
 
 .author-info h4 {
   margin: 0 0 8px;
-  color: #1a1f36;
+  color: var(--text-color);
   font-size: 1.3rem;
   font-weight: 600;
 }
 
 .author-info p {
   margin: 0;
-  color: #697386;
+  color: var(--sub-text-color);
   line-height: 1.6;
   font-size: 0.95rem;
 }
 
 .info-text {
   margin-top: 12px;
-  color: #697386;
+  color: var(--sub-text-color);
   font-size: 0.9rem;
   line-height: 1.6;
 }
@@ -180,11 +182,11 @@ const LINKS = {
 }
 
 .link-btn {
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 10px 18px;
-  color: #1a1f36;
+  color: var(--text-color);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -196,10 +198,10 @@ const LINKS = {
 }
 
 .link-btn:hover {
-  background-color: #f1f3f5;
-  border-color: #dee2e6;
+  background-color: var(--hover-bg);
+  border-color: var(--border-color);
   text-decoration: none;
-  color: #1a1f36;
+  color: var(--hover-text-color);
 }
 
 .cursor-ai-info-wrapper {
@@ -208,7 +210,7 @@ const LINKS = {
 }
 
 .ai-assisted-text {
-  color: #697386;
+  color: var(--sub-text-color);
   font-size: 0.85rem;
   margin: 0;
   line-height: 1.6;
@@ -218,7 +220,7 @@ const LINKS = {
   background: none;
   border: none;
   font-size: 24px;
-  color: #697386;
+  color: var(--sub-text-color);
   cursor: pointer;
   padding: 4px;
   line-height: 1;
@@ -232,12 +234,12 @@ const LINKS = {
 }
 
 .close-btn:hover {
-  background-color: #f8f9fa;
-  color: #1a1f36;
+  background-color: var(--hover-bg);
+  color: var(--hover-text-color);
 }
 
 .cursor-link {
-  color: #1a1f36;
+  color: var(--text-color);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s ease;
@@ -245,6 +247,6 @@ const LINKS = {
 }
 
 .cursor-link:hover {
-  color: #4a90e2;
+  color: var(--primary-color);
 }
 </style>

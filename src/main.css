@@ -1,19 +1,63 @@
-:root {
+html{
+  --background-color: #fff;
+  --text-color: #222;
+  --primary-color: rgb(240 211 94);
+  --button-bg: var(--primary-color);
+  --button-text: #fff;
   --blue: rgb(240 211 94);
   --light: #fff;
+  --sidebar-bg: #fff;
+  --card-bg: #fff;
+  --border-color: #eee;
+  --hover-bg: #f5f5f5;
+  --hover-text-color: #666;
+  --sub-text-color: #666;
+  --point-color: #ff4d4f;
+  --signed-color: #52c41a;
+  --badge-bg: #ff4d4f;
+  --badge-text: #fff;
+  --tooltip-bg: #333;
+  --tooltip-text: #fff;
+  --avatar-border: #fff;
+  --chatroom-bg: #f5f7fa;
+  --bubble-bg: #fff;
+}
+
+html[data-theme="dark"] {
+  --background-color: #000;
+  --text-color: #eee;
+  --primary-color: #f0d35e;
+  --button-bg: var(--primary-color);
+  --button-text: #232323;
+  --sidebar-bg: #232323;
+  --card-bg: #181818;
+  --border-color: #333;
+  --hover-bg: #232323;
+  --hover-text-color: #eee;
+  --sub-text-color: #aaa;
+  --point-color: #ffb84d;
+  --signed-color: #52c41a;
+  --badge-bg: #ff784f;
+  --badge-text: #fff;
+  --tooltip-bg: #222;
+  --tooltip-text: #eee;
+  --avatar-border: #333;
+  --chatroom-bg: #18191c;
+  --bubble-bg: #23272e;
 }
 
 html,
 body {
   margin: 0;
   padding: 0;
+  background: var(--background-color);
+  color: var(--text-color);
 }
 
 button {
   border: none;
-  background: none var(--blue);
-  color: var(--light);
-  line-height: 2.5;
+  background: var(--button-bg);
+  color: var(--button-text);
   cursor: pointer;
   transition: opacity .2s;
 }
@@ -38,7 +82,7 @@ textarea {
   }
 
   ::-webkit-scrollbar-track-piece {
-    background-color: #f4f4f4;
+    background-color: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
@@ -48,7 +92,7 @@ textarea {
 
 @media (prefers-color-scheme: dark) {
   &::-webkit-scrollbar-track-piece {
-    background-color: #303133;
+    background-color: transparent;
   }
 
   &::-webkit-scrollbar-thumb {
@@ -60,4 +104,27 @@ textarea {
     background-color: #303133;
     color: #fff;
   }
+}
+
+/* 全局滚动条明暗模式适配 + 默认半透明，悬停时变明显 */
+::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+  opacity: 0;
+  transition: opacity 0.3s, background 0.3s;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:hover::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:hover {
+  opacity: 1;
+  background: var(--sub-text-color);
 }

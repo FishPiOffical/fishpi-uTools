@@ -148,7 +148,7 @@ const handlePublish = async () => {
 }
 
 .modal-content {
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 16px;
   width: 90%;
   max-width: 500px;
@@ -161,7 +161,7 @@ const handlePublish = async () => {
 
 .modal-header {
   padding: 20px 24px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -170,14 +170,14 @@ const handlePublish = async () => {
 .modal-header h3 {
   margin: 0;
   font-size: 20px;
-  color: #1a1f36;
+  color: var(--text-color);
   font-weight: 600;
 }
 
 .close-button {
   background: none;
   border: none;
-  color: #999;
+  color: var(--sub-text-color);
   font-size: 20px;
   cursor: pointer;
   padding: 8px;
@@ -186,8 +186,8 @@ const handlePublish = async () => {
 }
 
 .close-button:hover {
-  background-color: #f5f5f5;
-  color: #666;
+  background-color: var(--hover-bg);
+  color: var(--primary-color);
 }
 
 .modal-body {
@@ -198,7 +198,7 @@ const handlePublish = async () => {
 .input-wrapper {
   position: relative;
   margin-bottom: 16px;
-  background-color: #fff;
+  background-color: var(--card-bg);
   border-radius: 4px;
 }
 
@@ -209,13 +209,14 @@ const handlePublish = async () => {
   border: none;
   border-radius: 4px;
   resize: none;
-  background-color: #fff;
+  background-color: var(--card-bg);
   transition: all 0.3s ease;
   font-size: 14px;
   line-height: 1.5;
   caret-color: #ff9800;
   caret-width: 2px;
   font-family: inherit;
+  color: var(--text-color);
 }
 
 .publish-textarea:focus {
@@ -228,7 +229,7 @@ const handlePublish = async () => {
   align-items: center;
   margin-top: 8px;
   padding: 0 4px;
-  color: #999;
+  color: var(--sub-text-color);
   font-size: 12px;
 }
 
@@ -241,14 +242,14 @@ const handlePublish = async () => {
 }
 
 .shortcut-tip {
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .publish-footer {
   display: flex;
   justify-content: flex-end;
   padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-color);
 }
 
 .publish-button {

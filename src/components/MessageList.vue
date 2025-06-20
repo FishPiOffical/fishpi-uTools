@@ -1188,7 +1188,7 @@ const userContextMenuItems = computed(() => [
   flex: 1;
   overflow-y: auto;
   padding: 10px;
-  background-color: #f5f7fa;
+  background-color: var(--chatroom-bg);
 }
 
 .messages {
@@ -1214,7 +1214,7 @@ const userContextMenuItems = computed(() => [
   border-radius: 50%;
   margin: 0 8px;
   flex-shrink: 0;
-  border: 2px solid #fff;
+  border: 2px solid var(--avatar-border);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -1246,7 +1246,7 @@ const userContextMenuItems = computed(() => [
 
 .user-nickname {
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
   margin: 0 6px;
   font-size: 13px;
 }
@@ -1261,19 +1261,19 @@ const userContextMenuItems = computed(() => [
 .message-text {
   padding: 10px 12px;
   border-radius: 12px;
-  background-color: #fff;
+  background-color: var(--bubble-bg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   word-break: break-word;
   line-height: 1.5;
   font-size: 14px;
-  color: #333;
+  color: var(--text-color);
   position: relative;
   width: fit-content;
   max-width: 100%;
 }
 
 .message-row-self .message-text {
-  background-color: #e6f4ff;
+  background-color: var(--hover-bg);
   margin-left: auto;
   margin-top: 0;
 }
@@ -1336,7 +1336,6 @@ const userContextMenuItems = computed(() => [
   color: #1890ff;
 }
 
-/* 气泡尖角 */
 .message-text::before {
   content: "";
   position: absolute;
@@ -1348,19 +1347,19 @@ const userContextMenuItems = computed(() => [
 
 .message-row:not(.message-row-self) .message-text::before {
   left: -12px;
-  border-right-color: #fff;
+  border-right-color: var(--card-bg);
 }
 
 .message-row-self .message-text::before {
   right: -12px;
-  border-left-color: #e6f4ff;
+  border-left-color: var(--hover-bg);
 }
 
 .message-footer {
   margin-top: 4px;
   padding: 0 4px;
   font-size: 12px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .message-footer-self {
@@ -1369,7 +1368,7 @@ const userContextMenuItems = computed(() => [
 
 .client-info {
   font-size: 12px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .message-text :deep(img) {
@@ -1378,15 +1377,15 @@ const userContextMenuItems = computed(() => [
   border-radius: 8px;
   margin: 4px 0;
   cursor: pointer;
-  display: block; /* 确保图片独占一行 */
+  display: block;
 }
 .message-text :deep(blockquote) {
   margin: 8px 0;
   padding: 8px 12px;
-  border-left: 2px solid #e6e6e6;
-  background-color: #f9f9f9;
+  border-left: 2px solid var(--border-color);
+  background-color: var(--hover-bg);
   border-radius: 4px;
-  color: #666;
+  color: var(--sub-text-color);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -1400,26 +1399,25 @@ const userContextMenuItems = computed(() => [
 }
 
 .message-row-self .message-text :deep(blockquote) {
-  background-color: #f0f7ff;
+  background-color: var(--background-color);
 }
 .message-text :deep(p) {
-  margin: 8px 0 0 0; /* 调整段落间距，特别是图片后的文字 */
+  margin: 8px 0 0 0;
 }
 
 .message-text :deep(p:first-child) {
-  margin-top: 0; /* 第一个段落不需要上边距 */
+  margin-top: 0;
 }
 
 .message-text :deep(p:last-child) {
-  margin-bottom: 0; /* 最后一个段落不需要下边距 */
+  margin-bottom: 0;
 }
 
-/* 时间分隔符样式 */
 .time-separator {
   text-align: center;
   margin: 16px 0;
   font-size: 12px;
-  color: #999;
+  color: var(--sub-text-color);
   position: relative;
 }
 
@@ -1427,7 +1425,7 @@ const userContextMenuItems = computed(() => [
 .no-more-messages {
   text-align: center;
   padding: 12px;
-  color: #999;
+  color: var(--sub-text-color);
   font-size: 12px;
   display: flex;
   align-items: center;
@@ -1455,23 +1453,23 @@ const userContextMenuItems = computed(() => [
 
 .new-messages-notification {
   position: absolute;
-  bottom: 170px; /* 调整位置，确保在输入框上方 */
-  right: 180px; /* 调整位置，向左移动 */
-  background-color: rgba(24, 144, 255, 0.8); /* 调整背景颜色为半透明 */
-  color: white;
+  bottom: 170px;
+  right: 180px;
+  background-color: var(--primary-color);
+  color: var(--button-text);
   padding: 8px 16px;
   border-radius: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1); /* 调整阴影，使其更柔和 */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   transition: all 0.3s ease;
 }
 
 .new-messages-notification:hover {
-  background-color: #40a9ff;
+  background-color: var(--button-bg);
   transform: translateY(-2px);
 }
 
@@ -1481,8 +1479,8 @@ const userContextMenuItems = computed(() => [
 }
 
 .notification-count {
-  background-color: #ff4d4f;
-  color: white;
+  background-color: var(--badge-bg);
+  color: var(--badge-text);
   padding: 2px 6px;
   border-radius: 10px;
   font-size: 12px;

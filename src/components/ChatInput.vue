@@ -264,12 +264,12 @@ const handleTransferError = (error) => {
 <style scoped>
 .chat-input-container {
   padding: 12px 20px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 8px;
   flex-shrink: 0;
-  background-color: #fff;
+  background-color: var(--card-bg);
   position: relative;
 }
 
@@ -289,12 +289,12 @@ const handleTransferError = (error) => {
 .input-icons .icon {
   cursor: pointer;
   font-size: 18px;
-  color: #666;
+  color: var(--sub-text-color);
   transition: color 0.3s ease;
 }
 
 .input-icons .icon:hover {
-  color: #1890ff;
+  color: var(--primary-color);
 }
 
 .input-footer {
@@ -304,14 +304,14 @@ const handleTransferError = (error) => {
 }
 
 .tip {
-  color: #999;
+  color: var(--sub-text-color);
   font-size: 12px;
 }
 
 .chat-input-container button {
   padding: 0 20px;
-  background-color: #1890ff;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--button-text);
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -321,7 +321,7 @@ const handleTransferError = (error) => {
 }
 
 .chat-input-container button:hover {
-  background-color: #40a9ff;
+  background-color: var(--button-bg);
 }
 
 :deep(.emoji-picker) {
@@ -338,13 +338,14 @@ const handleTransferError = (error) => {
   padding: 10px;
   border: none;
   border-radius: 4px;
-  background-color: #fff;
+  background-color: var(--card-bg);
   transition: all 0.3s ease;
   font-size: 14px;
   line-height: 1.5;
   overflow-y: auto;
   outline: none;
-  caret-color: #1890ff;
+  caret-color: var(--primary-color);
+  color: var(--text-color);
 }
 
 .input-content:focus {
@@ -357,16 +358,16 @@ const handleTransferError = (error) => {
 }
 
 .input-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--background-color);
   border-radius: 3px;
 }
 
 .input-content::-webkit-scrollbar-thumb {
-  background: #ccc;
+  background: var(--border-color);
   border-radius: 3px;
 }
 
 .input-content::-webkit-scrollbar-thumb:hover {
-  background: #999;
+  background: var(--sub-text-color);
 }
 </style>

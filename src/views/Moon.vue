@@ -170,12 +170,12 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   padding: 24px;
-  background-color: #fff;
+  background-color: var(--background-color);
 }
 
 .moon-header h2 {
   margin: 0 0 24px 0;
-  color: #1a1f36;
+  color: var(--text-color);
   font-size: 1.5rem;
   font-weight: 600;
 }
@@ -187,32 +187,13 @@ onUnmounted(() => {
   padding-bottom: 24px;
 }
 
-/* 滚动条样式优化 */
-.moon-list::-webkit-scrollbar {
-  width: 8px;
-}
-
-.moon-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.moon-list::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
-}
-
-.moon-list::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
 .loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 40px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .loading-more-spinner {
@@ -224,8 +205,8 @@ onUnmounted(() => {
 .loading-spinner {
   width: 30px;
   height: 30px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #ff9800;
+  border: 3px solid var(--hover-bg);
+  border-top: 3px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 0; /* 列表底部的spinner不需要底部margin */
@@ -246,13 +227,13 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 40px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .empty-tip i {
   font-size: 40px;
   margin-bottom: 10px;
-  color: #d9d9d9;
+  color: var(--border-color);
 }
 
 .moon-items {
@@ -262,14 +243,14 @@ onUnmounted(() => {
 }
 
 .moon-item {
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border-color);
 }
 
 .moon-item-header {
@@ -282,9 +263,9 @@ onUnmounted(() => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 2px solid #fff;
+  border: 2px solid var(--avatar-border);
   flex-shrink: 0;
-  background: #f8fafc;
+  background: var(--hover-bg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
@@ -296,12 +277,12 @@ onUnmounted(() => {
 
 .user-name {
   font-weight: 600;
-  color: #1a1f36;
+  color: var(--text-color);
   font-size: 1rem;
 }
 
 .moon-content {
-  color: #1a1f36;
+  color: var(--text-color);
   line-height: 1.7;
   word-break: break-word;
   font-size: 1rem;
@@ -318,7 +299,7 @@ onUnmounted(() => {
 }
 
 .moon-content :deep(a) {
-  color: #3b82f6;
+  color: var(--primary-color);
   text-decoration: none;
   font-weight: 500;
 }
@@ -338,7 +319,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #64748b;
+  color: var(--sub-text-color);
   font-size: 0.875rem;
 }
 
@@ -365,7 +346,7 @@ onUnmounted(() => {
 .end-tip {
   text-align: center;
   padding: 24px;
-  color: #64748b;
+  color: var(--sub-text-color);
   font-size: 0.875rem;
 }
 
@@ -375,7 +356,7 @@ onUnmounted(() => {
   bottom: 100px;
   width: 56px;
   height: 56px;
-  background-color: #fff;
+  background-color: var(--card-bg);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -384,11 +365,11 @@ onUnmounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s;
   z-index: 100;
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border-color);
 }
 
 .back-to-top:hover {
-  background-color: #ff9800;
+  background-color: var(--primary-color);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
@@ -398,7 +379,7 @@ onUnmounted(() => {
 }
 
 .back-to-top i {
-  color: #666;
+  color: var(--sub-text-color);
   font-size: 24px;
   transition: color 0.3s;
 }
@@ -410,8 +391,8 @@ onUnmounted(() => {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background-color: #e5e7eb;
-  color: #6b7280;
+  background-color: var(--hover-bg);
+  color: var(--sub-text-color);
   font-size: 12px;
   margin-left: 4px;
   cursor: pointer;
@@ -419,7 +400,7 @@ onUnmounted(() => {
 }
 
 .help-icon:hover {
-  background-color: #d1d5db;
-  color: #4b5563;
+  background-color: var(--border-color);
+  color: var(--text-color);
 }
 </style>

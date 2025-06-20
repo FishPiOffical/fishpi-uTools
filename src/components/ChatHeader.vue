@@ -102,8 +102,8 @@ const openEditDialog = () => {
 <style scoped>
 .chat-header {
   padding: 10px 20px;
-  border-bottom: 1px solid #eee;
-  background-color: #fff;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--card-bg);
 }
 
 .header-content {
@@ -112,16 +112,17 @@ const openEditDialog = () => {
 
 .chat-name {
   font-size: 18px;
-  color: #333;
+  color: var(--text-color);
   font-weight: bold;
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .chat-name:hover {
-  background-color: #f5f7fa;
+  background-color: var(--hover-bg);
+  color: var(--hover-text-color);
 }
 
 .dialog-footer {

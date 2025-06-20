@@ -752,7 +752,7 @@ const handleContentClick = (e) => {
   height: 100%;
   overflow-y: auto;
   padding: 24px;
-  background-color: #fff;
+  background-color: var(--background-color);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   position: relative;
   box-sizing: border-box;
@@ -768,15 +768,15 @@ const handleContentClick = (e) => {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: #999;
+  color: var(--sub-text-color);
   text-align: center;
 }
 
 .loading-spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #ff9800;
+  border: 3px solid var(--hover-bg);
+  border-top: 3px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -795,11 +795,11 @@ const handleContentClick = (e) => {
 .error-tip i {
   font-size: 48px;
   margin-bottom: 16px;
-  color: #d9d9d9;
+  color: var(--border-color);
 }
 
 .error-tip {
-  color: #f5222d;
+  color: var(--point-color);
 }
 
 .post-content-area {
@@ -812,15 +812,13 @@ const handleContentClick = (e) => {
 }
 
 .post-content-area.with-fixed-header {
-  /* 当固定标题栏显示时，给内容区域顶部留白 */
-  /* padding-top的值应该等于fixed-header的高度 */
-  padding-top: 60px; /* 这个值需要与 .fixed-header 的实际高度一致 */
+  padding-top: 60px;
 }
 
 .post-detail-title {
   font-size: 24px;
   font-weight: 700;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 24px;
   line-height: 1.4;
   word-break: break-word;
@@ -832,7 +830,7 @@ const handleContentClick = (e) => {
   align-items: center;
   margin-bottom: 32px;
   padding-bottom: 24px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .author-avatar {
@@ -840,7 +838,7 @@ const handleContentClick = (e) => {
   height: 35px;
   border-radius: 50%;
   margin-right: 16px;
-  border: 2px solid #fff;
+  border: 2px solid var(--avatar-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
   transition: transform 0.2s;
@@ -855,13 +853,13 @@ const handleContentClick = (e) => {
   flex-wrap: wrap;
   align-items: center;
   font-size: 14px;
-  color: #666;
+  color: var(--sub-text-color);
   gap: 20px;
 }
 
 .author-name {
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
   font-size: 16px;
 }
 
@@ -870,26 +868,25 @@ const handleContentClick = (e) => {
 .comment-count {
   display: flex;
   align-items: center;
-  color: #666;
+  color: var(--sub-text-color);
 }
 
 .meta-info i {
   margin-right: 6px;
-  color: #ff9800;
+  color: var(--primary-color);
   font-size: 16px;
 }
 
 .post-detail-content {
   line-height: 1.8;
   font-size: 16px;
-  color: #333;
+  color: var(--text-color);
   word-break: break-word;
   width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
 }
 
-/* 对v-html渲染的内部元素进行样式控制 */
 .post-detail-content :deep(p) {
   margin: 0 0 1.2em 0;
   line-height: 1.8;
@@ -907,11 +904,11 @@ const handleContentClick = (e) => {
 }
 
 .post-detail-content :deep(pre) {
-  background-color: #f8f9fa;
+  background-color: var(--hover-bg);
   padding: 16px;
   border-radius: 8px;
   margin: 1.2em 0;
-  border: 1px solid #eee;
+  border: 1px solid var(--border-color);
   width: 100%;
   box-sizing: border-box;
   white-space: pre;
@@ -929,7 +926,7 @@ const handleContentClick = (e) => {
   background-color: transparent;
   padding: 0;
   border-radius: 0;
-  color: #333;
+  color: var(--text-color);
   display: block;
   line-height: 1.5;
   white-space: pre;
@@ -938,23 +935,8 @@ const handleContentClick = (e) => {
   box-sizing: border-box;
 }
 
-/* 自定义滚动条样式 */
-.post-detail-content :deep(pre::-webkit-scrollbar) {
-  height: 6px;
-  background-color: #f8f9fa;
-}
-
-.post-detail-content :deep(pre::-webkit-scrollbar-thumb) {
-  background-color: #ddd;
-  border-radius: 3px;
-}
-
-.post-detail-content :deep(pre::-webkit-scrollbar-thumb:hover) {
-  background-color: #ccc;
-}
-
 .post-detail-content :deep(a) {
-  color: #1890ff;
+  color: var(--primary-color);
   text-decoration: none;
   word-break: break-all;
 }
@@ -966,9 +948,9 @@ const handleContentClick = (e) => {
 .post-detail-content :deep(blockquote) {
   margin: 1.2em 0;
   padding: 12px 20px;
-  border-left: 4px solid #ff9800;
-  background-color: #fff8e1;
-  color: #666;
+  border-left: 4px solid var(--primary-color);
+  background-color: var(--hover-bg);
+  color: var(--sub-text-color);
   font-style: italic;
 }
 
@@ -991,24 +973,24 @@ const handleContentClick = (e) => {
 .post-detail-content :deep(th),
 .post-detail-content :deep(td) {
   padding: 12px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border-color);
 }
 
 .post-detail-content :deep(th) {
-  background-color: #f8f9fa;
+  background-color: var(--hover-bg);
   font-weight: 600;
 }
 
 .comments-area {
   margin-top: 48px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
   padding-top: 24px;
 }
 
 .comments-area h3 {
   font-size: 24px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 .comments-header {
@@ -1023,7 +1005,7 @@ const handleContentClick = (e) => {
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: #ff9800;
+  background: var(--primary-color);
   color: #fff;
   border: none;
   border-radius: 20px;
@@ -1056,29 +1038,32 @@ const handleContentClick = (e) => {
   line-height: 1.5;
   margin-bottom: 12px;
   transition: all 0.3s ease;
-  background: transparent;
-  caret-color: #ff9800;
-  outline: none !important; /* 确保移除轮廓 */
-  box-shadow: none !important; /* 确保移除阴影 */
+  background: var(--card-bg);
+  color: var(--text-color);
+  caret-color: var(--primary-color);
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .comment-dialog-content .comment-input:focus {
   border: none !important;
-  outline: none !important; /* 确保聚焦时也无轮廓 */
-  box-shadow: none !important; /* 确保聚焦时也无阴影 */
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .comment-dialog-content .comment-input::placeholder {
-  color: #999;
+  color: var(--sub-text-color);
   font-size: 14px;
 }
 
 .comment-dialog-content .comment-input::selection {
-  background: rgba(255, 152, 0, 0.1);
+  background: var(--primary-color);
+  color: var(--button-text);
 }
 
 .comment-dialog-content .comment-input::-moz-selection {
-  background: rgba(255, 152, 0, 0.1);
+  background: var(--primary-color);
+  color: var(--button-text);
 }
 
 .comment-dialog-content .comment-options {
@@ -1092,7 +1077,7 @@ const handleContentClick = (e) => {
   align-items: center;
   gap: 6px;
   font-size: 14px;
-  color: #666;
+  color: var(--sub-text-color);
   cursor: pointer;
 }
 
@@ -1115,8 +1100,8 @@ const handleContentClick = (e) => {
 
 .dialog-footer .submit-comment-btn {
   padding: 8px 24px;
-  background: #ff9800;
-  color: #fff;
+  background: var(--button-bg);
+  color: var(--button-text);
   border: none;
   border-radius: 6px;
   font-size: 14px;
@@ -1126,18 +1111,20 @@ const handleContentClick = (e) => {
 }
 
 .dialog-footer .submit-comment-btn:hover:not(:disabled) {
-  background: #f57c00;
+  background: var(--primary-color);
+  color: var(--button-text);
 }
 
 .dialog-footer .submit-comment-btn:disabled {
-  background: #ccc;
+  background: var(--border-color);
+  color: var(--sub-text-color);
   cursor: not-allowed;
 }
 
 .dialog-footer .cancel-reply-btn {
   padding: 8px 24px;
-  background: #f5f5f5;
-  color: #666;
+  background: var(--hover-bg);
+  color: var(--sub-text-color);
   border: none;
   border-radius: 6px;
   font-size: 14px;
@@ -1147,35 +1134,41 @@ const handleContentClick = (e) => {
 }
 
 .dialog-footer .cancel-reply-btn:hover {
-  background: #e8e8e8;
-  color: #333;
+  background: var(--card-bg);
+  color: var(--text-color);
 }
 
-/* 自定义弹窗样式 */
 :deep(.el-dialog) {
   border-radius: 12px;
   overflow: hidden;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-color);
 }
 
 :deep(.el-dialog__header) {
   margin: 0;
   padding: 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--card-bg);
 }
 
 :deep(.el-dialog__title) {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
 }
 
 :deep(.el-dialog__body) {
   padding: 0 20px;
+  background: var(--card-bg);
+  color: var(--text-color);
 }
 
 :deep(.el-dialog__footer) {
   padding: 0 20px 20px;
   border-top: none;
+  background: var(--card-bg);
 }
 
 .comment-loading,
@@ -1183,14 +1176,14 @@ const handleContentClick = (e) => {
 .empty-comments {
   text-align: center;
   padding: 32px 20px;
-  color: #999;
-  background: #f8f9fa;
+  color: var(--sub-text-color);
+  background: var(--hover-bg);
   border-radius: 8px;
   margin-bottom: 24px;
 }
 
 .comment-error {
-  color: #f5222d;
+  color: var(--point-color);
 }
 
 .comment-list {
@@ -1200,7 +1193,7 @@ const handleContentClick = (e) => {
 }
 
 .comment-item {
-  background: #fff;
+  background: var(--card-bg);
   padding: 16px 0;
   position: relative;
 }
@@ -1212,7 +1205,7 @@ const handleContentClick = (e) => {
   right: 0;
   bottom: -12px;
   height: 1px;
-  background: #f0f0f0;
+  background: var(--border-color);
 }
 
 .comment-header {
@@ -1240,19 +1233,19 @@ const handleContentClick = (e) => {
 
 .comment-author {
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
   font-size: 15px;
 }
 
 .comment-time {
   font-size: 13px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .comment-content {
   font-size: 15px;
   line-height: 1.6;
-  color: #333;
+  color: var(--text-color);
   margin: 0 0 12px 48px;
 }
 
@@ -1270,7 +1263,7 @@ const handleContentClick = (e) => {
   padding: 0 8px;
   height: 32px;
   font-size: 16px;
-  color: #666;
+  color: var(--sub-text-color);
   background: transparent;
   border: none;
   border-radius: 4px;
@@ -1279,24 +1272,24 @@ const handleContentClick = (e) => {
 }
 
 .comment-actions .action-btn:hover {
-  color: #ff9800;
-  background: #fff8e1;
+  color: var(--primary-color);
+  background: var(--hover-bg);
 }
 
 .comment-actions .action-btn.active {
-  color: #ff9800;
+  color: var(--primary-color);
   background: transparent;
 }
 
 .comment-actions .action-btn .count {
   font-size: 13px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .reply-list {
   margin: 12px 0 0 48px;
   padding-left: 12px;
-  border-left: 1px solid #f0f0f0;
+  border-left: 1px solid var(--border-color);
 }
 
 .reply-item {
@@ -1311,7 +1304,7 @@ const handleContentClick = (e) => {
   right: 0;
   bottom: -6px;
   height: 1px;
-  background: #f5f5f5;
+  background: var(--hover-bg);
 }
 
 .reply-header {
@@ -1339,19 +1332,19 @@ const handleContentClick = (e) => {
 
 .reply-author {
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
   font-size: 14px;
 }
 
 .reply-time {
   font-size: 13px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .reply-content {
   font-size: 14px;
   line-height: 1.6;
-  color: #333;
+  color: var(--text-color);
   margin: 0 0 8px 36px;
 }
 
@@ -1369,7 +1362,7 @@ const handleContentClick = (e) => {
   padding: 0 6px;
   height: 28px;
   font-size: 14px;
-  color: #666;
+  color: var(--sub-text-color);
   background: transparent;
   border: none;
   border-radius: 4px;
@@ -1378,27 +1371,28 @@ const handleContentClick = (e) => {
 }
 
 .reply-actions .action-btn:hover {
-  color: #ff9800;
-  background: #fff8e1;
+  color: var(--primary-color);
+  background: var(--hover-bg);
 }
 
 .reply-actions .action-btn.active {
-  color: #ff9800;
+  color: var(--primary-color);
   background: transparent;
 }
 
 .reply-actions .action-btn .count {
   font-size: 12px;
-  color: #999;
+  color: var(--sub-text-color);
 }
 
 .author-tag {
-  background-color: #ff9800;
+  background-color: var(--primary-color);
   color: #fff;
   font-size: 12px;
   padding: 2px 6px;
   border-radius: 4px;
   font-weight: normal;
+  margin-left: 8px;
 }
 
 .user-metals {
@@ -1420,7 +1414,7 @@ const handleContentClick = (e) => {
   transform: translateX(-50%) translateY(-100%);
   width: 100%;
   max-width: 800px;
-  background-color: #fff;
+  background-color: var(--card-bg);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 100;
   transition: transform 0.3s ease;
@@ -1444,7 +1438,7 @@ const handleContentClick = (e) => {
 .fixed-title {
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-color);
   flex: 1;
   margin-right: 16px;
   white-space: nowrap;
@@ -1462,13 +1456,13 @@ const handleContentClick = (e) => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 1px solid #fff;
+  border: 1px solid var(--avatar-border);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .fixed-author {
   font-size: 14px;
-  color: #666;
+  color: var(--sub-text-color);
 }
 
 .article-actions-bar {
@@ -1487,24 +1481,24 @@ const handleContentClick = (e) => {
   align-items: center;
   gap: 8px;
   padding: 8px 24px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 24px;
-  background: #fff;
-  color: #666;
+  background: var(--card-bg);
+  color: var(--sub-text-color);
   font-size: 15px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .action-btn:hover {
-  background: #f5f5f5;
-  border-color: #ccc;
+  background: var(--hover-bg);
+  border-color: var(--border-color);
   transform: translateY(-1px);
 }
 
 .action-btn.active {
-  background: #ff9800;
-  border-color: #ff9800;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
   color: #fff;
 }
 
@@ -1513,7 +1507,7 @@ const handleContentClick = (e) => {
 }
 
 .author-tag {
-  background-color: #ff9800;
+  background-color: var(--primary-color);
   color: #fff;
   font-size: 12px;
   padding: 2px 6px;
@@ -1547,7 +1541,7 @@ const handleContentClick = (e) => {
   align-items: center;
   gap: 6px;
   font-size: 14px;
-  color: #666;
+  color: var(--sub-text-color);
   cursor: pointer;
 }
 
@@ -1561,12 +1555,11 @@ const handleContentClick = (e) => {
   user-select: none;
 }
 
-/* 添加返回按钮样式 */
 .back-to-list {
   position: fixed;
   right: 32px;
   bottom: 32px;
-  background: #ff9800;
+  background: var(--primary-color);
   color: #fff;
   width: 48px;
   height: 48px;
@@ -1622,12 +1615,11 @@ const handleContentClick = (e) => {
   box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
 }
 
-/* 添加写评论悬浮按钮样式 */
 .write-comment {
   position: fixed;
   right: 32px;
-  bottom: 96px; /* 调整位置到返回按钮上方 */
-  background: #ff9800;
+  bottom: 96px;
+  background: var(--primary-color);
   color: #fff;
   width: 48px;
   height: 48px;

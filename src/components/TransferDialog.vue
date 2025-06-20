@@ -109,19 +109,20 @@ const confirmTransfer = async () => {
 }
 
 .transfer-dialog {
-  background: white;
+  background: var(--card-bg);
   padding: 20px;
   border-radius: 8px;
   width: 360px;
   max-width: 90%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color);
 }
 
 .transfer-dialog h3 {
   margin: 0 0 16px 0;
   text-align: center;
   font-size: 18px;
-  color: #1a1a1a;
+  color: var(--text-color);
   font-weight: 600;
 }
 
@@ -132,7 +133,7 @@ const confirmTransfer = async () => {
 .form-item label {
   display: block;
   margin-bottom: 6px;
-  color: #1a1a1a;
+  color: var(--text-color);
   font-weight: 500;
   font-size: 13px;
 }
@@ -140,15 +141,17 @@ const confirmTransfer = async () => {
 .form-item input {
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 13px;
+  background: var(--card-bg);
+  color: var(--text-color);
   transition: all 0.3s;
 }
 
 .form-item input:focus {
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(240, 211, 94, 0.1);
   outline: none;
 }
 
@@ -156,7 +159,7 @@ const confirmTransfer = async () => {
   display: flex;
   align-items: center;
   padding: 10px;
-  background-color: #fff7e6;
+  background-color: var(--hover-bg);
   border-radius: 4px;
   margin-bottom: 16px;
 }
@@ -167,8 +170,8 @@ const confirmTransfer = async () => {
   justify-content: center;
   width: 16px;
   height: 16px;
-  background-color: #faad14;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--button-text);
   border-radius: 50%;
   margin-right: 6px;
   font-style: normal;
@@ -177,7 +180,7 @@ const confirmTransfer = async () => {
 }
 
 .transfer-tips span {
-  color: #d46b08;
+  color: var(--point-color);
   font-size: 12px;
 }
 
@@ -204,20 +207,20 @@ const confirmTransfer = async () => {
 }
 
 .cancel-btn {
-  background-color: #f5f5f5;
-  color: #1a1a1a;
+  background-color: var(--hover-bg);
+  color: var(--text-color);
 }
 
 .confirm-btn {
-  background-color: #1890ff;
-  color: white;
+  background-color: var(--button-bg);
+  color: var(--button-text);
 }
 
 .cancel-btn:hover {
-  background-color: #e8e8e8;
+  background-color: var(--card-bg);
 }
 
 .confirm-btn:hover:not(:disabled) {
-  background-color: #40a9ff;
+  background-color: var(--primary-color);
 }
 </style>

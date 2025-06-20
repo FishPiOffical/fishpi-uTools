@@ -58,7 +58,7 @@ const formatTime = (time) => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #f1f5f9;
+  background: var(--hover-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,7 +66,7 @@ const formatTime = (time) => {
 }
 
 .notification-icon i {
-  color: #64748b;
+  color: var(--sub-text-color);
   font-size: 1rem;
 }
 
@@ -79,17 +79,17 @@ const formatTime = (time) => {
 
 .system-title {
   font-weight: 600;
-  color: #1a1f36;
+  color: var(--text-color);
   font-size: 0.875rem;
 }
 
 .notification-message {
-  color: #1a1f36;
+  color: var(--text-color);
   line-height: 1.7;
   word-break: break-word;
   font-size: 0.875rem;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--hover-bg);
   border-radius: 8px;
   margin: 8px 0;
 }
@@ -99,7 +99,7 @@ const formatTime = (time) => {
 }
 
 .notification-message :deep(a) {
-  color: #3b82f6;
+  color: var(--primary-color);
   text-decoration: none;
 }
 
@@ -108,18 +108,18 @@ const formatTime = (time) => {
 }
 
 .notification-message :deep(.green) {
-  color: #10b981;
+  color: var(--signed-color);
 }
 
 .notification-message :deep(.red) {
-  color: #ef4444;
+  color: var(--point-color);
 }
 
 .notification-meta {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #64748b;
+  color: var(--sub-text-color);
   font-size: 0.75rem;
 }
 

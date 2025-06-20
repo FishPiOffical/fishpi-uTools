@@ -9,7 +9,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 14px;
-  color: #333;
+  color: var(--text-color);
+  background: var(--background-color);
 }
 
 #app {
