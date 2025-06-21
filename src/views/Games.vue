@@ -162,7 +162,6 @@ const openGame = (url) => {
   padding: 20px;
   height: 100%;
   background-color: var(--background-color);
-  border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
