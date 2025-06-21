@@ -1,14 +1,9 @@
 <template>
   <div class="main-layout">
     <WelcomeDialog />
-    <div class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
+    <div class="sidebar">
       <div class="logo">
-        <div
-          v-show="isCollapsed"
-          class="logo-container"
-          id="logo-animate"
-        ></div>
-        <span v-show="!isCollapsed">摸鱼派</span>
+        <div class="logo-container" id="logo-animate"></div>
       </div>
       <nav class="navigation">
         <ul>
@@ -19,12 +14,10 @@
             :class="['nav-item', { active: currentPath === item.path }]"
           >
             <i :class="item.icon"></i>
-            <span v-show="!isCollapsed">{{ item.name }}</span>
-            <div v-show="isCollapsed" class="tooltip">{{ item.name }}</div>
+            <div class="tooltip">{{ item.name }}</div>
             <span
               v-if="item.path === '/private-chat' && unreadPrivateCount > 0"
               class="notification-badge"
-              :class="{ 'badge-collapsed': isCollapsed }"
             >
               {{ unreadPrivateCount }}
             </span>
@@ -34,17 +27,13 @@
                 notificationStore.unreadCount > 0
               "
               class="notification-badge"
-              :class="{ 'badge-collapsed': isCollapsed }"
             >
               {{ notificationStore.unreadCount }}
             </span>
           </li>
         </ul>
       </nav>
-      <div
-        class="user-info-container"
-        :class="{ 'user-info-collapsed': isCollapsed }"
-      >
+      <div class="user-info-container">
         <div class="user-info-details" @click="showUserProfile">
           <div
             class="user-avatar"
@@ -52,7 +41,7 @@
             @mouseleave="showUserCard = false"
           >
             <img :src="userStore.userInfo?.userAvatarURL" alt="用户头像" />
-            <div v-if="isCollapsed && showUserCard" class="user-card">
+            <div v-if="showUserCard" class="user-card">
               <div class="user-card-item" @click.stop="showSwitchAccount">
                 <i class="fas fa-exchange-alt"></i>
                 <span>切换账号</span>
@@ -63,17 +52,7 @@
               </div>
             </div>
           </div>
-          <div class="user-info" v-show="!isCollapsed">
-            <div class="username">{{ userStore.userInfo?.userNickname }}</div>
-            <div
-              class="user-points"
-              :class="{ signed: livenessStore.liveness >= 10 }"
-            >
-              <i class="fas fa-fire"></i>
-              <span>{{ livenessStore.liveness || 0 }}</span>
-            </div>
-          </div>
-          <div v-show="isCollapsed" class="collapsed-liveness">
+          <div class="collapsed-liveness">
             <div
               class="liveness-info"
               :class="{ signed: livenessStore.liveness >= 10 }"
@@ -83,22 +62,6 @@
             </div>
           </div>
         </div>
-        <div v-show="!isCollapsed" class="user-actions">
-          <div class="divider"></div>
-          <button @click="showSwitchAccount" class="switch-account-button">
-            <i class="fas fa-exchange-alt"></i>
-            <span>切换账号</span>
-          </button>
-          <button @click="logout" class="logout-button">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>退出登录</span>
-          </button>
-        </div>
-      </div>
-      <div class="collapse-button" @click="toggleSidebar">
-        <i
-          :class="isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'"
-        ></i>
       </div>
     </div>
     <div class="content-area">
@@ -179,13 +142,13 @@ const userStore = useUserStore();
 const notificationStore = useNotificationStore();
 const livenessStore = useLivenessStore();
 const unreadPrivateCount = ref(0);
-const isCollapsed = ref(false);
+const isCollapsed = ref(true);
 const showUserCard = ref(false);
 const showAccountDialog = ref(false);
 const savedAccounts = ref([]);
 
 const navItems = [
-  { path: "/", name: "鱼塘首页", icon: "fas fa-home" },
+  { path: "/", name: "鱼塘首页", icon: "fas fa-house" },
   { path: "/chatroom", name: "鱼塘聊天", icon: "fas fa-comments" },
   { path: "/private-chat", name: "康康私信", icon: "fas fa-envelope" },
   { path: "/posts", name: "康康帖子", icon: "fas fa-book-reader" },
@@ -330,10 +293,6 @@ onMounted(async () => {
     }
   }, 1000);
 
-  // 从 utools.dbStorage 获取导航栏状态
-  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
-  isCollapsed.value = savedSettings.defaultNavCollapsed ?? true; // 默认收起
-
   // 如果未登录，跳转到登录页
   if (!userStore.isLoggedIn) {
     router.push("/login");
@@ -381,14 +340,6 @@ const logout = () => {
 
 const showUserProfile = () => {
   router.push(`/user/${userStore.userInfo?.userName}`);
-};
-
-const toggleSidebar = () => {
-  isCollapsed.value = !isCollapsed.value;
-  // 保存到 utools.dbStorage
-  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
-  savedSettings.defaultNavCollapsed = isCollapsed.value;
-  utools.dbStorage.setItem("fishpi_settings", savedSettings);
 };
 
 const showSwitchAccount = () => {
@@ -475,13 +426,13 @@ const goToLogin = () => {
 .main-layout {
   display: flex;
   height: 100vh;
-  background-color: var(--background-color);
+  background-color: var(--main-layout-bg);
 }
 
 .sidebar {
-  width: 200px;
+  width: 64px;
   background-color: var(--sidebar-bg, #fff);
-  padding: 20px;
+  padding: 20px 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -489,12 +440,6 @@ const goToLogin = () => {
   flex-shrink: 0;
   transition: all 0.3s ease;
   position: relative;
-}
-
-.sidebar-collapsed {
-  border-radius: 8px;
-  width: 64px;
-  padding: 20px 10px;
 }
 
 .logo {
@@ -511,9 +456,6 @@ const goToLogin = () => {
   width: 55px;
   height: 55px;
   padding-bottom: 6px;
-}
-
-.sidebar-collapsed .logo-container {
   margin: 0 auto;
 }
 
@@ -546,6 +488,7 @@ const goToLogin = () => {
 
 .user-info-details {
   display: flex;
+  flex-direction: column;
   align-items: center;
   padding: 6px;
   cursor: pointer;
@@ -563,7 +506,8 @@ const goToLogin = () => {
   height: 36px;
   border-radius: 50%;
   overflow: hidden;
-  margin-right: 10px;
+  margin-right: 0;
+  margin-bottom: 4px;
   flex-shrink: 0;
   border: 2px solid var(--avatar-border, #fff);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -575,111 +519,35 @@ const goToLogin = () => {
   object-fit: cover;
 }
 
-.user-info {
-  flex-grow: 1;
-  min-width: 0;
-}
-
-.username {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-color);
-  margin-bottom: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.user-points {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--point-color, #ff4d4f);
-  font-size: 12px;
-}
-
-.user-points i {
-  font-size: 12px;
-}
-
-.logout-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  margin-top: 8px;
-  padding: 8px;
-  background-color: transparent;
-  border: none;
-  color: var(--sub-text-color, #666);
-  cursor: pointer;
-  font-size: 13px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.logout-button:hover {
-  background-color: var(--hover-bg, #f5f5f5);
-  color: var(--text-color);
-}
-
-.logout-button i {
-  font-size: 14px;
-}
-
-.content-area {
-  flex-grow: 1;
-  padding: 0 10px 0 10px;
-}
-
-/* Placeholder styles for content areas */
-.content-area > div {
-  height: 100%;
-  background-color: var(--card-bg, #fff);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
 .nav-item {
   position: relative;
   display: flex;
   align-items: center;
-  padding: 12px 15px;
+  padding: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   margin: 4px 0;
   color: var(--sub-text-color, #8c8c8c);
   white-space: nowrap;
-}
-
-.sidebar-collapsed .nav-item {
-  padding: 12px;
   justify-content: center;
 }
 
-.sidebar-collapsed .nav-item i {
-  margin-right: 0;
-}
-
 .nav-item:hover {
-  color: var(--hover-text-color, #666);
+  border-radius: 8px;
 }
 
 .nav-item.active {
-  color: var(--text-color);
+  color: var(--primary-color);
   font-weight: 500;
+  background-color: var(--hover-bg, #f0f0f0);
+  border-radius: 8px;
 }
 
 .nav-item i {
-  margin-right: 12px;
+  margin-right: 0;
   font-size: 18px;
   width: 20px;
   text-align: center;
-}
-
-.nav-item span {
-  font-size: 14px;
 }
 
 .notification-badge {
@@ -694,54 +562,29 @@ const goToLogin = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.badge-collapsed {
   position: absolute;
   top: 0;
   right: 0;
   transform: translate(50%, -50%);
 }
 
-.user-info-collapsed .user-info-details {
+.collapsed-liveness {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-top: 4px;
+  font-size: 12px;
 }
 
-.user-info-collapsed .user-avatar {
-  margin-right: 0;
-  margin-bottom: 4px;
-}
-
-.user-info-collapsed .logout-button {
-  padding: 8px 0;
-}
-
-.user-info-collapsed .logout-button i {
-  margin: 0;
-}
-
-.collapse-button {
-  position: absolute;
-  right: -12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  background-color: var(--card-bg, #fff);
-  border: 1px solid var(--border-color, #eee);
-  border-radius: 50%;
+.collapsed-liveness .liveness-info {
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1;
+  gap: 4px;
+  color: var(--point-color, #ff4d4f);
 }
 
-.collapse-button:hover {
-  background-color: var(--hover-bg, #f5f5f5);
+.collapsed-liveness .liveness-info.signed {
+  color: var(--signed-color, #52c41a);
 }
 
 .tooltip {
@@ -773,11 +616,54 @@ const goToLogin = () => {
   border-color: transparent var(--tooltip-bg, #333) transparent transparent;
 }
 
-.nav-item:hover .tooltip,
-.user-info-details:hover .tooltip,
-.logout-button:hover .tooltip {
+.nav-item:hover .tooltip {
   opacity: 1;
   visibility: visible;
+}
+
+.user-card {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  background-color: var(--card-bg, #fff);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  z-index: 1000;
+  min-width: 120px;
+}
+
+.user-card-item {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-card-item:hover {
+  background-color: var(--hover-bg, #f5f5f5);
+}
+
+.user-card-item i {
+  width: 16px;
+  color: var(--sub-text-color, #666);
+}
+
+.content-area {
+  flex-grow: 1;
+}
+
+/* Placeholder styles for content areas */
+.content-area > div {
+  height: 100%;
+  background-color: var(--card-bg, #fff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav-item span {
+  font-size: 14px;
 }
 
 .bottom-tooltip {
@@ -809,8 +695,7 @@ const goToLogin = () => {
   border-color: transparent var(--tooltip-bg, #333) transparent transparent;
 }
 
-.user-info-details:hover .bottom-tooltip,
-.logout-button:hover .bottom-tooltip {
+.user-info-details:hover .bottom-tooltip {
   opacity: 1;
   visibility: visible;
 }
@@ -851,106 +736,6 @@ const goToLogin = () => {
       background-color: #e6f7ff;
     }
   }
-}
-
-.user-card {
-  position: absolute;
-  left: 100%;
-  top: 0;
-  background-color: var(--card-bg, #fff);
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  padding: 8px 0;
-  z-index: 1000;
-  min-width: 120px;
-}
-
-.user-card-item {
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.user-card-item:hover {
-  background-color: var(--hover-bg, #f5f5f5);
-}
-
-.user-card-item i {
-  width: 16px;
-  color: var(--sub-text-color, #666);
-}
-
-.user-actions {
-  margin-top: 8px;
-}
-
-.divider {
-  height: 1px;
-  background-color: var(--border-color, #eee);
-  margin-bottom: 8px;
-}
-
-.switch-account-button,
-.logout-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  padding: 8px;
-  background-color: transparent;
-  border: none;
-  color: var(--sub-text-color, #666);
-  cursor: pointer;
-  font-size: 13px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  margin-bottom: 2px;
-}
-
-.switch-account-button:hover,
-.logout-button:hover {
-  background-color: var(--hover-bg, #f5f5f5);
-  color: var(--text-color);
-}
-
-.switch-account-button i,
-.logout-button i {
-  font-size: 14px;
-}
-
-.collapsed-liveness {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 4px;
-  font-size: 12px;
-}
-
-.collapsed-liveness .liveness-info {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--point-color, #ff4d4f);
-}
-
-.collapsed-liveness .liveness-info.signed {
-  color: var(--signed-color, #52c41a);
-}
-
-.user-points {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--point-color, #ff4d4f);
-  font-size: 12px;
-}
-
-.user-points.signed {
-  color: var(--signed-color, #52c41a);
 }
 
 .account-switch-dialog :deep(.el-dialog__body) {
