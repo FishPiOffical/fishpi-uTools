@@ -2,23 +2,12 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { request } from "./api";
+import { theme, setTheme } from "./utils/theme";
 import ErrorHandler from "./components/ErrorHandler.vue";
 
 const router = useRouter();
 const isLoggedIn = ref(false);
 const userInfo = ref({});
-const theme = ref(
-  localStorage.getItem("theme") ||
-    (window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light")
-);
-
-const setTheme = (val) => {
-  theme.value = val;
-  document.documentElement.setAttribute("data-theme", val);
-  localStorage.setItem("theme", val);
-};
 
 onMounted(() => {
   // 检查登录状态
@@ -27,6 +16,10 @@ onMounted(() => {
   window.addEventListener("fishpi:login-success", handleLoginSuccess);
   window.addEventListener("fishpi:login-invalid", handleLoginInvalid);
 
+  // 监听系统主题变化
+  window.addEventListener("system-theme-change", handleSystemThemeChange);
+
+  // 应用当前主题
   setTheme(theme.value);
 });
 
@@ -61,17 +54,17 @@ const handleLoginInvalid = () => {
   router.push("/login");
   utools.showNotification("登录已失效，请重新登录");
 };
+
+// 监听系统主题变化
+const handleSystemThemeChange = (event) => {
+  const newTheme = event.detail.theme;
+  setTheme(newTheme);
+};
 </script>
 
 <template>
   <div id="app">
     <ErrorHandler />
-    <button
-      style="position: fixed; top: 16px; right: 16px; z-index: 9999"
-      @click="setTheme(theme === 'dark' ? 'light' : 'dark')"
-    >
-      {{ theme === "dark" ? "☀️ 亮色" : "🌙 暗色" }}
-    </button>
     <router-view></router-view>
   </div>
 </template>
