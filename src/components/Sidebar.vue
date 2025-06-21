@@ -124,7 +124,7 @@ const handleTopicClick = () => {
 .sidebar-container {
   padding: 0;
   width: 150px;
-  background-color: var(--sidebar-bg);
+  background-color: var(----card-bg);
   border-left: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
