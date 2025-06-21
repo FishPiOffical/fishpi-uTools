@@ -1,49 +1,51 @@
 html{
-  --background-color: #fff;
-  --text-color: #222;
-  --primary-color: rgb(240 211 94);
+  --main-layout-bg:#f4f4f4;
+  --background-color: #fefefe;
+  --text-color: #444;
+  --primary-color: #ff9900;
   --button-bg: var(--primary-color);
-  --button-text: #fff;
+  --button-text: #333;
   --blue: rgb(240 211 94);
   --light: #fff;
-  --sidebar-bg: #fff;
+  --sidebar-bg: #fafafa;
   --card-bg: #fff;
   --border-color: #eee;
-  --hover-bg: #f5f5f5;
-  --hover-text-color: #666;
-  --sub-text-color: #666;
-  --point-color: #ff4d4f;
-  --signed-color: #52c41a;
-  --badge-bg: #ff4d4f;
+  --hover-bg: #f8f8f8;
+  --hover-text-color: #555;
+  --sub-text-color: #777;
+  --point-color: #ff4757;
+  --signed-color: #2ed573;
+  --badge-bg: #ff4757;
   --badge-text: #fff;
-  --tooltip-bg: #333;
+  --tooltip-bg: #2f3542;
   --tooltip-text: #fff;
-  --avatar-border: #fff;
-  --chatroom-bg: #f5f7fa;
+  --avatar-border: #f1f2f6;
+  --chatroom-bg: #f5f6fa;
   --bubble-bg: #fff;
 }
 
 html[data-theme="dark"] {
-  --background-color: #000;
-  --text-color: #eee;
-  --primary-color: #f0d35e;
+  --main-layout-bg:#1e1e1e;
+  --background-color: #1e1e1e;
+  --text-color: #e0e0e0;
+  --primary-color: #ff9900;
   --button-bg: var(--primary-color);
-  --button-text: #232323;
-  --sidebar-bg: #232323;
-  --card-bg: #181818;
-  --border-color: #333;
-  --hover-bg: #232323;
-  --hover-text-color: #eee;
-  --sub-text-color: #aaa;
-  --point-color: #ffb84d;
-  --signed-color: #52c41a;
-  --badge-bg: #ff784f;
+  --button-text: #333;
+  --sidebar-bg: #2d2d2d;
+  --card-bg: #2a2a2d;
+  --border-color: #404040;
+  --hover-bg: #353535;
+  --hover-text-color: #f1f2f6;
+  --sub-text-color: #b2bec3;
+  --point-color: #ff6b6b;
+  --signed-color: #00b894;
+  --badge-bg: #ff6b6b;
   --badge-text: #fff;
-  --tooltip-bg: #222;
-  --tooltip-text: #eee;
-  --avatar-border: #333;
-  --chatroom-bg: #18191c;
-  --bubble-bg: #23272e;
+  --tooltip-bg: #2d3436;
+  --tooltip-text: #f1f2f6;
+  --avatar-border: #404040;
+  --chatroom-bg: #1a1a1e;
+  --bubble-bg: #2d2d35;
 }
 
 html,
@@ -128,3 +130,155 @@ textarea {
   opacity: 1;
   background: var(--sub-text-color);
 }
+
+/* Element Plus 组件主题适配 */
+.el-button--primary {
+  --el-button-bg-color: var(--primary-color);
+  --el-button-border-color: var(--primary-color);
+  --el-button-hover-bg-color: var(--primary-color);
+  --el-button-hover-border-color: var(--primary-color);
+  --el-button-active-bg-color: var(--primary-color);
+  --el-button-active-border-color: var(--primary-color);
+  --el-button-text-color: var(--button-text);
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--button-text) !important;
+}
+
+.el-button--primary:hover {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--button-text) !important;
+}
+
+.el-button--primary:active {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--button-text) !important;
+}
+
+.el-input__wrapper {
+  --el-input-bg-color: var(--card-bg);
+  --el-input-border-color: var(--border-color);
+  --el-input-hover-border-color: var(--primary-color);
+  --el-input-focus-border-color: var(--primary-color);
+}
+
+.el-input__inner {
+  --el-input-text-color: var(--text-color);
+}
+
+.el-input__inner::placeholder {
+  --el-input-placeholder-color: var(--sub-text-color);
+}
+
+/* 开关组件适配 */
+.el-switch {
+  --el-switch-on-color: var(--primary-color);
+  --el-switch-off-color: var(--border-color);
+  --el-switch-border-color: var(--border-color);
+}
+
+/* 选择器组件适配 */
+.el-select {
+  --el-select-border-color-hover: var(--primary-color);
+  --el-select-input-focus-border-color: var(--primary-color);
+}
+
+.el-select .el-input__wrapper {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+.el-select .el-input__inner {
+  color: var(--text-color);
+}
+
+/* 下拉选项适配 */
+.el-select-dropdown {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+.el-select-dropdown__item {
+  color: var(--text-color) !important;
+}
+
+.el-select-dropdown__item:hover {
+  background-color: var(--hover-bg) !important;
+  color: var(--primary-color) !important;
+}
+
+.el-select-dropdown__item.selected {
+  background-color: var(--primary-color) !important;
+  color: var(--button-text) !important;
+}
+
+/* 时间选择器适配 */
+.el-time-picker {
+  --el-time-picker-border-color: var(--border-color);
+  --el-time-picker-border-color-hover: var(--primary-color);
+}
+
+.el-time-picker .el-input__wrapper {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+.el-time-picker .el-input__inner {
+  color: var(--text-color);
+}
+
+/* 时间选择器下拉面板适配 */
+.el-time-panel {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+.el-time-panel__content {
+  background-color: var(--card-bg) !important;
+}
+
+.el-time-spinner__item {
+  color: var(--text-color) !important;
+}
+
+.el-time-spinner__item:hover {
+  background-color: var(--hover-bg) !important;
+  color: var(--primary-color) !important;
+}
+
+.el-time-spinner__item.active {
+  color: var(--primary-color) !important;
+}
+
+/* 工具提示适配 */
+.el-tooltip__popper {
+  background-color: var(--tooltip-bg) !important;
+  color: var(--tooltip-text) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* 对话框适配 - 使用!important强制覆盖 */
+.el-dialog {
+  background: var(--card-bg) !important;
+  color: var(--text-color) !important;
+}
+
+.el-dialog__header {
+  background: var(--card-bg) !important;
+}
+
+.el-dialog__title {
+  color: var(--text-color) !important;
+}
+
+.el-dialog__body {
+  background: var(--card-bg) !important;
+  color: var(--text-color) !important;
+}
+
+.el-dialog__footer {
+  background: var(--card-bg) !important;
+}
+
