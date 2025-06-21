@@ -1,23 +1,4 @@
 <template>
-  <!-- 固定标题栏移动到post-detail-container外部，但仍在template根下 -->
-  <div
-    class="fixed-header"
-    :class="{ 'fixed-header-visible': isHeaderVisible }"
-    v-if="article"
-  >
-    <div class="fixed-header-content">
-      <span class="fixed-title">{{ article.articleTitle }}</span>
-      <div class="fixed-meta">
-        <img
-          :src="article.articleAuthorThumbnailURL48"
-          :alt="article.articleAuthorName"
-          class="fixed-avatar"
-        />
-        <span class="fixed-author">{{ article.articleAuthorName }}</span>
-      </div>
-    </div>
-  </div>
-
   <div class="post-detail-container" ref="containerRef">
     <div v-if="loading" class="loading">
       <div class="loading-spinner"></div>
@@ -31,12 +12,8 @@
       <i class="fas fa-box-open"></i>
       <span>帖子不存在或已删除</span>
     </div>
-    <!-- 内容区域，当固定标题栏显示时添加顶部内边距 -->
-    <div
-      v-else
-      class="post-content-area"
-      :class="{ 'with-fixed-header': isHeaderVisible }"
-    >
+    <!-- 内容区域 -->
+    <div v-else class="post-content-area">
       <h1 class="post-detail-title">{{ article.articleTitle }}</h1>
 
       <div class="post-detail-meta">
@@ -348,7 +325,6 @@ const router = useRouter();
 const article = ref(null);
 const loading = ref(true);
 const error = ref(null);
-const isHeaderVisible = ref(false);
 const containerRef = ref(null);
 
 // 评论相关状态
@@ -398,116 +374,6 @@ const fetchArticleDetail = async () => {
     article.value = null;
   } finally {
     loading.value = false;
-  }
-};
-
-// 监听滚动事件，检查标题可见性
-const handleScroll = () => {
-  if (!containerRef.value || !article.value) return;
-  const containerRect = containerRef.value.getBoundingClientRect();
-  const titleElement = containerRef.value.querySelector(".post-detail-title");
-
-  if (titleElement) {
-    const titleRect = titleElement.getBoundingClientRect();
-    // 当标题的顶部滚到容器顶部上方时显示固定标题栏
-    // 使用 titleRect.top < containerRect.top 判断
-    isHeaderVisible.value = titleRect.top < containerRect.top;
-  }
-};
-
-onMounted(() => {
-  fetchArticleDetail();
-  // 监听 containerRef 的滚动事件
-  setTimeout(() => {
-    if (containerRef.value) {
-      containerRef.value.addEventListener("scroll", handleScroll);
-    }
-    // 首次加载后检查一次可见性
-    handleScroll();
-  }, 100);
-});
-
-onUnmounted(() => {
-  // 移除 containerRef 的滚动监听
-  if (containerRef.value) {
-    containerRef.value.removeEventListener("scroll", handleScroll);
-  }
-});
-
-// 监听路由变化
-watch(
-  () => route.params.id,
-  (newId, oldId) => {
-    if (newId !== oldId && newId) {
-      // 重置状态和数据
-      article.value = null;
-      loading.value = true;
-      error.value = null;
-      isHeaderVisible.value = false;
-
-      fetchArticleDetail();
-      // 路由变化后，重新绑定滚动监听（如果需要）并检查可见性
-      // 延迟执行，确保新内容渲染
-      setTimeout(() => {
-        if (containerRef.value && !containerRef.value._scrollListenerAttached) {
-          containerRef.value.addEventListener("scroll", handleScroll);
-          containerRef.value._scrollListenerAttached = true;
-        }
-        handleScroll();
-      }, 100);
-    }
-  }
-);
-
-// 处理点赞
-const handleUpvote = async () => {
-  if (!article.value) return;
-
-  try {
-    const response = await articleApi.upvoteArticle(article.value.oId);
-    if (response.code === 0) {
-      if (response.type === -1) {
-        // 点赞成功
-        article.value.articleVoteStatus = 1;
-        article.value.articleGoodCnt = (article.value.articleGoodCnt || 0) + 1;
-        ElMessage.success("点赞成功");
-      } else if (response.type === 0) {
-        // 取消点赞
-        article.value.articleVoteStatus = 0;
-        article.value.articleGoodCnt = Math.max(
-          0,
-          (article.value.articleGoodCnt || 0) - 1
-        );
-        ElMessage.success("已取消点赞");
-      }
-    } else {
-      ElMessage.error(response.msg || "操作失败");
-    }
-  } catch (err) {
-    console.error("点赞操作失败:", err);
-  }
-};
-
-// 处理感谢
-const handleThank = async () => {
-  if (!article.value) return;
-
-  try {
-    const response = await articleApi.thankArticle(article.value.oId);
-    if (response.code === 0) {
-      // 如果已经感谢过,则不做任何操作
-      if (article.value.articleThankStatus === 1) {
-        return;
-      }
-      // 感谢成功
-      article.value.articleThankStatus = 1;
-      article.value.articleThankCnt = (article.value.articleThankCnt || 0) + 1;
-      ElMessage.success("感谢成功");
-    } else {
-      ElMessage.error(response.msg || "操作失败");
-    }
-  } catch (err) {
-    console.error("感谢操作失败:", err);
   }
 };
 
@@ -574,6 +440,58 @@ const fetchComments = async () => {
     commentError.value = new Error("网络请求失败");
   } finally {
     commentLoading.value = false;
+  }
+};
+
+// 处理点赞
+const handleUpvote = async () => {
+  if (!article.value) return;
+
+  try {
+    const response = await articleApi.upvoteArticle(article.value.oId);
+    if (response.code === 0) {
+      if (response.type === -1) {
+        // 点赞成功
+        article.value.articleVoteStatus = 1;
+        article.value.articleGoodCnt = (article.value.articleGoodCnt || 0) + 1;
+        ElMessage.success("点赞成功");
+      } else if (response.type === 0) {
+        // 取消点赞
+        article.value.articleVoteStatus = 0;
+        article.value.articleGoodCnt = Math.max(
+          0,
+          (article.value.articleGoodCnt || 0) - 1
+        );
+        ElMessage.success("已取消点赞");
+      }
+    } else {
+      ElMessage.error(response.msg || "操作失败");
+    }
+  } catch (err) {
+    console.error("点赞操作失败:", err);
+  }
+};
+
+// 处理感谢
+const handleThank = async () => {
+  if (!article.value) return;
+
+  try {
+    const response = await articleApi.thankArticle(article.value.oId);
+    if (response.code === 0) {
+      // 如果已经感谢过,则不做任何操作
+      if (article.value.articleThankStatus === 1) {
+        return;
+      }
+      // 感谢成功
+      article.value.articleThankStatus = 1;
+      article.value.articleThankCnt = (article.value.articleThankCnt || 0) + 1;
+      ElMessage.success("感谢成功");
+    } else {
+      ElMessage.error(response.msg || "操作失败");
+    }
+  } catch (err) {
+    console.error("感谢操作失败:", err);
   }
 };
 
@@ -745,6 +663,25 @@ const handleContentClick = (e) => {
   handleImageClick(e);
   handleLinkClick(e);
 };
+
+onMounted(() => {
+  fetchArticleDetail();
+});
+
+// 监听路由变化
+watch(
+  () => route.params.id,
+  (newId, oldId) => {
+    if (newId !== oldId && newId) {
+      // 重置状态和数据
+      article.value = null;
+      loading.value = true;
+      error.value = null;
+
+      fetchArticleDetail();
+    }
+  }
+);
 </script>
 
 <style scoped>
@@ -753,7 +690,6 @@ const handleContentClick = (e) => {
   overflow-y: auto;
   padding: 24px;
   background-color: var(--background-color);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   position: relative;
   box-sizing: border-box;
   width: 100%;
@@ -809,10 +745,6 @@ const handleContentClick = (e) => {
   width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
-}
-
-.post-content-area.with-fixed-header {
-  padding-top: 60px;
 }
 
 .post-detail-title {
@@ -1249,6 +1181,13 @@ const handleContentClick = (e) => {
   margin: 0 0 12px 48px;
 }
 
+.comment-content :deep(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
 .comment-actions {
   display: flex;
   gap: 12px;
@@ -1348,6 +1287,13 @@ const handleContentClick = (e) => {
   margin: 0 0 8px 36px;
 }
 
+.reply-content :deep(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
 .reply-actions {
   display: flex;
   gap: 12px;
@@ -1391,8 +1337,8 @@ const handleContentClick = (e) => {
   font-size: 12px;
   padding: 2px 6px;
   border-radius: 4px;
-  font-weight: normal;
   margin-left: 8px;
+  font-weight: normal;
 }
 
 .user-metals {
@@ -1405,64 +1351,6 @@ const handleContentClick = (e) => {
   height: 16px;
   border-radius: 50%;
   object-fit: cover;
-}
-
-.fixed-header {
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%) translateY(-100%);
-  width: 100%;
-  max-width: 800px;
-  background-color: var(--card-bg);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 100;
-  transition: transform 0.3s ease;
-  padding: 12px 20px;
-  height: 60px;
-  box-sizing: border-box;
-}
-
-.fixed-header-visible {
-  transform: translateX(-50%) translateY(0);
-}
-
-.fixed-header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-}
-
-.fixed-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-color);
-  flex: 1;
-  margin-right: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.fixed-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.fixed-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 1px solid var(--avatar-border);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.fixed-author {
-  font-size: 14px;
-  color: var(--sub-text-color);
 }
 
 .article-actions-bar {
@@ -1504,30 +1392,6 @@ const handleContentClick = (e) => {
 
 .action-btn i {
   font-size: 16px;
-}
-
-.author-tag {
-  background-color: var(--primary-color);
-  color: #fff;
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-left: 8px;
-  font-weight: normal;
-}
-
-.comment-content :deep(img) {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  margin: 8px 0;
-}
-
-.reply-content :deep(img) {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  margin: 8px 0;
 }
 
 .comment-options {
