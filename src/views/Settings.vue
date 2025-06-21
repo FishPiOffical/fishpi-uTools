@@ -12,14 +12,14 @@
       <div class="settings-content">
         <div class="data-card">
           <div class="card-header">
-            <h2>导航栏设置</h2>
+            <h2>主题设置</h2>
           </div>
           <div class="settings-item">
             <div class="settings-item-left">
               <div class="settings-item-title">
-                <span>默认状态</span>
+                <span>主题模式</span>
                 <el-tooltip
-                  content="设置导航栏在页面加载时的默认展开/收起状态"
+                  content="选择应用的主题模式，跟随系统或手动设置"
                   placement="top"
                   effect="light"
                 >
@@ -28,14 +28,42 @@
               </div>
             </div>
             <div class="settings-item-right">
-              <el-switch
-                v-model="defaultNavState"
-                @change="handleNavStateChange"
-                active-text="收起"
-                inactive-text="展开"
-                inline-prompt
-              />
+              <el-select
+                v-model="currentTheme"
+                placeholder="选择主题"
+                @change="handleThemeChange"
+              >
+                <el-option label="跟随系统" value="auto" />
+                <el-option label="浅色模式" value="light" />
+                <el-option label="深色模式" value="dark" />
+              </el-select>
             </div>
+          </div>
+          <div class="settings-item" v-if="currentTheme !== 'auto'">
+            <div class="settings-item-left">
+              <div class="settings-item-title">
+                <span>快速切换</span>
+                <el-tooltip
+                  content="快速切换当前主题模式"
+                  placement="top"
+                  effect="light"
+                >
+                  <i class="fas fa-question-circle"></i>
+                </el-tooltip>
+              </div>
+            </div>
+            <div class="settings-item-right">
+              <button class="theme-toggle-btn" @click="handleThemeToggle">
+                {{
+                  currentTheme === "dark" ? "☀️ 切换到浅色" : "🌙 切换到深色"
+                }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="data-card">
+          <div class="card-header">
+            <h2>导航栏设置</h2>
           </div>
           <div class="settings-item">
             <div class="settings-item-left">
@@ -208,18 +236,19 @@
 import { ref, onMounted, computed, onUnmounted } from "vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "../stores/user";
+import { theme, setTheme, toggleTheme, getSystemTheme } from "../utils/theme";
 import AboutAuthor from "../components/AboutAuthor.vue";
 
 const userStore = useUserStore();
 const aboutAuthorVisible = ref(false);
 const aboutDialogVisible = ref(false);
-const defaultNavState = ref(false);
 const startTime = ref(null);
 const endTime = ref(null);
 const restDays = ref([]);
 const defaultPage = ref("dashboard");
 const enableBackgroundNotification = ref(true);
 const defaultChatSidebarState = ref(false);
+const currentTheme = ref("auto");
 
 // 获取当前用户的设置
 const getUserSettings = () => {
@@ -248,13 +277,13 @@ const saveUserSettings = (settings) => {
 onMounted(() => {
   // 从 utools.dbStorage 获取保存的设置
   const userSettings = getUserSettings();
-  defaultNavState.value = userSettings.defaultNavCollapsed || false;
   restDays.value = userSettings.restDays || ["0", "6"]; // 默认双休
   defaultPage.value = userSettings.defaultPage || "dashboard";
   enableBackgroundNotification.value =
     userSettings.enableBackgroundNotification !== false; // 默认开启
   defaultChatSidebarState.value =
     userSettings.defaultChatSidebarCollapsed || false;
+  currentTheme.value = userSettings.currentTheme || "auto";
 
   // 设置工作时间
   const startTimeStr = userSettings.workTime?.startTime || "09:00";
@@ -273,13 +302,13 @@ onMounted(() => {
   window.addEventListener("fishpi:account-switched", () => {
     // 重新加载用户设置
     const userSettings = getUserSettings();
-    defaultNavState.value = userSettings.defaultNavCollapsed || false;
     restDays.value = userSettings.restDays || ["0", "6"];
     defaultPage.value = userSettings.defaultPage || "dashboard";
     enableBackgroundNotification.value =
       userSettings.enableBackgroundNotification !== false;
     defaultChatSidebarState.value =
       userSettings.defaultChatSidebarCollapsed || false;
+    currentTheme.value = userSettings.currentTheme || "auto";
 
     // 重新设置工作时间
     const startTimeStr = userSettings.workTime?.startTime || "09:00";
@@ -300,7 +329,6 @@ onUnmounted(() => {
   // 移除账号切换事件监听
   window.removeEventListener("fishpi:account-switched", () => {
     const userSettings = getUserSettings();
-    defaultNavState.value = userSettings.defaultNavCollapsed || false;
     restDays.value = userSettings.restDays || ["0", "6"];
     defaultPage.value = userSettings.defaultPage || "dashboard";
     enableBackgroundNotification.value =
@@ -321,17 +349,6 @@ onUnmounted(() => {
     endTime.value.setHours(parseInt(endHours), parseInt(endMinutes), 0);
   });
 });
-
-const handleNavStateChange = (value) => {
-  saveUserSettings({ defaultNavCollapsed: value });
-
-  ElMessage({
-    message: "导航栏默认状态已更新",
-    type: "success",
-    duration: 2000,
-    showClose: true,
-  });
-};
 
 const handleWorkTimeChange = () => {
   if (!startTime.value || !endTime.value) return;
@@ -401,6 +418,40 @@ const handleChatSidebarStateChange = (value) => {
   });
 };
 
+const handleThemeChange = (value) => {
+  saveUserSettings({ currentTheme: value });
+
+  if (value === "auto") {
+    // 跟随系统主题
+    const systemTheme = getSystemTheme();
+    setTheme(systemTheme);
+  } else {
+    // 手动设置主题
+    setTheme(value);
+  }
+
+  ElMessage({
+    message: "主题模式设置已更新",
+    type: "success",
+    duration: 2000,
+    showClose: true,
+  });
+};
+
+const handleThemeToggle = () => {
+  const newTheme = currentTheme.value === "dark" ? "light" : "dark";
+  currentTheme.value = newTheme;
+  setTheme(newTheme);
+  saveUserSettings({ currentTheme: newTheme });
+
+  ElMessage({
+    message: "主题模式已切换",
+    type: "success",
+    duration: 2000,
+    showClose: true,
+  });
+};
+
 const showAboutAuthor = () => {
   aboutAuthorVisible.value = true;
 };
@@ -413,7 +464,7 @@ const showAboutAuthor = () => {
   flex-direction: column;
   padding: 20px;
   border-radius: 8px;
-  background: var(--card-bg, #fff);
+  background: var(--background-color, #fff);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -579,5 +630,15 @@ const showAboutAuthor = () => {
 
 .about-btn i {
   font-size: 16px;
+}
+
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  color: var(--text-color, #1a1f36);
 }
 </style>
