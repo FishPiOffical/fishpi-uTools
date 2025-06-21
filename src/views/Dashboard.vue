@@ -328,9 +328,7 @@ const openHelpLink = () => {
 
 /* 节假日卡片样式 */
 .holiday-data-card {
-  background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
-  color: #256029;
-  box-shadow: 0 4px 20px rgba(150, 230, 161, 0.1);
+  color: var(--text-color, #1a1f36);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -351,22 +349,22 @@ const openHelpLink = () => {
 
 /* 每日一言卡片样式 */
 .quote-data-card {
-  background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
-  color: #5a3d6d;
-  box-shadow: 0 4px 20px rgba(166, 193, 238, 0.1);
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
 }
 .quote-title {
+  color: var(--text-color, #1a1f36);
   font-size: 1.1rem;
   font-weight: 700;
 }
 .quote-content {
+  color: var(--text-color, #1a1f36);
   font-size: 1rem;
   margin-top: 0.2rem;
 }
 .quote-author {
+  color: var(--text-color, #1a1f36);
   text-align: right;
   font-size: 0.9rem;
   margin-top: 0.2rem;
