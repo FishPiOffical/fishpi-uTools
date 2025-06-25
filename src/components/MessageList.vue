@@ -320,14 +320,6 @@
       :items="msgContextMenuItems"
       @action="handleMsgContextMenuAction"
     />
-
-    <!-- 图片预览组件 -->
-    <vue-easy-lightbox
-      :visible="previewVisible"
-      :imgs="previewImages"
-      :index="previewIndex"
-      @hide="previewVisible = false"
-    />
   </div>
 </template>
 
@@ -342,8 +334,8 @@ import UserInfoCard from "./UserInfoCard.vue";
 import UserContextMenu from "./UserContextMenu.vue";
 import MsgContextMenu from "./MsgContextMenu.vue";
 import { ElMessage } from "element-plus";
-import VueEasyLightbox from "vue-easy-lightbox";
 import RedPacketModal from "./RedPacketModal.vue";
+import { createImagePreviewWindow } from "../utils/imagePreview";
 
 const props = defineProps({
   messages: {
@@ -1044,12 +1036,10 @@ const isLuckyKing = (receiver) => {
 };
 
 // 图片预览相关
-const previewVisible = ref(false);
-const previewImages = ref([]);
-const previewIndex = ref(0);
+let previewWindow = null;
 
 // 处理图片点击
-const handleImageClick = (e) => {
+const handleImageClick = async (e) => {
   if (e.target.tagName === "IMG") {
     const imgSrc = e.target.src;
     const allImages = Array.from(
@@ -1057,9 +1047,34 @@ const handleImageClick = (e) => {
     ).map((img) => ({
       src: img.src,
     }));
-    previewIndex.value = allImages.findIndex((img) => img.src === imgSrc);
-    previewImages.value = allImages;
-    previewVisible.value = true;
+    const currentIndex = allImages.findIndex((img) => img.src === imgSrc);
+
+    // 关闭之前的预览窗口
+    if (previewWindow && !previewWindow.isDestroyed()) {
+      previewWindow.close();
+    }
+
+    try {
+      // 使用新的工具函数创建预览窗口
+      previewWindow = await createImagePreviewWindow(allImages, currentIndex);
+
+      // 窗口关闭时重置变量
+      const checkWindowClosed = () => {
+        if (
+          previewWindow &&
+          previewWindow.isDestroyed &&
+          previewWindow.isDestroyed()
+        ) {
+          previewWindow = null;
+        } else {
+          setTimeout(checkWindowClosed, 1000);
+        }
+      };
+      checkWindowClosed();
+    } catch (error) {
+      console.error("创建图片预览窗口失败:", error);
+      ElMessage.error("图片预览失败");
+    }
   }
 };
 
