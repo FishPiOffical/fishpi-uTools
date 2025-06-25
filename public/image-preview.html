@@ -4,11 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>图片预览</title>
-    <!-- FontAwesome 图标库 -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
     <style>
       * {
         margin: 0;
@@ -492,6 +487,54 @@
       .titlebar-button:hover .tooltip {
         opacity: 1;
       }
+
+      /* 图标样式 */
+      .icon {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        text-align: center;
+        line-height: 16px;
+        font-size: 14px;
+        font-weight: bold;
+      }
+
+      .icon-minus::before {
+        content: "−";
+      }
+      .icon-plus::before {
+        content: "+";
+      }
+      .icon-undo::before {
+        content: "↶";
+      }
+      .icon-redo::before {
+        content: "↷";
+      }
+      .icon-sync::before {
+        content: "↻";
+      }
+      .icon-download::before {
+        content: "↓";
+      }
+      .icon-chevron-left::before {
+        content: "‹";
+      }
+      .icon-chevron-right::before {
+        content: "›";
+      }
+      .icon-hand::before {
+        content: "✋";
+      }
+      .icon-close::before {
+        content: "×";
+      }
+      .icon-maximize::before {
+        content: "□";
+      }
+      .icon-minimize::before {
+        content: "−";
+      }
     </style>
   </head>
   <body>
@@ -506,15 +549,15 @@
 
       <!-- 导航按钮 -->
       <button class="nav-button prev" id="prevBtn" disabled>
-        <i class="fas fa-chevron-left"></i>
+        <span class="icon icon-chevron-left"></span>
       </button>
       <button class="nav-button next" id="nextBtn" disabled>
-        <i class="fas fa-chevron-right"></i>
+        <span class="icon icon-chevron-right"></span>
       </button>
 
       <!-- 拖动提示 -->
       <div class="drag-hint" id="dragHint" style="display: none">
-        <i class="fas fa-hand-paper"></i> 拖动图片
+        <span class="icon icon-hand"></span> 拖动图片
       </div>
     </div>
 
@@ -527,26 +570,26 @@
           id="zoomOut"
           title="缩小 (快捷键: - | 滚轮向下)"
         >
-          <i class="fas fa-minus"></i>
+          <span class="icon icon-minus"></span>
         </button>
         <button
           class="toolbar-button"
           id="zoomIn"
           title="放大 (快捷键: + | 滚轮向上)"
         >
-          <i class="fas fa-plus"></i>
+          <span class="icon icon-plus"></span>
         </button>
         <button class="toolbar-button" id="rotateLeft" title="向左旋转">
-          <i class="fas fa-undo"></i>
+          <span class="icon icon-undo"></span>
         </button>
         <button class="toolbar-button" id="rotateRight" title="向右旋转">
-          <i class="fas fa-redo"></i>
+          <span class="icon icon-redo"></span>
         </button>
         <button class="toolbar-button" id="reset" title="重置">
-          <i class="fas fa-sync-alt"></i>
+          <span class="icon icon-sync"></span>
         </button>
         <button class="toolbar-button" id="download" title="保存">
-          <i class="fas fa-download"></i>
+          <span class="icon icon-download"></span>
         </button>
       </div>
     </div>
