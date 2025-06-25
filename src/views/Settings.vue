@@ -21,7 +21,7 @@
                 <el-tooltip
                   content="选择应用的主题模式，跟随系统或手动设置"
                   placement="top"
-                  effect="light"
+                  effect="dark"
                 >
                   <i class="fas fa-question-circle"></i>
                 </el-tooltip>
@@ -46,7 +46,7 @@
                 <el-tooltip
                   content="快速切换当前主题模式"
                   placement="top"
-                  effect="light"
+                  effect="dark"
                 >
                   <i class="fas fa-question-circle"></i>
                 </el-tooltip>
@@ -72,7 +72,7 @@
                 <el-tooltip
                   content="设置聊天室侧边栏在页面加载时的默认展开/收起状态"
                   placement="top"
-                  effect="light"
+                  effect="dark"
                 >
                   <i class="fas fa-question-circle"></i>
                 </el-tooltip>
@@ -95,7 +95,7 @@
                 <el-tooltip
                   content="设置插件打开时的默认页面"
                   placement="top"
-                  effect="light"
+                  effect="dark"
                 >
                   <i class="fas fa-question-circle"></i>
                 </el-tooltip>
@@ -128,7 +128,7 @@
                 <el-tooltip
                   content="设置默认上班时间，用于计算工作时长"
                   placement="top"
-                  effect="light"
+                  effect="dark"
                 >
                   <i class="fas fa-question-circle"></i>
                 </el-tooltip>
@@ -150,7 +150,7 @@
                 <el-tooltip
                   content="设置默认下班时间，用于计算工作时长"
                   placement="top"
-                  effect="light"
+                  effect="dark"
                 >
                   <i class="fas fa-question-circle"></i>
                 </el-tooltip>
@@ -172,7 +172,7 @@
                 <el-tooltip
                   content="设置每周的休息日，用于计算工作日"
                   placement="top"
-                  effect="light"
+                  effect="dark"
                 >
                   <i class="fas fa-question-circle"></i>
                 </el-tooltip>
@@ -209,7 +209,7 @@
                 <el-tooltip
                   content="设置是否在应用处于后台时显示通知"
                   placement="top"
-                  effect="light"
+                  effect="dark"
                 >
                   <i class="fas fa-question-circle"></i>
                 </el-tooltip>
@@ -226,6 +226,85 @@
             </div>
           </div>
         </div>
+        <div class="data-card">
+          <div class="card-header">
+            <h2>摸鱼小窗设置</h2>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-title">
+                <span>月薪（元）</span>
+                <el-tooltip
+                  content="设置您的月薪，用于计算摸鱼收益"
+                  placement="top"
+                  effect="dark"
+                >
+                  <i class="fas fa-question-circle"></i>
+                </el-tooltip>
+              </div>
+            </div>
+            <div class="settings-item-right">
+              <el-input-number
+                v-model="salary"
+                :min="0"
+                :max="999999"
+                :precision="2"
+                placeholder="请输入月薪"
+                @change="handleSalaryChange"
+                style="width: 200px"
+              />
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-title">
+                <span>发薪日</span>
+                <el-tooltip
+                  content="设置每月发薪日期（1-31）"
+                  placement="top"
+                  effect="dark"
+                >
+                  <i class="fas fa-question-circle"></i>
+                </el-tooltip>
+              </div>
+            </div>
+            <div class="settings-item-right">
+              <el-input-number
+                v-model="payday"
+                :min="1"
+                :max="31"
+                :precision="0"
+                placeholder="请输入发薪日"
+                @change="handlePaydayChange"
+                style="width: 200px"
+              />
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-title">
+                <span>开启摸鱼小窗</span>
+                <el-tooltip
+                  content="开启摸鱼小窗，显示摸鱼收益"
+                  placement="top"
+                  effect="dark"
+                >
+                  <i class="fas fa-question-circle"></i>
+                </el-tooltip>
+              </div>
+            </div>
+            <div class="settings-item-right">
+              <el-button
+                type="primary"
+                @click="handleOpenMoYuWindow"
+                :disabled="!canOpenMoYuWindow"
+              >
+                <i class="fas fa-fish"></i>
+                开启摸鱼小窗
+              </el-button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <AboutAuthor v-model:visible="aboutAuthorVisible" />
@@ -237,6 +316,7 @@ import { ref, onMounted, computed, onUnmounted } from "vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "../stores/user";
 import { theme, setTheme, toggleTheme, getSystemTheme } from "../utils/theme";
+import { showMoYuReminder } from "../utils/moyuWindow";
 import AboutAuthor from "../components/AboutAuthor.vue";
 
 const userStore = useUserStore();
@@ -249,6 +329,8 @@ const defaultPage = ref("dashboard");
 const enableBackgroundNotification = ref(true);
 const defaultChatSidebarState = ref(false);
 const currentTheme = ref("auto");
+const salary = ref(5000);
+const payday = ref(1);
 
 // 获取当前用户的设置
 const getUserSettings = () => {
@@ -284,6 +366,8 @@ onMounted(() => {
   defaultChatSidebarState.value =
     userSettings.defaultChatSidebarCollapsed || false;
   currentTheme.value = userSettings.currentTheme || "auto";
+  salary.value = userSettings.salary || 0;
+  payday.value = userSettings.payday || 1;
 
   // 设置工作时间
   const startTimeStr = userSettings.workTime?.startTime || "09:00";
@@ -309,6 +393,8 @@ onMounted(() => {
     defaultChatSidebarState.value =
       userSettings.defaultChatSidebarCollapsed || false;
     currentTheme.value = userSettings.currentTheme || "auto";
+    salary.value = userSettings.salary || 0;
+    payday.value = userSettings.payday || 1;
 
     // 重新设置工作时间
     const startTimeStr = userSettings.workTime?.startTime || "09:00";
@@ -335,6 +421,8 @@ onUnmounted(() => {
       userSettings.enableBackgroundNotification !== false;
     defaultChatSidebarState.value =
       userSettings.defaultChatSidebarCollapsed || false;
+    salary.value = userSettings.salary || 0;
+    payday.value = userSettings.payday || 1;
 
     const startTimeStr = userSettings.workTime?.startTime || "09:00";
     const endTimeStr = userSettings.workTime?.endTime || "17:00";
@@ -450,6 +538,74 @@ const handleThemeToggle = () => {
     duration: 2000,
     showClose: true,
   });
+};
+
+const handleSalaryChange = (value) => {
+  saveUserSettings({ salary: value });
+
+  ElMessage({
+    message: "月薪设置已更新",
+    type: "success",
+    duration: 2000,
+    showClose: true,
+  });
+};
+
+const handlePaydayChange = (value) => {
+  saveUserSettings({ payday: value });
+
+  ElMessage({
+    message: "发薪日设置已更新",
+    type: "success",
+    duration: 2000,
+    showClose: true,
+  });
+};
+
+// 计算属性：是否可以开启摸鱼小窗
+const canOpenMoYuWindow = computed(() => {
+  return salary.value > 0 && payday.value >= 1 && payday.value <= 31;
+});
+
+const handleOpenMoYuWindow = async () => {
+  // 检查参数是否已填写
+  if (!canOpenMoYuWindow.value) {
+    ElMessage({
+      message: "请先填写月薪和发薪日",
+      type: "warning",
+      duration: 3000,
+      showClose: true,
+    });
+    return;
+  }
+
+  try {
+    // 获取用户头像和用户名
+    const userAvatar = userStore.userInfo?.userAvatarURL || null;
+    const username = userStore.userInfo?.userName || null;
+
+    // 开启摸鱼小窗
+    await showMoYuReminder({
+      userAvatar: userAvatar,
+      username: username,
+      autoClose: false,
+    });
+
+    ElMessage({
+      message: "摸鱼小窗已开启",
+      type: "success",
+      duration: 2000,
+      showClose: true,
+    });
+  } catch (error) {
+    console.error("开启摸鱼小窗失败:", error);
+    ElMessage({
+      message: "开启摸鱼小窗失败，请重试",
+      type: "error",
+      duration: 3000,
+      showClose: true,
+    });
+  }
 };
 
 const showAboutAuthor = () => {
