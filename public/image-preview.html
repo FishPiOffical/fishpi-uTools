@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>图片预览</title>
+    <!-- FontAwesome 图标库 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg-color: #ffffff;
+        --text-color: #333333;
+        --titlebar-bg: #f5f5f5;
+        --titlebar-border: #e0e0e0;
+        --button-hover: rgba(0, 0, 0, 0.1);
+        --button-active: rgba(0, 0, 0, 0.2);
+        --close-hover: #ff4d4f;
+        --close-active: #cf1322;
+        --nav-bg: rgba(0, 0, 0, 0.6);
+        --info-bg: rgba(0, 0, 0, 0.7);
+      }
+
+      [data-theme="dark"] {
+        --bg-color: #1a1a1a;
+        --text-color: #ffffff;
+        --titlebar-bg: #2c2c2c;
+        --titlebar-border: #333333;
+        --button-hover: rgba(255, 255, 255, 0.1);
+        --button-active: rgba(255, 255, 255, 0.2);
+        --close-hover: #ff4d4f;
+        --close-active: #cf1322;
+        --nav-bg: rgba(0, 0, 0, 0.6);
+        --info-bg: rgba(0, 0, 0, 0.7);
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: var(--bg-color);
+        color: var(--text-color);
+        overflow: hidden;
+        user-select: none;
+        /* 确保不会阻止键盘事件 */
+        outline: none;
+      }
+
+      /* 自定义标题栏 */
+      .titlebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: var(--titlebar-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 16px;
+        z-index: 1000;
+        -webkit-app-region: drag;
+        border-bottom: 1px solid var(--titlebar-border);
+      }
+
+      .titlebar-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-color);
+      }
+
+      /* 底部工具栏 */
+      .bottom-toolbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: var(--titlebar-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 16px;
+        z-index: 1000;
+        border-top: 1px solid var(--titlebar-border);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .toolbar-buttons {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        -webkit-app-region: no-drag;
+      }
+
+      .toolbar-button {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: transparent;
+        color: var(--text-color);
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        -webkit-app-region: no-drag;
+        margin: 0 2px;
+        position: relative;
+      }
+
+      .toolbar-button:hover {
+        background: var(--button-hover);
+        transform: scale(1.1);
+      }
+
+      .toolbar-button:active {
+        background: var(--button-active);
+        transform: scale(0.95);
+      }
+
+      /* 缩放按钮特殊样式 */
+      .toolbar-button[title="放大"],
+      .toolbar-button[title="缩小"] {
+        background: rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.2);
+      }
+
+      .toolbar-button[title="放大"]:hover,
+      .toolbar-button[title="缩小"]:hover {
+        background: rgba(0, 0, 0, 0.2);
+        border-color: rgba(0, 0, 0, 0.3);
+      }
+
+      [data-theme="dark"] .toolbar-button[title="放大"],
+      [data-theme="dark"] .toolbar-button[title="缩小"] {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      [data-theme="dark"] .toolbar-button[title="放大"]:hover,
+      [data-theme="dark"] .toolbar-button[title="缩小"]:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      .toolbar-button.danger:hover {
+        background: var(--close-hover);
+      }
+
+      .toolbar-button.danger:active {
+        background: var(--close-active);
+      }
+
+      .titlebar-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .titlebar-center {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        -webkit-app-region: no-drag;
+      }
+
+      .titlebar-button {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: transparent;
+        color: var(--text-color);
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        -webkit-app-region: no-drag;
+        /* 优化按钮样式 */
+        margin: 0 2px;
+        position: relative;
+      }
+
+      .titlebar-button:hover {
+        background: var(--button-hover);
+        transform: scale(1.1);
+      }
+
+      .titlebar-button:active {
+        background: var(--button-active);
+        transform: scale(0.95);
+      }
+
+      /* 缩放按钮特殊样式 */
+      .titlebar-button[title="放大"],
+      .titlebar-button[title="缩小"] {
+        background: rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.2);
+      }
+
+      .titlebar-button[title="放大"]:hover,
+      .titlebar-button[title="缩小"]:hover {
+        background: rgba(0, 0, 0, 0.2);
+        border-color: rgba(0, 0, 0, 0.3);
+      }
+
+      [data-theme="dark"] .titlebar-button[title="放大"],
+      [data-theme="dark"] .titlebar-button[title="缩小"] {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      [data-theme="dark"] .titlebar-button[title="放大"]:hover,
+      [data-theme="dark"] .titlebar-button[title="缩小"]:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      .titlebar-button.danger:hover {
+        background: var(--close-hover);
+      }
+
+      .titlebar-button.danger:active {
+        background: var(--close-active);
+      }
+
+      .titlebar-right {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        -webkit-app-region: no-drag;
+      }
+
+      .window-controls {
+        display: flex;
+        align-items: center;
+      }
+
+      .window-control {
+        width: 46px;
+        height: 32px;
+        border: none;
+        background: transparent;
+        color: var(--text-color);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        -webkit-app-region: no-drag;
+      }
+
+      .window-control:hover {
+        background: var(--button-hover);
+      }
+
+      .window-control.close:hover {
+        background: var(--close-hover);
+      }
+
+      .window-control.close:active {
+        background: var(--close-active);
+      }
+
+      /* 主容器 */
+      .container {
+        position: fixed;
+        top: 40px;
+        left: 0;
+        right: 0;
+        bottom: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-color);
+        overflow: hidden;
+        /* 确保不会阻止滚轮事件 */
+        pointer-events: auto;
+      }
+
+      /* 图片容器 */
+      .image-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease;
+        /* 确保不会阻止滚轮事件 */
+        pointer-events: auto;
+        /* 拖动相关样式 */
+        cursor: grab;
+        user-select: none;
+      }
+
+      .image-container:active {
+        cursor: grabbing;
+      }
+
+      .image-container img {
+        max-width: calc(100% - 40px);
+        max-height: calc(100% - 40px);
+        object-fit: contain;
+
+        transition: all 0.3s ease;
+        /* 确保图片保持原始比例，不铺满窗口 */
+        width: auto;
+        height: auto;
+        /* 确保不会阻止滚轮事件 */
+        pointer-events: auto;
+      }
+
+      /* 导航按钮 */
+      .nav-button {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 48px;
+        height: 48px;
+        background: var(--nav-bg);
+        border: none;
+        color: #fff;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        transition: all 0.3s ease;
+        z-index: 100;
+        /* 默认隐藏 */
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .nav-button:hover {
+        background: rgba(0, 0, 0, 0.8);
+        transform: translateY(-50%) scale(1.1);
+      }
+
+      .nav-button.prev {
+        left: 20px;
+      }
+
+      .nav-button.next {
+        right: 10px;
+      }
+
+      .nav-button:disabled {
+        opacity: 0;
+        cursor: not-allowed;
+        transform: translateY(-50%) scale(1);
+      }
+
+      /* 容器移入时显示导航按钮 */
+      .container:hover .nav-button:not(:disabled) {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* 拖动提示 */
+      .drag-hint {
+        position: absolute;
+        bottom: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--info-bg);
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        backdrop-filter: blur(10px);
+        z-index: 100;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .drag-hint.show {
+        opacity: 1;
+      }
+
+      /* 加载动画 */
+      .loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+      }
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top: 3px solid #fff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* 响应式设计 */
+      @media (max-width: 768px) {
+        .titlebar {
+          height: 50px;
+          padding: 0 12px;
+        }
+
+        .container {
+          top: 50px;
+          bottom: 70px;
+        }
+
+        .bottom-toolbar {
+          height: 70px;
+          padding: 0 12px;
+        }
+
+        .toolbar-button {
+          width: 36px;
+          height: 36px;
+          font-size: 14px;
+        }
+
+        .nav-button {
+          width: 40px;
+          height: 40px;
+          font-size: 16px;
+        }
+
+        .nav-button.prev {
+          left: 10px;
+        }
+
+        .nav-button.next {
+          right: 10px;
+        }
+
+        .image-info {
+          bottom: 10px;
+          padding: 6px 12px;
+          font-size: 12px;
+        }
+
+        .zoom-indicator {
+          top: 70px;
+          right: 10px;
+          padding: 6px 10px;
+          font-size: 11px;
+        }
+      }
+
+      /* 工具提示 */
+      .tooltip {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 1001;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      .titlebar-button:hover .tooltip {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 主容器 -->
+    <div class="container">
+      <div class="image-container" id="imageContainer">
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <div>加载中...</div>
+        </div>
+      </div>
+
+      <!-- 导航按钮 -->
+      <button class="nav-button prev" id="prevBtn" disabled>
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button class="nav-button next" id="nextBtn" disabled>
+        <i class="fas fa-chevron-right"></i>
+      </button>
+
+      <!-- 拖动提示 -->
+      <div class="drag-hint" id="dragHint" style="display: none">
+        <i class="fas fa-hand-paper"></i> 拖动图片
+      </div>
+    </div>
+
+    <!-- 底部工具栏 -->
+    <div class="bottom-toolbar">
+      <div class="toolbar-buttons">
+        <!-- 功能按钮 -->
+        <button
+          class="toolbar-button"
+          id="zoomOut"
+          title="缩小 (快捷键: - | 滚轮向下)"
+        >
+          <i class="fas fa-minus"></i>
+        </button>
+        <button
+          class="toolbar-button"
+          id="zoomIn"
+          title="放大 (快捷键: + | 滚轮向上)"
+        >
+          <i class="fas fa-plus"></i>
+        </button>
+        <button class="toolbar-button" id="rotateLeft" title="向左旋转">
+          <i class="fas fa-undo"></i>
+        </button>
+        <button class="toolbar-button" id="rotateRight" title="向右旋转">
+          <i class="fas fa-redo"></i>
+        </button>
+        <button class="toolbar-button" id="reset" title="重置">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+        <button class="toolbar-button" id="download" title="保存">
+          <i class="fas fa-download"></i>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // 获取URL参数
+      const urlParams = new URLSearchParams(window.location.search);
+      const imagesParam = urlParams.get("images");
+      const startIndex = parseInt(urlParams.get("index") || "0");
+
+      let images = [];
+      let currentIndex = startIndex;
+      let scale = 1;
+      let rotation = 0;
+      let isFullscreen = false;
+      let currentWindow = null; // 存储当前窗口对象
+
+      // 拖动相关变量
+      let isDragging = false;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let translateX = 0;
+      let translateY = 0;
+
+      // 检测主题
+      function detectTheme() {
+        // 首先尝试从 uTools 存储中读取主题设置
+        let theme = null;
+        if (window.utools && window.utools.dbStorage) {
+          try {
+            // 尝试读取用户设置中的主题（新版本）
+            const userSettings =
+              window.utools.dbStorage.getItem("fishpi_settings");
+            console.log("读取到的用户设置:", userSettings);
+
+            if (userSettings && userSettings.currentTheme) {
+              theme = userSettings.currentTheme;
+              console.log("从 fishpi_settings.currentTheme 读取到主题:", theme);
+            }
+
+            // 如果没有用户设置，尝试读取旧版本的主题存储
+            if (!theme) {
+              theme = window.utools.dbStorage.getItem("theme");
+              console.log("从 theme 存储读取到主题:", theme);
+            }
+          } catch (error) {
+            console.log("读取主题设置失败:", error);
+          }
+        }
+
+        // 如果从存储中读取到了主题设置
+        if (theme && theme !== "auto") {
+          document.documentElement.setAttribute("data-theme", theme);
+          console.log("应用存储的主题设置:", theme);
+          return;
+        }
+
+        // 如果是自动模式或没有存储设置，检测系统主题
+        if (window.utools && window.utools.isDarkColors) {
+          const isDark = window.utools.isDarkColors();
+          const detectedTheme = isDark ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", detectedTheme);
+          console.log("使用 uTools API 检测主题:", detectedTheme);
+        } else {
+          // 如果没有 uTools API，使用系统主题检测
+          const prefersDark = window.matchMedia(
+            "(prefers-color-scheme: dark)"
+          ).matches;
+          const detectedTheme = prefersDark ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", detectedTheme);
+          console.log("使用系统主题检测:", detectedTheme);
+        }
+      }
+
+      // 初始化
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("DOM加载完成，开始初始化...");
+        console.log("uTools API 检测:", {
+          utools: !!window.utools,
+          utoolsHideMainWindow: !!(
+            window.utools && window.utools.hideMainWindow
+          ),
+          utoolsMaximize: !!(window.utools && window.utools.maximize),
+          utoolsOutPlugin: !!(window.utools && window.utools.outPlugin),
+        });
+
+        detectTheme();
+
+        try {
+          console.log("原始图片参数:", imagesParam);
+          images = JSON.parse(decodeURIComponent(imagesParam));
+          console.log("解析后的图片数组:", images);
+          console.log("图片数量:", images.length);
+          console.log("起始索引:", startIndex);
+
+          if (images.length === 0) {
+            showError("没有找到图片");
+            return;
+          }
+
+          loadImage(currentIndex);
+          updateNavigation();
+
+          // 监听来自父窗口的消息
+          if (window.utools) {
+            try {
+              // 尝试接收窗口信息
+              window.utools.on("window-info", (data) => {
+                console.log("接收到窗口信息:", data);
+                currentWindow = data;
+              });
+            } catch (error) {
+              console.log("无法设置消息监听器:", error);
+            }
+          }
+
+          // 滚轮缩放功能
+          setupWheelZoom();
+
+          // 定期检查主题设置变化
+          setupThemeWatcher();
+
+          // 设置拖动功能
+          setupDragHandlers();
+
+          // 确保键盘事件监听器正常工作
+          console.log("设置键盘事件监听器");
+        } catch (error) {
+          console.error("解析图片参数失败:", error);
+          showError("加载图片失败");
+        }
+      });
+
+      // 加载图片
+      function loadImage(index) {
+        console.log("loadImage 被调用，索引:", index);
+        if (index < 0 || index >= images.length) {
+          console.error("图片索引超出范围:", index);
+          return;
+        }
+
+        const container = document.getElementById("imageContainer");
+        const loading = document.getElementById("loading");
+
+        console.log("容器元素:", container);
+        console.log("加载元素:", loading);
+
+        // 显示加载状态
+        if (loading) {
+          loading.style.display = "flex";
+        }
+        if (container) {
+          container.innerHTML = "";
+          if (loading) {
+            container.appendChild(loading);
+          }
+        }
+
+        const img = new Image();
+        img.onload = function () {
+          console.log("图片加载成功:", images[index].src);
+          if (loading) {
+            loading.style.display = "none";
+          }
+          if (container) {
+            container.innerHTML = "";
+            container.appendChild(img);
+          }
+
+          // 设置合适的初始缩放比例，让图片不会铺满窗口
+          scale = 1;
+          rotation = 0;
+          translateX = 0;
+          translateY = 0;
+          updateTransform();
+
+          // 根据图片尺寸调整窗口大小
+          adjustWindowSize(img);
+        };
+
+        img.onerror = function () {
+          console.error("图片加载失败:", images[index].src);
+          if (loading) {
+            loading.style.display = "none";
+          }
+          showError("图片加载失败");
+        };
+
+        img.src = images[index].src;
+        currentIndex = index;
+        console.log("当前索引已更新为:", currentIndex);
+      }
+
+      // 更新变换
+      function updateTransform() {
+        const container = document.getElementById("imageContainer");
+        container.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale}) rotate(${rotation}deg)`;
+      }
+
+      // 更新导航状态
+      function updateNavigation() {
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === images.length - 1;
+      }
+
+      // 显示错误
+      function showError(message) {
+        const container = document.getElementById("imageContainer");
+        container.innerHTML = `
+          <div style="text-align: center; color: var(--text-color);">
+            <div style="font-size: 48px; margin-bottom: 16px;">😞</div>
+            <div style="font-size: 16px;">${message}</div>
+          </div>
+        `;
+      }
+
+      // 事件监听器
+      document.getElementById("prevBtn").addEventListener("click", () => {
+        console.log("上一张按钮被点击");
+        if (currentIndex > 0) {
+          loadImage(currentIndex - 1);
+          updateNavigation();
+        }
+      });
+
+      document.getElementById("nextBtn").addEventListener("click", () => {
+        console.log("下一张按钮被点击");
+        if (currentIndex < images.length - 1) {
+          loadImage(currentIndex + 1);
+          updateNavigation();
+        }
+      });
+
+      // 缩放功能
+      document.getElementById("zoomIn").addEventListener("click", () => {
+        scale = Math.min(scale * 1.2, 5);
+        updateTransform();
+      });
+
+      document.getElementById("zoomOut").addEventListener("click", () => {
+        scale = Math.max(scale / 1.2, 0.1);
+        updateTransform();
+      });
+
+      // 旋转功能
+      document.getElementById("rotateLeft").addEventListener("click", () => {
+        rotation -= 90;
+        updateTransform();
+      });
+
+      document.getElementById("rotateRight").addEventListener("click", () => {
+        rotation += 90;
+        updateTransform();
+      });
+
+      // 重置功能
+      document.getElementById("reset").addEventListener("click", () => {
+        scale = 1;
+        rotation = 0;
+        translateX = 0;
+        translateY = 0;
+        updateTransform();
+      });
+
+      // 重置位置功能
+      document.getElementById("resetPosition").addEventListener("click", () => {
+        console.log("重置位置按钮被点击");
+        translateX = 0;
+        translateY = 0;
+        updateTransform();
+      });
+
+      // 下载功能
+      document.getElementById("download").addEventListener("click", () => {
+        if (images[currentIndex]) {
+          const link = document.createElement("a");
+          link.href = images[currentIndex].src;
+          link.download = `image_${currentIndex + 1}.jpg`;
+          link.click();
+        }
+      });
+
+      // 全屏功能
+      document.getElementById("fullscreen").addEventListener("click", () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+          isFullscreen = true;
+        } else {
+          document.exitFullscreen();
+          isFullscreen = false;
+        }
+      });
+
+      document.getElementById("close").addEventListener("click", () => {
+        console.log("关闭按钮被点击");
+        console.log("uTools API 可用性:", !!window.utools);
+
+        if (window.utools) {
+          try {
+            console.log("尝试使用 uTools outPlugin 关闭窗口");
+            window.utools.outPlugin();
+          } catch (e) {
+            console.error("uTools outPlugin 失败:", e);
+            window.close();
+          }
+        } else {
+          console.log("uTools API 不可用，使用 window.close");
+          window.close();
+        }
+      });
+      // 键盘快捷键
+      document.addEventListener("keydown", (e) => {
+        console.log("键盘事件:", e.key, "keyCode:", e.keyCode);
+        switch (e.key) {
+          case "ArrowLeft":
+            if (currentIndex > 0) {
+              loadImage(currentIndex - 1);
+              updateNavigation();
+            }
+            break;
+          case "ArrowRight":
+            if (currentIndex < images.length - 1) {
+              loadImage(currentIndex + 1);
+              updateNavigation();
+            }
+            break;
+          case "Escape":
+            if (document.fullscreenElement) {
+              document.exitFullscreen();
+              isFullscreen = false;
+            } else {
+              document.getElementById("close").click();
+            }
+            break;
+          case "+":
+          case "=":
+            e.preventDefault();
+            document.getElementById("zoomIn").click();
+            break;
+          case "-":
+            e.preventDefault();
+            document.getElementById("zoomOut").click();
+            break;
+          case "0":
+            document.getElementById("reset").click();
+            break;
+          case " ":
+            e.preventDefault();
+            console.log("空格键被按下，重置拖动位置");
+            // 空格键重置拖动位置
+            translateX = 0;
+            translateY = 0;
+            updateTransform();
+            console.log("拖动位置已重置");
+            break;
+        }
+      });
+
+      // 专门处理空格键，确保能够正常工作
+      document.addEventListener(
+        "keydown",
+        (e) => {
+          if (e.code === "Space" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("空格键被捕获，重置拖动位置");
+            translateX = 0;
+            translateY = 0;
+            updateTransform();
+            console.log("拖动位置已重置");
+          }
+        },
+        true
+      );
+
+      // 双击重置
+      document.addEventListener("dblclick", () => {
+        document.getElementById("reset").click();
+      });
+
+      // 滚轮缩放功能
+      function setupWheelZoom() {
+        document.addEventListener(
+          "wheel",
+          (e) => {
+            e.preventDefault(); // 阻止默认滚动行为
+            e.stopPropagation(); // 阻止事件冒泡
+
+            // 获取滚轮方向
+            const delta = e.deltaY;
+
+            // 根据滚轮方向调整缩放
+            if (delta < 0) {
+              // 向上滚动，放大
+              scale = Math.min(scale * 1.1, 5);
+            } else {
+              // 向下滚动，缩小
+              scale = Math.max(scale / 1.1, 0.1);
+            }
+
+            updateTransform();
+          },
+          { passive: false, capture: true }
+        );
+      }
+
+      // 定期检查主题设置变化
+      function setupThemeWatcher() {
+        let lastTheme = null;
+
+        // 获取当前主题
+        function getCurrentTheme() {
+          if (window.utools && window.utools.dbStorage) {
+            try {
+              // 首先尝试读取用户特定的设置
+              const userSettings =
+                window.utools.dbStorage.getItem("fishpi_settings");
+              if (userSettings && userSettings.currentTheme) {
+                return userSettings.currentTheme;
+              }
+
+              // 如果没有用户设置，尝试读取全局主题设置
+              return window.utools.dbStorage.getItem("theme");
+            } catch (error) {
+              console.log("读取主题设置失败:", error);
+            }
+          }
+          return null;
+        }
+
+        // 检查主题是否发生变化
+        function checkThemeChange() {
+          const currentTheme = getCurrentTheme();
+          if (currentTheme !== lastTheme) {
+            console.log("检测到主题变化:", lastTheme, "->", currentTheme);
+            lastTheme = currentTheme;
+            detectTheme();
+          }
+        }
+
+        // 初始化当前主题
+        lastTheme = getCurrentTheme();
+        console.log("初始化主题监听器，当前主题:", lastTheme);
+
+        // 定期检查主题变化（每2秒检查一次）
+        setInterval(checkThemeChange, 2000);
+
+        // 监听系统主题变化
+        if (window.matchMedia) {
+          window
+            .matchMedia("(prefers-color-scheme: dark)")
+            .addEventListener("change", () => {
+              // 只有在自动模式下才响应系统主题变化
+              const storedTheme = getCurrentTheme();
+              if (!storedTheme || storedTheme === "auto") {
+                console.log("系统主题发生变化，重新检测");
+                detectTheme();
+              }
+            });
+        }
+      }
+
+      // 调试信息
+      console.log("图片预览页面已加载");
+      console.log("图片数量:", images.length);
+      console.log("当前索引:", currentIndex);
+
+      // 根据图片尺寸调整窗口大小
+      function adjustWindowSize(img) {
+        console.log(
+          "调整窗口大小，图片尺寸:",
+          img.naturalWidth,
+          "x",
+          img.naturalHeight
+        );
+
+        // 获取屏幕尺寸
+        const screenWidth = window.screen.width;
+        const screenHeight = window.screen.height;
+
+        // 设置最大窗口尺寸（屏幕的80%）
+        const maxWidth = screenWidth * 0.6;
+        const maxHeight = screenHeight * 0.6;
+
+        // 设置最小窗口尺寸
+        const minWidth = 800;
+        const minHeight = 600;
+
+        // 标题栏高度
+        const titleBarHeight = 40;
+        // 底部工具栏高度
+        const bottomToolbarHeight = 60;
+
+        // 计算图片显示尺寸
+        let displayWidth = img.naturalWidth;
+        let displayHeight = img.naturalHeight;
+
+        console.log("初始显示尺寸:", displayWidth, "x", displayHeight);
+
+        // 如果图片太大，按比例缩小到最大尺寸内
+        if (displayWidth > maxWidth || displayHeight > maxHeight) {
+          const ratio = Math.min(
+            maxWidth / displayWidth,
+            maxHeight / displayHeight
+          );
+          displayWidth = Math.floor(displayWidth * ratio);
+          displayHeight = Math.floor(displayHeight * ratio);
+          console.log("图片过大，缩放比例:", ratio);
+          console.log("缩放后尺寸:", displayWidth, "x", displayHeight);
+        }
+
+        // 确保不小于最小尺寸
+        displayWidth = Math.max(displayWidth, minWidth);
+        displayHeight = Math.max(displayHeight, minHeight);
+
+        // 计算窗口总高度（图片高度 + 标题栏高度 + 底部工具栏高度）
+        const windowHeight =
+          displayHeight + titleBarHeight + bottomToolbarHeight;
+
+        console.log("最终窗口尺寸:", displayWidth, "x", windowHeight);
+
+        // 在 uTools 环境中调整窗口大小
+        if (window.utools) {
+          try {
+            // 尝试使用 window.resizeTo (如果可用)
+            if (window.resizeTo) {
+              window.resizeTo(displayWidth, windowHeight);
+              console.log("使用 window.resizeTo 调整窗口大小");
+            } else {
+              console.log("window.resizeTo 不可用");
+            }
+
+            // 如果有窗口对象，尝试使用其方法
+            if (currentWindow && currentWindow.windowId) {
+              console.log("尝试使用窗口对象调整大小");
+              // 这里需要父窗口传递窗口对象，或者通过其他方式获取
+            }
+          } catch (error) {
+            console.error("调整窗口大小失败:", error);
+          }
+        }
+      }
+
+      // 设置拖动功能
+      function setupDragHandlers() {
+        const container = document.getElementById("imageContainer");
+        const dragHint = document.getElementById("dragHint");
+
+        // 显示拖动提示
+        function showDragHint() {
+          dragHint.style.display = "block";
+          setTimeout(() => {
+            dragHint.classList.add("show");
+          }, 100);
+        }
+
+        // 隐藏拖动提示
+        function hideDragHint() {
+          dragHint.classList.remove("show");
+          setTimeout(() => {
+            dragHint.style.display = "none";
+          }, 300);
+        }
+
+        // 页面加载后显示提示
+        setTimeout(() => {
+          showDragHint();
+          setTimeout(hideDragHint, 3000);
+        }, 1000);
+
+        container.addEventListener("mousedown", (e) => {
+          // 允许直接拖动，但排除按钮点击
+          if (
+            e.target.tagName !== "BUTTON" &&
+            e.target.closest(".titlebar") === null
+          ) {
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            container.style.cursor = "grabbing";
+            container.style.transition = "none"; // 拖动时禁用过渡动画
+            hideDragHint();
+            e.preventDefault();
+          }
+        });
+
+        document.addEventListener("mousemove", (e) => {
+          if (isDragging) {
+            const deltaX = e.clientX - dragStartX;
+            const deltaY = e.clientY - dragStartY;
+            translateX += deltaX;
+            translateY += deltaY;
+
+            // 添加边界限制，防止图片被拖出视野太远
+            const maxTranslate = 500; // 最大拖动距离
+            translateX = Math.max(
+              -maxTranslate,
+              Math.min(maxTranslate, translateX)
+            );
+            translateY = Math.max(
+              -maxTranslate,
+              Math.min(maxTranslate, translateY)
+            );
+
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            updateTransform();
+            e.preventDefault();
+          }
+        });
+
+        document.addEventListener("mouseup", () => {
+          if (isDragging) {
+            isDragging = false;
+            container.style.cursor = "grab";
+            container.style.transition = "transform 0.3s ease"; // 恢复过渡动画
+
+            // 如果图片被拖出边界，自动回到边界内
+            const maxTranslate = 500;
+            if (
+              Math.abs(translateX) > maxTranslate ||
+              Math.abs(translateY) > maxTranslate
+            ) {
+              translateX = Math.max(
+                -maxTranslate,
+                Math.min(maxTranslate, translateX)
+              );
+              translateY = Math.max(
+                -maxTranslate,
+                Math.min(maxTranslate, translateY)
+              );
+              updateTransform();
+            }
+          }
+        });
+
+        // 鼠标悬停时显示拖动提示
+        container.addEventListener("mouseenter", () => {
+          if (!isDragging) {
+            container.style.cursor = "grab";
+          }
+        });
+
+        container.addEventListener("mouseleave", () => {
+          if (!isDragging) {
+            container.style.cursor = "default";
+          }
+        });
+
+        // 防止拖动时选中文本
+        container.addEventListener("selectstart", (e) => {
+          if (isDragging) {
+            e.preventDefault();
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
