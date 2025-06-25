@@ -13,7 +13,7 @@ export const useUserStore = defineStore("user", {
   getters: {
     shouldRefetch: (state) => {
       const now = Date.now();
-      return now - state.lastFetchTime > 300000; // 5分钟缓存
+      return now - state.lastFetchTime > 120000; // 2分钟缓存
     },
     isLoggedIn: (state) => {
       return !!state.userInfo && !!request.getApiKey();
@@ -69,7 +69,7 @@ export const useUserStore = defineStore("user", {
         if (this.shouldRefetch) {
           this.fetchUserInfo();
         }
-      }, 300000); // 每5分钟检查一次
+      }, 120000); // 每2分钟检查一次
     },
 
     stopChecking() {
