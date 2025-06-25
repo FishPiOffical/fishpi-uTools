@@ -64,7 +64,13 @@
     </div>
     <div class="input-footer">
       <span class="tip">按 Enter 发送，Shift + Enter 换行</span>
-      <button @click="sendMessage">发送</button>
+      <button
+        @click="sendMessage"
+        :disabled="!message.trim()"
+        :class="{ disabled: !message.trim() }"
+      >
+        发送
+      </button>
     </div>
     <RedPacketDialog
       :visible="showRedPacketDialog"
@@ -82,13 +88,6 @@
       :default-signature="signature"
       @close="showSignatureDialog = false"
       @save="handleSignatureSave"
-    />
-    <!-- 图片预览组件 -->
-    <vue-easy-lightbox
-      :visible="previewVisible"
-      :imgs="previewImages"
-      :index="previewIndex"
-      @hide="previewVisible = false"
     />
   </div>
 </template>
@@ -109,8 +108,8 @@ import DanmakuDialog from "./DanmakuDialog.vue";
 import SignatureDialog from "./SignatureDialog.vue";
 import { userApi } from "../api/user";
 import { ElMessage } from "element-plus";
-import VueEasyLightbox from "vue-easy-lightbox";
 import { useUserStore } from "../stores/user";
+import { createImagePreviewWindow } from "../utils/imagePreview";
 
 const props = defineProps({
   onlineUsers: {
@@ -139,11 +138,6 @@ const emit = defineEmits([
 ]);
 
 const textareaRef = ref(null);
-
-// 图片预览相关
-const previewVisible = ref(false);
-const previewImages = ref([]);
-const previewIndex = ref(0);
 
 // 添加粘贴事件监听
 onMounted(() => {
@@ -296,6 +290,17 @@ const handleInput = (e) => {
   message.value = e.target.innerHTML.replace(/&nbsp;/g, " ");
   const text = message.value;
   const lastAtIndex = text.lastIndexOf("@");
+
+  // 修正图片样式，防止拖拽图片时样式失效
+  const imgs = textareaRef.value.querySelectorAll("img");
+  imgs.forEach((img) => {
+    img.removeAttribute("width");
+    img.removeAttribute("height");
+    img.style.width = "";
+    img.style.height = "";
+    img.style.maxWidth = "120px";
+    img.style.objectFit = "contain";
+  });
 
   if (lastAtIndex !== -1) {
     const textAfterAt = text.slice(lastAtIndex + 1);
@@ -523,8 +528,11 @@ const handleKeyDown = (e) => {
   }
 };
 
+// 图片预览相关
+let previewWindow = null;
+
 // 处理图片点击
-const handleImageClick = (e) => {
+const handleImageClick = async (e) => {
   if (e.target.tagName === "IMG") {
     const imgSrc = e.target.src;
     const allImages = Array.from(
@@ -532,9 +540,34 @@ const handleImageClick = (e) => {
     ).map((img) => ({
       src: img.src,
     }));
-    previewIndex.value = allImages.findIndex((img) => img.src === imgSrc);
-    previewImages.value = allImages;
-    previewVisible.value = true;
+    const currentIndex = allImages.findIndex((img) => img.src === imgSrc);
+
+    // 关闭之前的预览窗口
+    if (previewWindow && !previewWindow.isDestroyed()) {
+      previewWindow.close();
+    }
+
+    try {
+      // 使用新的工具函数创建预览窗口
+      previewWindow = await createImagePreviewWindow(allImages, currentIndex);
+
+      // 窗口关闭时重置变量
+      const checkWindowClosed = () => {
+        if (
+          previewWindow &&
+          previewWindow.isDestroyed &&
+          previewWindow.isDestroyed()
+        ) {
+          previewWindow = null;
+        } else {
+          setTimeout(checkWindowClosed, 1000);
+        }
+      };
+      checkWindowClosed();
+    } catch (error) {
+      console.error("创建图片预览窗口失败:", error);
+      ElMessage.error("图片预览失败");
+    }
   }
 };
 </script>
@@ -661,6 +694,14 @@ const handleImageClick = (e) => {
   background-color: var(--button-bg);
 }
 
+.room-chat-input-container button:disabled,
+.room-chat-input-container button.disabled {
+  background-color: var(--border-color);
+  color: var(--sub-text-color);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 :deep(.emoji-picker) {
   position: absolute;
   bottom: calc(100% + 15px);
@@ -715,7 +756,6 @@ const handleImageClick = (e) => {
   width: 100%;
   min-height: 60px;
   max-height: 100px;
-  padding: 10px;
   border: none;
   border-radius: 4px;
   background-color: var(--card-bg);
@@ -738,24 +778,5 @@ const handleImageClick = (e) => {
 
 .input-content img:hover {
   transform: scale(1.02);
-}
-
-/* 自定义滚动条样式 */
-.input-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.input-content::-webkit-scrollbar-track {
-  background: var(--background-color);
-  border-radius: 3px;
-}
-
-.input-content::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
-}
-
-.input-content::-webkit-scrollbar-thumb:hover {
-  background: var(--sub-text-color);
 }
 </style>
