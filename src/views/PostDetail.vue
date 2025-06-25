@@ -303,13 +303,6 @@
     <i class="fas fa-edit"></i>
     <span>写评论</span>
   </div>
-  <!-- 在 template 最后添加图片预览组件 -->
-  <vue-easy-lightbox
-    :visible="previewVisible"
-    :imgs="previewImages"
-    :index="previewIndex"
-    @hide="previewVisible = false"
-  />
 </template>
 
 <script setup>
@@ -318,7 +311,7 @@ import { useRoute, useRouter } from "vue-router";
 import { articleApi } from "../api";
 import { ElMessage } from "element-plus";
 import { onBeforeRouteLeave } from "vue-router";
-import VueEasyLightbox from "vue-easy-lightbox";
+import { createImagePreviewWindow } from "../utils/imagePreview";
 
 const route = useRoute();
 const router = useRouter();
@@ -343,10 +336,8 @@ const showCommentDialog = ref(false);
 
 const commentInput = ref(null);
 
-// 添加图片预览相关状态
-const previewVisible = ref(false);
-const previewImages = ref([]);
-const previewIndex = ref(0);
+// 图片预览相关
+let previewWindow = null;
 
 const fetchArticleDetail = async () => {
   const articleId = route.params.id;
@@ -634,7 +625,7 @@ watch(showCommentDialog, (newVal) => {
 });
 
 // 处理图片点击
-const handleImageClick = (e) => {
+const handleImageClick = async (e) => {
   if (e.target.tagName === "IMG") {
     const imgSrc = e.target.src;
     const allImages = Array.from(
@@ -642,9 +633,34 @@ const handleImageClick = (e) => {
     ).map((img) => ({
       src: img.src,
     }));
-    previewIndex.value = allImages.findIndex((img) => img.src === imgSrc);
-    previewImages.value = allImages;
-    previewVisible.value = true;
+    const currentIndex = allImages.findIndex((img) => img.src === imgSrc);
+
+    // 关闭之前的预览窗口
+    if (previewWindow && !previewWindow.isDestroyed()) {
+      previewWindow.close();
+    }
+
+    try {
+      // 使用新的工具函数创建预览窗口
+      previewWindow = await createImagePreviewWindow(allImages, currentIndex);
+
+      // 窗口关闭时重置变量
+      const checkWindowClosed = () => {
+        if (
+          previewWindow &&
+          previewWindow.isDestroyed &&
+          previewWindow.isDestroyed()
+        ) {
+          previewWindow = null;
+        } else {
+          setTimeout(checkWindowClosed, 1000);
+        }
+      };
+      checkWindowClosed();
+    } catch (error) {
+      console.error("创建图片预览窗口失败:", error);
+      ElMessage.error("图片预览失败");
+    }
   }
 };
 
