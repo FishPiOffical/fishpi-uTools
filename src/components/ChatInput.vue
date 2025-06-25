@@ -31,7 +31,13 @@
     </div>
     <div class="input-footer">
       <span class="tip">按 Enter 发送，Shift + Enter 换行</span>
-      <button @click="sendMessage">发送</button>
+      <button
+        @click="sendMessage"
+        :disabled="!message.trim()"
+        :class="{ disabled: !message.trim() }"
+      >
+        发送
+      </button>
     </div>
     <TransferDialog
       :visible="showTransferDialog"
@@ -324,6 +330,14 @@ const handleTransferError = (error) => {
   background-color: var(--button-bg);
 }
 
+.chat-input-container button:disabled,
+.chat-input-container button.disabled {
+  background-color: var(--border-color);
+  color: var(--sub-text-color);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 :deep(.emoji-picker) {
   position: absolute;
   bottom: calc(100% + 15px);
@@ -335,7 +349,6 @@ const handleTransferError = (error) => {
   width: 100%;
   min-height: 60px;
   max-height: 100px;
-  padding: 10px;
   border: none;
   border-radius: 4px;
   background-color: var(--card-bg);
