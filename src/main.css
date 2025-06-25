@@ -282,3 +282,16 @@ textarea {
   background: var(--card-bg) !important;
 }
 
+/* 强制覆盖 el-tooltip 的 dark 模式 */
+.el-tooltip__popper.is-dark {
+  background-color: var(--tooltip-bg) !important;
+  color: var(--tooltip-text) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Tooltip 箭头明暗模式适配 */
+.el-tooltip__popper.is-dark .el-tooltip__arrow::before {
+  background: var(--tooltip-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
