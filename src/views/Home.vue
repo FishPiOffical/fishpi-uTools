@@ -160,10 +160,7 @@ const navItems = [
 
 // 添加新用户判断逻辑
 const isNewUser = computed(() => {
-  return (
-    userStore.userInfo?.userPoint === 500 &&
-    userStore.userInfo?.userRole === "新人"
-  );
+  return userStore.userInfo?.userRole === "新人";
 });
 
 // 处理私信消息
@@ -227,6 +224,12 @@ const handleMessage = (data) => {
         window.dispatchEvent(event);
       }
 
+      // 向摸鱼小窗发送系统通知
+      sendMessageToMoYuWindow({
+        type: "system-notification",
+        content: "有新的通知！",
+      });
+
       // 获取用户设置
       const userSettings = utools.dbStorage.getItem("fishpi_settings") || {};
       const currentUsername = userStore.userInfo?.userName;
@@ -270,14 +273,6 @@ onMounted(async () => {
 
   const anim = lottie.loadAnimation(params);
 
-  // 监听侧边栏状态变化
-  watch(isCollapsed, (newValue) => {
-    if (newValue) {
-      // 侧边栏收起时，播放动画
-      anim.goToAndPlay(27, true);
-    }
-  });
-
   // 如果初始状态是收起，则播放动画
   if (isCollapsed.value) {
     anim.goToAndPlay(27, true);
@@ -309,7 +304,7 @@ onMounted(async () => {
     console.error("获取未读私信消息失败:", error);
   }
 
-  // 连接私信 WebSocket
+  // 连接通知 WebSocket
   try {
     await wsManager.connect("wss://fishpi.cn/user-channel", {
       connectionId: "home-channel",
@@ -641,7 +636,9 @@ const goToLogin = () => {
   cursor: pointer;
   transition: all 0.3s ease;
 }
-
+.user-card-item span {
+  color: var(--text-color, #222); /* 默认深色，优先用你的主题变量 */
+}
 .user-card-item:hover {
   background-color: var(--hover-bg, #f5f5f5);
 }
