@@ -213,14 +213,6 @@
       </div>
     </el-dialog>
 
-    <!-- 添加图片预览组件 -->
-    <vue-easy-lightbox
-      :visible="previewVisible"
-      :imgs="previewImages"
-      :index="previewIndex"
-      @hide="previewVisible = false"
-    />
-
     <!-- 使用 MsgContextMenu 组件 -->
     <MsgContextMenu
       :visible="contextMenuVisible"
@@ -240,10 +232,10 @@ import { useUserStore } from "../stores/user";
 import dayjs from "dayjs";
 import wsManager from "../utils/websocket";
 import { useRoute, useRouter } from "vue-router";
-import VueEasyLightbox from "vue-easy-lightbox";
 import { ElMessage } from "element-plus";
 import MsgContextMenu from "../components/MsgContextMenu.vue";
 import ChatInput from "../components/ChatInput.vue";
+import { createImagePreviewWindow } from "../utils/imagePreview";
 
 const userStore = useUserStore();
 const chatList = ref([]);
@@ -272,11 +264,6 @@ const searchQuery = ref("");
 const searchResults = ref([]);
 const isSearching = ref(false);
 const searchTimeout = ref(null);
-
-// 图片预览相关
-const previewVisible = ref(false);
-const previewImages = ref([]);
-const previewIndex = ref(0);
 
 // 右键菜单相关状态
 const contextMenuVisible = ref(false);
@@ -830,8 +817,11 @@ const startChat = async (user) => {
   }
 };
 
+// 图片预览相关
+let previewWindow = null;
+
 // 处理图片点击
-const handleImageClick = (e) => {
+const handleImageClick = async (e) => {
   if (e.target.tagName === "IMG") {
     const imgSrc = e.target.src;
     const allImages = Array.from(
@@ -839,16 +829,35 @@ const handleImageClick = (e) => {
     ).map((img) => ({
       src: img.src,
     }));
-    previewIndex.value = allImages.findIndex((img) => img.src === imgSrc);
-    previewImages.value = allImages;
-    previewVisible.value = true;
-  }
-};
+    const currentIndex = allImages.findIndex((img) => img.src === imgSrc);
 
-// 处理消息内容，将 Markdown 图片转换为 HTML
-const processMessageContent = (content) => {
-  // 将 Markdown 图片语法转换为 HTML
-  return content.replace(/!\[.*?\]\((.*?)\)/g, '<img src="$1" alt="图片" />');
+    // 关闭之前的预览窗口
+    if (previewWindow && !previewWindow.isDestroyed()) {
+      previewWindow.close();
+    }
+
+    try {
+      // 使用新的工具函数创建预览窗口
+      previewWindow = await createImagePreviewWindow(allImages, currentIndex);
+
+      // 窗口关闭时重置变量
+      const checkWindowClosed = () => {
+        if (
+          previewWindow &&
+          previewWindow.isDestroyed &&
+          previewWindow.isDestroyed()
+        ) {
+          previewWindow = null;
+        } else {
+          setTimeout(checkWindowClosed, 1000);
+        }
+      };
+      checkWindowClosed();
+    } catch (error) {
+      console.error("创建图片预览窗口失败:", error);
+      ElMessage.error("图片预览失败");
+    }
+  }
 };
 
 // 处理图片加载完成
@@ -859,10 +868,18 @@ const handleImageLoad = () => {
     });
   }
 };
+
+// 处理消息内容，将 Markdown 图片转换为 HTML
+const processMessageContent = (content) => {
+  // 将 Markdown 图片语法转换为 HTML
+  return content.replace(/!\[.*?\]\((.*?)\)/g, '<img src="$1" alt="图片" />');
+};
+
 // 查看用户信息
 const showUserProfile = (userName) => {
   router.push(`/user/${userName}`);
 };
+
 // 处理右键菜单
 const handleContextMenu = (event, message) => {
   selectedMessage.value = message;
