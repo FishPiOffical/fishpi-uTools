@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=360, initial-scale=1.0" />
+    <title>摸鱼小窗</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <style>
+      html,
+      body {
+        width: 360px;
+        height: 70px;
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        overflow: hidden;
+        transition: height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+      }
+
+      .moyu-widget {
+        box-shadow: none;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(
+          135deg,
+          rgba(45, 45, 55, 0.95) 0%,
+          rgba(30, 30, 40, 0.95) 100%
+        );
+        border-radius: 25px;
+        padding: 0 20px;
+        box-sizing: border-box;
+        gap: 16px;
+        -webkit-app-region: drag;
+        border: none;
+        position: relative;
+        overflow: hidden;
+      }
+      .moyu-widget::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: none;
+      }
+      .fish-icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        -webkit-app-region: no-drag;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: rgba(79, 195, 247, 0.04);
+        box-shadow: none;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border: 1px solid rgba(79, 195, 247, 0.08);
+        position: relative;
+      }
+      .fish-icon::before {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        border-radius: 50%;
+        background: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: -1;
+      }
+      .fish-icon:hover {
+        transform: translateY(-1px) scale(1.05);
+        background: rgba(79, 195, 247, 0.08);
+        border-color: rgba(79, 195, 247, 0.15);
+      }
+      .fish-icon:active {
+        transform: translateY(0) scale(0.98);
+      }
+      .logo-container {
+        width: 40px;
+        height: 40px;
+        display: block;
+      }
+      .content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+        flex: 1;
+        gap: 6px;
+        padding: 2px 0;
+        overflow: hidden;
+        transition: transform 0.15s ease;
+      }
+      .content:hover {
+        transform: scale(1.02);
+      }
+      .quote {
+        font-size: 13px;
+        font-weight: 600;
+        color: #8a8d94;
+        letter-spacing: 0.3px;
+        text-shadow: none;
+        line-height: 1.3;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        transition: opacity 0.2s ease;
+      }
+      .info {
+        font-size: 11px;
+        color: #8a8d94;
+        opacity: 0.8;
+        letter-spacing: 0.2px;
+        line-height: 1.3;
+        font-weight: 400;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+      #fishToast {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        left: 50%;
+        top: 30px;
+        transform: translateX(-50%) translateY(-10px);
+        background: rgba(60, 120, 180, 0.7);
+        color: #e0e0e0;
+        padding: 6px 8px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        z-index: 9999;
+        box-shadow: none;
+        pointer-events: none;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border: none;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        min-width: 80px;
+        text-align: center;
+        white-space: nowrap;
+      }
+      #fishToast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      /* 连击特效 */
+      @keyframes comboShake {
+        0%,
+        100% {
+          transform: translateX(-50%) translateY(0) rotate(0deg);
+        }
+        25% {
+          transform: translateX(-50%) translateY(0) rotate(1deg);
+        }
+        75% {
+          transform: translateX(-50%) translateY(0) rotate(-1deg);
+        }
+      }
+
+      #fishToast.combo {
+        animation: comboShake 0.3s ease-in-out;
+        box-shadow: 0 6px 24px rgba(255, 107, 107, 0.6),
+          0 3px 12px rgba(0, 0, 0, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="moyu-widget" id="moyuWidget">
+      <div class="fish-icon" id="fishIcon" title="点我摸鱼">
+        <div class="logo-container" id="logo-animate"></div>
+      </div>
+      <div class="content">
+        <div class="quote" id="quote">你加班我加班，老板年年换小三</div>
+        <div class="info" id="info">距离下班还有 00:00:00</div>
+      </div>
+    </div>
+
+    <div id="fishToast">摸鱼+1</div>
+    <script src="js/logo.js"></script>
+    <script src="js/moyu-texts.js"></script>
+    <script>
+      // 初始化lottie动画
+      let anim;
+
+      // 等待DOM加载完成后初始化动画
+      document.addEventListener("DOMContentLoaded", function () {
+        const params = {
+          container: document.getElementById("logo-animate"),
+          renderer: "svg",
+          loop: false,
+          autoplay: false,
+          animationData: logoData,
+        };
+
+        anim = lottie.loadAnimation(params);
+
+        // 初始播放动画
+        anim.goToAndPlay(27, true);
+
+        // 添加鼠标悬停事件
+        const fishIcon = document.getElementById("fishIcon");
+        fishIcon.addEventListener("mouseenter", () => {
+          anim.goToAndPlay(10, true);
+        });
+      });
+
+      // 智能摸鱼系统
+      const SmartMoYuSystem = {
+        // 获取用户设置
+        getUserSettings() {
+          try {
+            // 检查utools对象是否存在
+            if (typeof utools !== "undefined" && utools.dbStorage) {
+              const savedSettings =
+                utools.dbStorage.getItem("fishpi_settings") || {};
+
+              // 尝试获取当前用户名（从主窗口传递过来）
+              let currentUsername = null;
+              try {
+                // 尝试从URL参数获取用户名
+                const urlParams = new URLSearchParams(window.location.search);
+                currentUsername = urlParams.get("username");
+              } catch (e) {
+                console.log("无法从URL获取用户名");
+              }
+
+              // 如果有用户名，返回该用户的设置，否则返回全局设置
+              if (currentUsername && savedSettings[currentUsername]) {
+                return savedSettings[currentUsername];
+              } else {
+                // 返回全局设置（没有用户名的设置）
+                return savedSettings;
+              }
+            } else {
+              console.log("utools对象不存在，使用默认配置");
+              return {};
+            }
+          } catch (error) {
+            console.log("无法获取用户设置，使用默认配置:", error);
+            return {};
+          }
+        },
+
+        // 获取摸鱼统计数据
+        getFishStats() {
+          try {
+            if (typeof utools !== "undefined" && utools.dbStorage) {
+              const stats = utools.dbStorage.getItem("fishpi_moyu_stats") || {};
+              const today = new Date().toDateString();
+
+              if (!stats[today]) {
+                stats[today] = {
+                  count: 0,
+                  firstTime: new Date().toISOString(),
+                  lastTime: new Date().toISOString(),
+                  maxCombo: 0,
+                };
+              }
+
+              return stats;
+            } else {
+              return {};
+            }
+          } catch (error) {
+            console.log("无法获取摸鱼统计:", error);
+            return {};
+          }
+        },
+
+        // 保存摸鱼统计
+        saveFishStats(stats) {
+          try {
+            if (typeof utools !== "undefined" && utools.dbStorage) {
+              utools.dbStorage.setItem("fishpi_moyu_stats", stats);
+            }
+          } catch (error) {
+            console.log("保存摸鱼统计失败:", error);
+          }
+        },
+
+        // 获取工作时间配置
+        getWorkTimeConfig() {
+          const settings = this.getUserSettings();
+          const workTime = settings.workTime || {
+            startTime: "09:00",
+            endTime: "18:00",
+          };
+          const restDays = settings.restDays || ["0", "6"]; // 默认双休
+
+          return {
+            startTime: workTime.startTime,
+            endTime: workTime.endTime,
+            restDays: restDays,
+          };
+        },
+
+        // 检查是否为工作日
+        isWorkDay() {
+          const config = this.getWorkTimeConfig();
+          const today = new Date().getDay().toString();
+          return !config.restDays.includes(today);
+        },
+
+        // 检查是否在工作时间内
+        isWorkTime() {
+          const config = this.getWorkTimeConfig();
+          const now = new Date();
+          const currentTime = now.getHours() * 60 + now.getMinutes();
+
+          const [startHour, startMin] = config.startTime.split(":").map(Number);
+          const [endHour, endMin] = config.endTime.split(":").map(Number);
+
+          const startMinutes = startHour * 60 + startMin;
+          const endMinutes = endHour * 60 + endMin;
+
+          return currentTime >= startMinutes && currentTime <= endMinutes;
+        },
+
+        // 获取智能倒计时
+        getSmartCountdown() {
+          const config = this.getWorkTimeConfig();
+          const now = new Date();
+          const today = now.getDay();
+
+          // 如果不是工作日
+          if (!this.isWorkDay()) {
+            return MoYuTexts.countdown.weekend;
+          }
+
+          // 如果不在工作时间内
+          if (!this.isWorkTime()) {
+            const [startHour, startMin] = config.startTime
+              .split(":")
+              .map(Number);
+            const [endHour, endMin] = config.endTime.split(":").map(Number);
+
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            const startMinutes = startHour * 60 + startMin;
+            const endMinutes = endHour * 60 + endMin;
+
+            if (currentTime < startMinutes) {
+              // 还没到上班时间
+              const diff = startMinutes - currentTime;
+              const hours = Math.floor(diff / 60);
+              const minutes = diff % 60;
+              const timeStr = `${hours}:${minutes.toString().padStart(2, "0")}`;
+              return MoYuTexts.formatCountdown("workStart", timeStr);
+            } else {
+              // 已经下班了
+              return MoYuTexts.countdown.workFinished;
+            }
+          }
+
+          // 在工作时间内，计算距离下班时间
+          const [endHour, endMin] = config.endTime.split(":").map(Number);
+          const endTime = new Date();
+          endTime.setHours(endHour, endMin, 0, 0);
+
+          const diff = endTime - now;
+          if (diff <= 0) {
+            return MoYuTexts.countdown.offWorkTime;
+          }
+
+          const hours = Math.floor(diff / 3600000);
+          const minutes = Math.floor((diff % 3600000) / 60000);
+          const seconds = Math.floor((diff % 60000) / 1000);
+          const timeStr = `${hours}:${minutes
+            .toString()
+            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+          return MoYuTexts.formatCountdown("workEnd", timeStr);
+        },
+
+        // 获取智能语录
+        getSmartQuote() {
+          const hour = new Date().getHours();
+          const isWorkDay = this.isWorkDay();
+          const isWorkTime = this.isWorkTime();
+          const stats = this.getFishStats();
+          const today = new Date().toDateString();
+          const todayStats = stats[today] || { count: 0 };
+
+          // 优先根据时间和工作状态选择语录
+          if (!isWorkDay) {
+            return MoYuTexts.getTimeQuote("weekend");
+          }
+
+          if (!isWorkTime) {
+            return MoYuTexts.getTimeQuote("nonWorkTime");
+          }
+
+          // 在工作时间内，根据摸鱼次数调整语录
+          if (todayStats.count > 50) {
+            // 当摸鱼次数很多时，混合多种类型的语录
+            const highCountQuotes = [
+              ...MoYuTexts.funQuotes,
+              ...MoYuTexts.mood.happy,
+              ...MoYuTexts.baseQuotes,
+            ];
+            return MoYuTexts.getRandomText(highCountQuotes);
+          } else if (todayStats.count > 20) {
+            return MoYuTexts.getRandomText(MoYuTexts.mood.happy);
+          } else if (todayStats.count > 10) {
+            return MoYuTexts.getRandomText(MoYuTexts.workStatus.relaxed);
+          }
+
+          // 根据时间段选择语录
+          if (hour < 12) {
+            return MoYuTexts.getTimeQuote("morning");
+          } else if (hour < 18) {
+            return MoYuTexts.getTimeQuote("afternoon");
+          } else if (hour < 22) {
+            return MoYuTexts.getTimeQuote("overtime");
+          } else {
+            return MoYuTexts.getTimeQuote("lateNight");
+          }
+        },
+
+        // 获取智能摸鱼提示
+        getSmartFishText() {
+          const isWorkDay = this.isWorkDay();
+          const isWorkTime = this.isWorkTime();
+          const stats = this.getFishStats();
+          const today = new Date().toDateString();
+          const todayStats = stats[today] || { count: 0 };
+
+          if (!isWorkDay) {
+            return "周末摸鱼+1";
+          }
+
+          if (!isWorkTime) {
+            return "休息摸鱼+1";
+          }
+
+          // 工作日工作时间内，根据摸鱼次数调整提示
+          // 有 20% 的几率显示特殊称号，否则显示随机动作
+          if (todayStats.count > 100) {
+            if (Math.random() < 0.2) return "摸鱼之神+1";
+          } else if (todayStats.count > 50) {
+            if (Math.random() < 0.2) return "摸鱼大师+1";
+          } else if (todayStats.count > 20) {
+            if (Math.random() < 0.2) return "摸鱼达人+1";
+          }
+
+          return MoYuTexts.getFishAction();
+        },
+
+        // 记录摸鱼行为
+        recordFishAction(comboCount = 1) {
+          const stats = this.getFishStats();
+          const today = new Date().toDateString();
+
+          if (!stats[today]) {
+            stats[today] = {
+              count: 0,
+              firstTime: new Date().toISOString(),
+              lastTime: new Date().toISOString(),
+              maxCombo: 0,
+            };
+          }
+
+          stats[today].count += 1;
+          stats[today].lastTime = new Date().toISOString();
+
+          if (comboCount > stats[today].maxCombo) {
+            stats[today].maxCombo = comboCount;
+          }
+
+          this.saveFishStats(stats);
+        },
+
+        // 获取今日摸鱼统计
+        getTodayStats() {
+          const stats = this.getFishStats();
+          const today = new Date().toDateString();
+          return stats[today] || { count: 0, maxCombo: 0 };
+        },
+
+        // 检查成就
+        checkAchievements() {
+          const todayStats = this.getTodayStats();
+          const achievements = [];
+
+          // 摸鱼次数成就
+          if (todayStats.count === 1) {
+            achievements.push(MoYuTexts.getAchievement("firstFish"));
+          } else if (todayStats.count === 10) {
+            achievements.push(MoYuTexts.getAchievement("fishNovice"));
+          } else if (todayStats.count === 20) {
+            achievements.push(MoYuTexts.getAchievement("fishExpert"));
+          } else if (todayStats.count === 50) {
+            achievements.push(MoYuTexts.getAchievement("fishMaster"));
+          } else if (todayStats.count === 100) {
+            achievements.push(MoYuTexts.getAchievement("fishGod"));
+          }
+
+          // 连击成就
+          if (todayStats.maxCombo === 5) {
+            achievements.push(MoYuTexts.getAchievement("comboExpert"));
+          } else if (todayStats.maxCombo === 10) {
+            achievements.push(MoYuTexts.getAchievement("comboMaster"));
+          }
+
+          return achievements;
+        },
+
+        // 获取成就提示文本
+        getAchievementText() {
+          const achievements = this.checkAchievements();
+          if (achievements.length > 0) {
+            return achievements[achievements.length - 1]; // 返回最新的成就
+          }
+          return null;
+        },
+
+        // 智能提醒功能
+        getSmartReminder() {
+          const now = new Date();
+          const hour = now.getHours();
+          const minute = now.getMinutes();
+          const todayStats = this.getTodayStats();
+
+          // 只在工作时间提醒
+          if (!this.isWorkDay() || !this.isWorkTime()) {
+            return null;
+          }
+
+          // 特定时间提醒
+          if (hour === 10 && minute === 0) {
+            return MoYuTexts.getReminder("morningTime");
+          } else if (hour === 15 && minute === 0) {
+            return MoYuTexts.getReminder("afternoonTime");
+          } else if (hour === 16 && minute === 30) {
+            return MoYuTexts.getReminder("preOffWork");
+          }
+
+          // 长时间未摸鱼提醒（超过30分钟）
+          if (todayStats.lastTime) {
+            const lastTime = new Date(todayStats.lastTime);
+            const timeDiff = now - lastTime;
+            const minutesDiff = Math.floor(timeDiff / 60000);
+
+            if (minutesDiff > 30 && todayStats.count > 0) {
+              return MoYuTexts.getReminder("longTimeNoFish");
+            }
+          }
+
+          return null;
+        },
+
+        // 获取智能状态
+        getSmartStatus() {
+          const reminder = this.getSmartReminder();
+          if (reminder) {
+            return {
+              type: "reminder",
+              text: reminder,
+            };
+          }
+
+          const achievement = this.getAchievementText();
+          if (achievement) {
+            return {
+              type: "achievement",
+              text: achievement,
+            };
+          }
+
+          return null;
+        },
+
+        // 获取月薪，带默认值
+        getSalary() {
+          const settings = this.getUserSettings();
+          // 默认 10000 元
+          return settings.salary || 10000;
+        },
+
+        // 获取发薪日，带默认值
+        getPayday() {
+          const settings = this.getUserSettings();
+          // 默认每月 5 号
+          return settings.payday || 5;
+        },
+
+        // 计算本月工作日天数
+        getWorkDaysOfMonth(year, month, restDays) {
+          const days = new Date(year, month, 0).getDate();
+          let workdays = 0;
+          for (let d = 1; d <= days; d++) {
+            const day = new Date(year, month - 1, d).getDay();
+            if (!restDays.includes(day.toString())) workdays++;
+          }
+          return workdays;
+        },
+
+        // 计算今日工作时长（分钟）
+        getWorkMinutesPerDay() {
+          const config = this.getWorkTimeConfig();
+          const [startHour, startMin] = config.startTime.split(":").map(Number);
+          const [endHour, endMin] = config.endTime.split(":").map(Number);
+          return endHour * 60 + endMin - (startHour * 60 + startMin);
+        },
+
+        // 实时收入计算（秒级）
+        getRealTimeIncome() {
+          const salary = this.getSalary();
+          const config = this.getWorkTimeConfig();
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = now.getMonth() + 1;
+          const restDays = config.restDays;
+          const workdays = this.getWorkDaysOfMonth(year, month, restDays);
+          const workMinutesPerDay = this.getWorkMinutesPerDay();
+          const totalWorkSeconds = workdays * workMinutesPerDay * 60;
+          if (totalWorkSeconds === 0) return 0;
+
+          // 已经工作的秒数
+          let workedSeconds = 0;
+          if (this.isWorkDay()) {
+            const [startHour, startMin] = config.startTime
+              .split(":")
+              .map(Number);
+            const [endHour, endMin] = config.endTime.split(":").map(Number);
+            const start = new Date(now);
+            start.setHours(startHour, startMin, 0, 0);
+            const end = new Date(now);
+            end.setHours(endHour, endMin, 0, 0);
+            if (now < start) {
+              workedSeconds = 0;
+            } else if (now > end) {
+              workedSeconds = workMinutesPerDay * 60;
+            } else {
+              workedSeconds = Math.floor((now - start) / 1000);
+            }
+          }
+          // 本月已工作秒数
+          const today = now.getDate();
+          let daysWorked = 0;
+          for (let d = 1; d < today; d++) {
+            const day = new Date(year, month - 1, d).getDay();
+            if (!restDays.includes(day.toString())) daysWorked++;
+          }
+          const totalWorkedSeconds =
+            daysWorked * workMinutesPerDay * 60 + workedSeconds;
+          // 实时收入
+          return ((salary / totalWorkSeconds) * totalWorkedSeconds).toFixed(2);
+        },
+
+        // 今日收入计算（秒级）
+        getTodayIncome() {
+          const salary = this.getSalary();
+          const config = this.getWorkTimeConfig();
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = now.getMonth() + 1;
+          const restDays = config.restDays;
+          const workdays = this.getWorkDaysOfMonth(year, month, restDays);
+          const workMinutesPerDay = this.getWorkMinutesPerDay();
+          const totalWorkSeconds = workdays * workMinutesPerDay * 60;
+          if (totalWorkSeconds === 0) return 0;
+
+          // 今天已工作的秒数
+          let workedSeconds = 0;
+          if (this.isWorkDay()) {
+            const [startHour, startMin] = config.startTime
+              .split(":")
+              .map(Number);
+            const [endHour, endMin] = config.endTime.split(":").map(Number);
+            const start = new Date(now);
+            start.setHours(startHour, startMin, 0, 0);
+            const end = new Date(now);
+            end.setHours(endHour, endMin, 0, 0);
+            if (now < start) {
+              workedSeconds = 0;
+            } else if (now > end) {
+              workedSeconds = workMinutesPerDay * 60;
+            } else {
+              workedSeconds = Math.floor((now - start) / 1000);
+            }
+          }
+          // 单位秒工资
+          const perSecond = salary / totalWorkSeconds;
+          return (perSecond * workedSeconds).toFixed(2);
+        },
+      };
+
+      // 计算距离发薪还有几天
+      function getDaysToPayday() {
+        const now = new Date();
+        const payday = SmartMoYuSystem.getPayday();
+        let payDate = new Date(now.getFullYear(), now.getMonth(), payday);
+        if (now > payDate) {
+          // 如果本月已过发薪日，则算下个月
+          payDate = new Date(now.getFullYear(), now.getMonth() + 1, payday);
+        }
+        const diff = payDate - now;
+        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+      }
+
+      let infoIndex = 0;
+      const INFO_SWITCH_INTERVAL = 10000; // 10秒切换
+      let infoTimer = null;
+      const infoItems = [
+        function () {
+          // 实时收入
+          return `本月实时收入：￥${SmartMoYuSystem.getRealTimeIncome()}`;
+        },
+        function () {
+          // 今日收入
+          return `今日收入：￥${SmartMoYuSystem.getTodayIncome()}`;
+        },
+        function () {
+          // 距离发薪日
+          return `距离发薪还有${getDaysToPayday()}天`;
+        },
+        function () {
+          // 倒计时/统计
+          const smartStatus = SmartMoYuSystem.getSmartStatus();
+          const todayStats = SmartMoYuSystem.getTodayStats();
+          const smartCountdown = SmartMoYuSystem.getSmartCountdown();
+          if (smartStatus) {
+            return MoYuTexts.formatStats("todayFish", {
+              count: todayStats.count,
+            });
+          } else {
+            if (todayStats.count > 0) {
+              const isWorkDay = SmartMoYuSystem.isWorkDay();
+              const isWorkTime = SmartMoYuSystem.isWorkTime();
+              if (!isWorkDay || !isWorkTime) {
+                return MoYuTexts.formatStats("todayFish", {
+                  count: todayStats.count,
+                });
+              } else {
+                return `${smartCountdown} | 摸鱼 ${todayStats.count} 次`;
+              }
+            } else {
+              return smartCountdown;
+            }
+          }
+        },
+      ];
+
+      function updateInfoArea() {
+        const info = document.getElementById("info");
+        info.textContent = infoItems[infoIndex % infoItems.length]();
+      }
+
+      // 定时切换 info 内容
+      infoTimer = setInterval(() => {
+        infoIndex++;
+        updateInfoArea();
+      }, INFO_SWITCH_INTERVAL);
+      // 页面初始化时立即显示
+      updateInfoArea();
+
+      // 当前为动态项时每秒刷新数字
+      setInterval(() => {
+        // 只在显示动态项时刷新（全部都是动态项）
+        updateInfoArea();
+      }, 1000);
+
+      // 定时更新智能内容
+      // 文案更新频率：30秒更新一次，避免频繁切换
+      // 倒计时更新频率：1秒更新一次，保持实时性
+      let lastQuoteUpdate = 0;
+      const QUOTE_UPDATE_INTERVAL = 30000; // 30秒更新一次文案
+      const COUNTDOWN_UPDATE_INTERVAL = 1000; // 1秒更新一次倒计时
+
+      // 智能内容更新函数（分离文案和倒计时更新）
+      function updateSmartContentWithInterval() {
+        const now = Date.now();
+        const smartStatus = SmartMoYuSystem.getSmartStatus();
+        const todayStats = SmartMoYuSystem.getTodayStats();
+
+        // 检查是否需要更新文案（30秒更新一次）
+        if (now - lastQuoteUpdate > QUOTE_UPDATE_INTERVAL || !lastQuoteUpdate) {
+          if (smartStatus) {
+            document.getElementById("quote").textContent = smartStatus.text;
+          } else {
+            const smartQuote = SmartMoYuSystem.getSmartQuote();
+            document.getElementById("quote").textContent = smartQuote;
+          }
+          lastQuoteUpdate = now;
+        }
+      }
+
+      // 初始化智能内容
+      updateSmartContentWithInterval();
+
+      // 手动切换文案函数
+      function manualSwitchQuote() {
+        const smartStatus = SmartMoYuSystem.getSmartStatus();
+        if (smartStatus) {
+          // 如果有智能状态（提醒或成就），不手动切换
+          return;
+        }
+
+        const smartQuote = SmartMoYuSystem.getSmartQuote();
+        document.getElementById("quote").textContent = smartQuote;
+        lastQuoteUpdate = Date.now(); // 重置计时器
+
+        // 添加切换动画效果
+        const quoteElement = document.getElementById("quote");
+        quoteElement.style.opacity = "0.7";
+        setTimeout(() => {
+          quoteElement.style.opacity = "1";
+        }, 200);
+      }
+
+      // 定时更新智能内容（只更新 quote 区域）
+      const smartContentTimer = setInterval(
+        updateSmartContentWithInterval,
+        COUNTDOWN_UPDATE_INTERVAL
+      );
+
+      // 关闭窗口时清理定时器，防止资源泄漏
+      window.onbeforeunload = function () {
+        clearInterval(smartContentTimer);
+      };
+
+      // 摸鱼计数器和连击系统
+      let fishCount = 0;
+      let comboCount = 0;
+      let comboTimer = null;
+      let lastActionTime = 0;
+
+      // 显示摸鱼提示
+      function showFishToast(isCombo = false) {
+        const toast = document.getElementById("fishToast");
+        const currentTime = Date.now();
+
+        // 更新计数
+        fishCount++;
+
+        // 检查连击
+        if (currentTime - lastActionTime < 1000) {
+          // 1秒内算连击
+          comboCount++;
+          clearTimeout(comboTimer);
+        } else {
+          comboCount = 1;
+        }
+
+        lastActionTime = currentTime;
+
+        // 记录摸鱼行为
+        SmartMoYuSystem.recordFishAction(comboCount);
+
+        // 检查智能状态
+        const smartStatus = SmartMoYuSystem.getSmartStatus();
+
+        // 设置提示文本和样式
+        let text;
+        toast.classList.remove("combo");
+
+        if (smartStatus && smartStatus.type === "achievement") {
+          // 显示成就
+          text = smartStatus.text;
+          toast.style.background = `linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%)`;
+          toast.style.transform = `translateX(-50%) translateY(-10px) scale(1.2)`;
+          toast.style.fontSize = `14px`;
+          toast.style.boxShadow = `0 6px 24px rgba(255, 215, 0, 0.6), 0 3px 12px rgba(0, 0, 0, 0.2)`;
+        } else if (comboCount > 1) {
+          text = MoYuTexts.getComboText(comboCount);
+          toast.style.background = `linear-gradient(135deg, #ff6b6b 0%, #ff8e53 50%, #ff6b9d 100%)`;
+          toast.style.transform = `translateX(-50%) translateY(-10px) scale(${Math.min(
+            1.3,
+            1 + comboCount * 0.06
+          )})`;
+          toast.style.fontSize = `${Math.min(16, 13 + comboCount * 0.5)}px`;
+          toast.classList.add("combo");
+        } else {
+          text = SmartMoYuSystem.getSmartFishText();
+          toast.style.background = `linear-gradient(135deg, #4fc3f7 0%, #29b6f6 50%, #81d4fa 100%)`;
+          toast.style.transform = `translateX(-50%) translateY(-10px) scale(1)`;
+          toast.style.fontSize = `13px`;
+        }
+
+        toast.textContent = text;
+        toast.classList.remove("show");
+
+        // 强制重绘
+        toast.offsetHeight;
+
+        toast.classList.add("show");
+
+        // 重置连击计时器
+        comboTimer = setTimeout(() => {
+          comboCount = 0;
+        }, 1500);
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, 1200);
+      }
+
+      // fishIcon 事件
+      const fishIcon = document.getElementById("fishIcon");
+      let hoverCooldown = false;
+
+      // 悬停事件（带防抖）
+      fishIcon.addEventListener("mouseenter", () => {
+        if (!hoverCooldown) {
+          showFishToast();
+          hoverCooldown = true;
+          setTimeout(() => {
+            hoverCooldown = false;
+          }, 500); // 500ms 冷却时间
+        }
+      });
+
+      // 点击事件
+      fishIcon.onclick = function (e) {
+        showFishToast();
+
+        // 添加点击动画效果
+        fishIcon.style.transform = "translateY(-1px) scale(0.95)";
+        setTimeout(() => {
+          fishIcon.style.transform = "";
+        }, 150);
+      };
+    </script>
+  </body>
+</html>
