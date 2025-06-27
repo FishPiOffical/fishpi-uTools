@@ -111,6 +111,13 @@ const saveUserSettings = (settings) => {
   utools.dbStorage.setItem("fishpi_settings", savedSettings);
 };
 
+// 获取当前用户黑名单
+const getCurrentBlacklist = () => {
+  const allBlacklists = utools.dbStorage.getItem("fishpi_blacklist") || {};
+  const currentUser = userStore.userInfo?.userName;
+  return currentUser ? allBlacklists[currentUser] || [] : [];
+};
+
 // 消息处理器映射
 const messageHandlers = {
   online: (data) => {
@@ -277,6 +284,13 @@ const connectWebSocket = async () => {
 
 // 处理接收到的消息
 const handleMessage = (data) => {
+  // 判断是否为黑名单用户
+  if (data.userName) {
+    const blacklist = getCurrentBlacklist();
+    if (blacklist.some((u) => u.userName === data.userName)) {
+      return; // 黑名单消息直接丢弃
+    }
+  }
   console.log("接收到消息：", data);
 
   // 根据消息类型调用相应的处理器
@@ -302,8 +316,14 @@ const loadMessages = async (page = 1) => {
   try {
     const response = await chatApi.getChatMessages(page);
     if (response.data && response.data.length > 0) {
+      // 过滤黑名单消息
+      const blacklist = getCurrentBlacklist();
+      const filteredMessages = response.data.filter((msg) => {
+        if (!msg.userName) return true;
+        return !blacklist.some((u) => u.userName === msg.userName);
+      });
       // 所有分页的消息都需要翻转
-      const reversedMessages = response.data
+      const reversedMessages = filteredMessages
         .reverse()
         .map((msg) => ({ ...msg, isHistory: true }));
 
@@ -333,7 +353,7 @@ const loadMessages = async (page = 1) => {
       }
 
       // 检查是否还有更多消息
-      if (response.data.length < 20) {
+      if (filteredMessages.length < 20) {
         hasMoreMessages.value = false;
       }
     } else {
