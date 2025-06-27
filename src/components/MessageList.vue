@@ -90,7 +90,9 @@
             alt="avatar"
             class="message-avatar"
             @click="openUserInfoCard(item.userName, $event)"
-            @contextmenu.prevent="onAvatarContextMenu($event, item.userName)"
+            @contextmenu.prevent="
+              onAvatarContextMenu($event, item.userName, item.userAvatarURL48)
+            "
           />
           <div class="message-bubble">
             <div
@@ -860,17 +862,23 @@ const showContextMenu = ref(false);
 const contextMenuX = ref(0);
 const contextMenuY = ref(0);
 const contextMenuUser = ref("");
+const contextMenuUserAvatar = ref("");
 
-function onAvatarContextMenu(e, userName) {
+function onAvatarContextMenu(e, userName, avatarUrl) {
   e.preventDefault();
   contextMenuX.value = e.clientX;
   contextMenuY.value = e.clientY;
   contextMenuUser.value = userName;
+  contextMenuUserAvatar.value = avatarUrl;
   showContextMenu.value = true;
 }
 
 function handleContextMenuAction(type) {
   showContextMenu.value = false;
+  if (type === "blacklist") {
+    addToBlacklist(contextMenuUser.value, contextMenuUserAvatar.value);
+    return;
+  }
   if (type === "message") {
     handleUserMessage(contextMenuUser.value);
   } else if (type === "at") {
@@ -931,6 +939,7 @@ function onMsgContextMenu(e, item) {
       ...(canRevokeMessage(item)
         ? [{ label: "撤回", action: "revoke", icon: "fas fa-undo" }]
         : []),
+      { label: "加入黑名单", action: "blacklist", icon: "fas fa-user-slash" },
     ];
   } else {
     // 文字消息
@@ -944,6 +953,7 @@ function onMsgContextMenu(e, item) {
       ...(canRevokeMessage(item)
         ? [{ label: "撤回", action: "revoke", icon: "fas fa-undo" }]
         : []),
+      { label: "加入黑名单", action: "blacklist", icon: "fas fa-user-slash" },
     ];
   }
   showMsgContextMenu.value = true;
@@ -999,6 +1009,8 @@ function handleMsgContextMenuAction(type) {
           });
       }
     }
+  } else if (type === "blacklist") {
+    addToBlacklist(item.userName, item.userAvatarURL48);
   }
 }
 window.addEventListener("click", () => {
@@ -1195,7 +1207,24 @@ const userContextMenuItems = computed(() => [
   { label: "@TA", action: "at", icon: "fas fa-at" },
   { divider: true },
   { label: "查看资料", action: "profile", icon: "fas fa-user" },
+  { label: "加入黑名单", action: "blacklist", icon: "fas fa-user-slash" },
 ]);
+
+// 黑名单相关
+const addToBlacklist = (userName, avatarUrl) => {
+  const currentUser = userStore.userInfo?.userName;
+  if (!currentUser) return;
+  const allBlacklists = utools.dbStorage.getItem("fishpi_blacklist") || {};
+  const list = allBlacklists[currentUser] || [];
+  if (list.some((u) => u.userName === userName)) {
+    ElMessage.warning("该用户已在黑名单");
+    return;
+  }
+  list.push({ userName, avatarUrl });
+  allBlacklists[currentUser] = list;
+  utools.dbStorage.setItem("fishpi_blacklist", allBlacklists);
+  ElMessage.success("已加入黑名单");
+};
 </script>
 
 <style scoped>
