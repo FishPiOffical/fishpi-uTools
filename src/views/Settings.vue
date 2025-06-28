@@ -365,11 +365,11 @@
         <div v-show="activeGroup === 'blacklist'">
           <div class="blacklist-section">
             <div class="blacklist-title">黑名单</div>
-            <div
-              v-if="blacklist.length === 0"
-              style="color: var(--sub-text-color, #aaa); margin-top: 8px"
-            >
-              暂无黑名单用户
+            <div v-if="blacklist.length === 0" class="blacklist-empty">
+              <div class="blacklist-empty-icon">
+                <i class="fas fa-user-slash"></i>
+              </div>
+              <div class="blacklist-empty-text">暂无黑名单用户</div>
             </div>
             <div v-else class="blacklist-list">
               <div
@@ -473,6 +473,13 @@ const removeBlacklistUser = (userName) => {
   utools.dbStorage.setItem("fishpi_blacklist", allBlacklists);
   blacklist.value = newList;
   ElMessage.success("已移除黑名单");
+
+  // 触发全局事件，通知聊天室刷新消息列表
+  window.dispatchEvent(
+    new CustomEvent("fishpi:blacklist-updated", {
+      detail: { action: "remove", userName },
+    })
+  );
 };
 
 onMounted(() => {
@@ -963,7 +970,6 @@ const showAboutAuthor = () => {
     var(--sidebar-active-shadow, rgba(var(--primary-color-rgb), 0.1));
 }
 .group-nav li:hover:not(.active) {
-  background: var(--sidebar-hover-bg, #e9eaf3);
   color: var(--primary-color, #2563eb);
 }
 .group-nav li i {
@@ -1052,5 +1058,24 @@ const showAboutAuthor = () => {
 }
 .blacklist-remove:hover {
   background: #d9363e;
+}
+.blacklist-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--sub-text-color, #aaa);
+  text-align: center;
+}
+.blacklist-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+.blacklist-empty-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--sub-text-color, #aaa);
 }
 </style>
