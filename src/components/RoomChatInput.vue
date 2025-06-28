@@ -9,7 +9,16 @@
     <!-- 消息引用显示区域 -->
     <div v-if="quoteData" class="quoted-message">
       <span class="quoted-message-label">引用消息：</span>
-      <span class="quoted-message-content">{{ quoteContent }}</span>
+      <div class="quoted-message-content">
+        <span v-if="!isImageMessage(quoteData.content)">{{
+          quoteContent
+        }}</span>
+        <div v-else class="quoted-image-preview">
+          <span class="quoted-image-text"
+            >{{ quoteData.userName }}：[图片]</span
+          >
+        </div>
+      </div>
       <i class="fas fa-times close-icon" @click="clearQuote"></i>
     </div>
     <div class="input-icons">
@@ -246,23 +255,38 @@ const insertTopic = (formattedTopic) => {
 
 // 计算引用消息的显示内容
 const quoteContent = computed(() => {
-  if (!quoteData.value) return "";
-  const temp = document.createElement("div");
-  temp.innerHTML = quoteData.value.content;
-  const text = temp.innerText;
-  const maxLength = 20; // 最大显示长度
-  if (text.length > maxLength) {
-    return `${quoteData.value.userName}：${text.slice(0, maxLength)}...`;
+  if (!quoteData.value || !quoteData.value.userName || !quoteData.value.content)
+    return "";
+  try {
+    const content = quoteData.value.content;
+
+    // 检查是否为图片消息
+    if (/\<img[^>]+src=/.test(content)) {
+      return `${quoteData.value.userName}：[图片]`;
+    }
+
+    // 处理文本消息
+    const temp = document.createElement("div");
+    temp.innerHTML = content;
+    const text = temp.innerText || temp.textContent || "";
+    const maxLength = 20; // 最大显示长度
+    if (text.length > maxLength) {
+      return `${quoteData.value.userName}：${text.slice(0, maxLength)}...`;
+    }
+    return `${quoteData.value.userName}：${text}`;
+  } catch (error) {
+    console.error("处理引用消息内容失败:", error);
+    return `${quoteData.value.userName}：引用消息内容解析失败`;
   }
-  return `${quoteData.value.userName}：${text}`;
 });
 
 // 设置引用消息
 const setQuote = (quote) => {
   quoteData.value = {
-    content: quote.md,
-    userName: quote.userName,
-    userNickname: quote.userNickname,
+    content: quote.md || quote.content || "",
+    userName: quote.userName || "",
+    userNickname: quote.userNickname || "",
+    oId: quote.oId || "",
   };
 };
 
@@ -369,9 +393,16 @@ const sendMessage = () => {
     }
 
     // 处理引用消息
-    if (quoteData.value) {
+    if (
+      quoteData.value &&
+      quoteData.value.userName &&
+      quoteData.value.content
+    ) {
       const quote = quoteData.value;
-      const quotePrefix = `\n\n ##### 引用 @${quote.userName} [↩](https://fishpi.cn/cr#chatroom${quote.oId} "跳转至原消息")\n\n> ${quote.content}\n\n`;
+      const oId = quote.oId || "";
+      const quotePrefix = `\n\n ##### 引用 @${quote.userName}${
+        oId ? ` [↩](https://fishpi.cn/cr#chatroom${oId} "跳转至原消息")` : ""
+      }\n\n> ${quote.content}\n\n`;
       content = content + quotePrefix;
     }
 
@@ -527,10 +558,6 @@ const handleKeyDown = (e) => {
     sendMessage();
   }
 };
-
-// 图片预览相关
-let previewWindow = null;
-
 // 处理图片点击
 const handleImageClick = async (e) => {
   if (e.target.tagName === "IMG") {
@@ -569,6 +596,11 @@ const handleImageClick = async (e) => {
       ElMessage.error("图片预览失败");
     }
   }
+};
+
+// 检查是否为图片消息
+const isImageMessage = (content) => {
+  return /\<img[^>]+src=/.test(content);
 };
 </script>
 
@@ -778,5 +810,25 @@ const handleImageClick = async (e) => {
 
 .input-content img:hover {
   transform: scale(1.02);
+}
+
+.quoted-image-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quoted-image {
+  width: 120px;
+  height: auto;
+  cursor: pointer;
+}
+
+.quoted-image-text {
+  color: var(--text-color);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
