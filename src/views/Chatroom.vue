@@ -14,6 +14,7 @@
         @send-same-message="handleSendSameMessage"
         @quote="handleQuote"
         @add-emoji="handleAddEmoji"
+        @update-messages="handleUpdateMessages"
       />
 
       <!-- 消息输入组件 -->
@@ -510,6 +511,11 @@ const handleAddEmoji = async (item) => {
   }
 };
 
+// 处理黑名单过滤后的消息更新
+const handleUpdateMessages = (filteredMessages) => {
+  messages.value = filteredMessages;
+};
+
 // 定义账号切换处理函数
 const handleAccountSwitch = async () => {
   // 断开旧的连接
@@ -526,6 +532,32 @@ const handleAccountSwitch = async () => {
   showSidebar.value = !userSettings.defaultChatSidebarCollapsed;
 };
 
+// 监听黑名单更新事件
+const handleBlacklistUpdated = (event) => {
+  const { action, userName } = event.detail;
+
+  if (action === "add") {
+    // 添加黑名单：过滤当前消息列表，移除该用户的消息
+    const blacklist = getCurrentBlacklist();
+    const blacklistUserNames = blacklist.map((u) => u.userName);
+
+    // 过滤掉黑名单用户的消息
+    const filteredMessages = messages.value.filter((msg) => {
+      if (!msg.userName) return true; // 系统消息保留
+      return !blacklistUserNames.includes(msg.userName);
+    });
+
+    messages.value = filteredMessages;
+  } else if (action === "remove") {
+    // 移除黑名单：需要重新加载消息，因为可能有该用户的历史消息需要显示
+    // 重新加载当前页的消息
+    const currentMessages = messages.value;
+    currentPage.value = 1;
+    hasMoreMessages.value = true;
+    loadMessages(1);
+  }
+};
+
 onMounted(() => {
   // 从设置中获取侧边栏状态
   const userSettings = getUserSettings();
@@ -540,12 +572,19 @@ onMounted(() => {
 
   // 监听账号切换事件
   window.addEventListener("fishpi:account-switched", handleAccountSwitch);
+
+  // 监听黑名单更新事件
+  window.addEventListener("fishpi:blacklist-updated", handleBlacklistUpdated);
 });
 
 onUnmounted(() => {
   wsManager.close("chat-room");
   // 移除事件监听
   window.removeEventListener("fishpi:account-switched", handleAccountSwitch);
+  window.removeEventListener(
+    "fishpi:blacklist-updated",
+    handleBlacklistUpdated
+  );
 });
 </script>
 
