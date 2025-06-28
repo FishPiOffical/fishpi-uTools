@@ -361,6 +361,7 @@ const emit = defineEmits([
   "quote",
   "add-emoji",
   "send-same-message",
+  "update-messages",
 ]);
 
 const userStore = useUserStore();
@@ -931,9 +932,12 @@ function onMsgContextMenu(e, item) {
   msgContextMenuItem.value = item;
   if (/\<img[^>]+src=/.test(item.content)) {
     // 图片消息
+    const isSelf = item.userName === userStore.userInfo?.userName;
     msgContextMenuItems.value = [
+      { label: "引用", action: "quote", icon: "fas fa-quote-right" },
       { label: "添加到表情", action: "add-emoji", icon: "fas fa-plus-circle" },
       { label: "复制", action: "copy-image", icon: "fas fa-copy" },
+      ...(isSelf ? [] : [{ label: "@TA", action: "at", icon: "fas fa-at" }]),
       { label: "复读机", action: "repeat", icon: "fas fa-redo" },
       // 添加撤回选项，根据条件显示
       ...(canRevokeMessage(item)
@@ -982,7 +986,7 @@ function handleMsgContextMenuAction(type) {
     // 复读机功能
     const temp = document.createElement("div");
     temp.innerHTML = item.content;
-    emit("send-same-message", item.md);
+    emit("send-same-message", item.md || item.content);
     ElMessage.success(" 复读成功");
   } else if (type === "add-emoji") {
     emit("add-emoji", item);
@@ -1224,6 +1228,35 @@ const addToBlacklist = (userName, avatarUrl) => {
   allBlacklists[currentUser] = list;
   utools.dbStorage.setItem("fishpi_blacklist", allBlacklists);
   ElMessage.success("已加入黑名单");
+
+  // 立即过滤当前显示的消息，移除黑名单用户的消息
+  filterBlacklistMessages();
+
+  // 触发全局事件，通知其他组件黑名单已更新
+  window.dispatchEvent(
+    new CustomEvent("fishpi:blacklist-updated", {
+      detail: { action: "add", userName },
+    })
+  );
+};
+
+// 过滤黑名单消息的函数
+const filterBlacklistMessages = () => {
+  const currentUser = userStore.userInfo?.userName;
+  if (!currentUser) return;
+
+  const allBlacklists = utools.dbStorage.getItem("fishpi_blacklist") || {};
+  const blacklist = allBlacklists[currentUser] || [];
+  const blacklistUserNames = blacklist.map((u) => u.userName);
+
+  // 过滤掉黑名单用户的消息
+  const filteredMessages = props.messages.filter((msg) => {
+    if (!msg.userName) return true; // 系统消息保留
+    return !blacklistUserNames.includes(msg.userName);
+  });
+
+  // 通过emit通知父组件更新消息列表
+  emit("update-messages", filteredMessages);
 };
 </script>
 
