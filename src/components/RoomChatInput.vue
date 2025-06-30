@@ -191,6 +191,29 @@ const emojiSearchResults = ref([]);
 const emojiSearchLoading = ref(false);
 const emojiSearchKeyword = ref("");
 const emojiSearchDebounceTimer = ref(null);
+// 新增：推荐表情自动关闭定时器
+const emojiSearchAutoCloseTimer = ref(null);
+
+// 新增：表情包推荐关键词
+const emojiTriggerKeywords = [
+  "表情",
+  "emoji",
+  "搞笑",
+  "哈哈哈",
+  "可爱",
+  "狗头",
+  "猫咪",
+  "斗图",
+  "生气",
+  "开心",
+  "难过",
+  "鼓掌",
+  "拜托",
+  "摸鱼",
+  "加油",
+  "生日",
+  "祝福",
+];
 
 // 图片预览窗口
 let previewWindow = null;
@@ -223,6 +246,10 @@ onUnmounted(() => {
   // 清理表情包搜索定时器
   if (emojiSearchDebounceTimer.value) {
     clearTimeout(emojiSearchDebounceTimer.value);
+  }
+  // 清理自动关闭定时器
+  if (emojiSearchAutoCloseTimer.value) {
+    clearTimeout(emojiSearchAutoCloseTimer.value);
   }
 });
 
@@ -365,6 +392,12 @@ const handleInput = (e) => {
   // 将&nbsp;转换回空格
   message.value = e.target.innerHTML.replace(/&nbsp;/g, " ");
   const text = message.value;
+
+  // 新增：如果推荐弹窗已打开，输入时立即关闭
+  if (showEmojiSearch.value) {
+    closeEmojiSearch();
+  }
+
   const lastAtIndex = text.lastIndexOf("@");
 
   // 修正图片样式，防止拖拽图片时样式失效
@@ -390,19 +423,23 @@ const handleInput = (e) => {
     showMentionList.value = false;
   }
 
-  // 新增：检查是否触发表情包搜索
+  // 修改：关键词完全匹配才触发表情包推荐
   checkEmojiSearch(text);
 };
 
-// 新增：检查是否触发表情包搜索
+// 修改：关键词完全匹配才触发表情包推荐
 const checkEmojiSearch = (text) => {
-  // 去掉关键词限制，只要用户输入内容就触发搜索
-  if (text.trim()) {
-    // 在用户输入内容后面加上"表情"进行搜索
-    const searchKeyword = text.trim() + "表情";
-    triggerEmojiSearch(searchKeyword);
+  const trimmed = text.trim();
+  if (trimmed) {
+    // 只有完全等于关键词才触发
+    const matched = emojiTriggerKeywords.some((keyword) => trimmed === keyword);
+    if (matched) {
+      triggerEmojiSearch(trimmed);
+    } else {
+      closeEmojiSearch();
+    }
   } else {
-    showEmojiSearch.value = false;
+    closeEmojiSearch();
   }
 };
 
@@ -412,7 +449,6 @@ const triggerEmojiSearch = (keyword) => {
   if (emojiSearchDebounceTimer.value) {
     clearTimeout(emojiSearchDebounceTimer.value);
   }
-
   // 设置新的定时器
   emojiSearchDebounceTimer.value = setTimeout(() => {
     searchEmojis(keyword);
@@ -424,10 +460,16 @@ const searchEmojis = async (keyword) => {
   try {
     emojiSearchLoading.value = true;
     showEmojiSearch.value = true;
-
+    // 新增：启动3秒自动关闭定时器
+    if (emojiSearchAutoCloseTimer.value) {
+      clearTimeout(emojiSearchAutoCloseTimer.value);
+    }
+    emojiSearchAutoCloseTimer.value = setTimeout(() => {
+      showEmojiSearch.value = false;
+      emojiSearchResults.value = [];
+    }, 3000);
     const response = await baiduImageAPI.searchEmoji(keyword, 0, 20);
     const images = baiduImageAPI.parseImageUrls(response);
-
     emojiSearchResults.value = images;
   } catch (error) {
     console.error("搜索表情包失败:", error);
@@ -439,6 +481,10 @@ const searchEmojis = async (keyword) => {
 
 // 新增：选择表情包
 const selectEmojiImage = (image) => {
+  // 清除自动关闭定时器
+  if (emojiSearchAutoCloseTimer.value) {
+    clearTimeout(emojiSearchAutoCloseTimer.value);
+  }
   // 创建图片元素
   const img = document.createElement("img");
   img.src = image.middleURL || image.thumbURL;
@@ -473,6 +519,10 @@ const selectEmojiImage = (image) => {
 const closeEmojiSearch = () => {
   showEmojiSearch.value = false;
   emojiSearchResults.value = [];
+  // 清除自动关闭定时器
+  if (emojiSearchAutoCloseTimer.value) {
+    clearTimeout(emojiSearchAutoCloseTimer.value);
+  }
 };
 
 // 新增：处理图片加载错误
@@ -590,10 +640,8 @@ const openEmojiPicker = () => {
 // 处理表情选择
 const handleEmojiSelect = (emoji) => {
   if (typeof emoji === "string") {
-    console.log(emoji);
-
-    // 检查是否是图片链接
-    const imageUrlPattern = /^(https?:\/\/.*\.(jpg|jpeg|png|gif|webp))$/i;
+    // 只要是 http(s) 链接都插入图片
+    const imageUrlPattern = /^https?:\/\//i;
     if (imageUrlPattern.test(emoji.trim())) {
       // 创建图片元素
       const img = document.createElement("img");
