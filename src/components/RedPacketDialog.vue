@@ -51,6 +51,17 @@
               controls-position="right"
             />
           </div>
+          <div
+            v-if="form.type === 'rockPaperScissors'"
+            class="tax-info"
+            style="
+              margin-left: 62px;
+              color: var(--sub-text-color);
+              font-size: 12px;
+            "
+          >
+            实际红包：{{ taxedMoney }} 积分（含5%猜拳红包税）
+          </div>
 
           <div class="form-item">
             <span class="item-label">个数</span>
@@ -119,6 +130,7 @@ import {
   reactive,
   onMounted,
   onUnmounted,
+  computed,
 } from "vue";
 import { ElMessage } from "element-plus";
 
@@ -251,6 +263,8 @@ const handleSend = async () => {
     isSending.value = false;
   }
 };
+
+const taxedMoney = computed(() => Math.floor(form.money * 0.95));
 </script>
 
 <style scoped>
