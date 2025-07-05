@@ -34,22 +34,28 @@
         </ul>
       </nav>
       <div class="user-info-container">
-        <div class="user-info-details" @click="showUserProfile">
+        <div class="user-info-details">
           <div
             class="user-avatar"
+            @click="showUserProfile"
             @mouseenter="showUserCard = true"
             @mouseleave="showUserCard = false"
           >
             <img :src="userStore.userInfo?.userAvatarURL" alt="用户头像" />
-            <div v-if="showUserCard" class="user-card">
-              <div class="user-card-item" @click.stop="showSwitchAccount">
-                <i class="fas fa-exchange-alt"></i>
-                <span>切换账号</span>
-              </div>
-              <div class="user-card-item" @click.stop="logout">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>退出登录</span>
-              </div>
+          </div>
+          <div
+            v-if="showUserCard"
+            class="user-card"
+            @mouseenter="showUserCard = true"
+            @mouseleave="showUserCard = false"
+          >
+            <div class="user-card-item" @click.stop="showSwitchAccount">
+              <i class="fas fa-exchange-alt"></i>
+              <span>切换账号</span>
+            </div>
+            <div class="user-card-item" @click.stop="logout">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>退出登录</span>
             </div>
           </div>
           <div class="collapsed-liveness">
@@ -60,6 +66,9 @@
               <i class="fas fa-fire"></i>
               <span>{{ livenessStore.liveness || 0 }}</span>
             </div>
+          </div>
+          <div class="version-info">
+            <span>v{{ version }}</span>
           </div>
         </div>
       </div>
@@ -146,6 +155,7 @@ const isCollapsed = ref(true);
 const showUserCard = ref(false);
 const showAccountDialog = ref(false);
 const savedAccounts = ref([]);
+const version = import.meta.env.VITE_VERSION;
 
 const navItems = [
   { path: "/", name: "鱼塘首页", icon: "fas fa-house" },
@@ -486,32 +496,40 @@ const goToLogin = () => {
   flex-direction: column;
   align-items: center;
   padding: 6px;
-  cursor: pointer;
   border-radius: 8px;
   transition: all 0.3s ease;
   position: relative;
-}
-
-.user-info-details:hover {
-  background-color: var(--hover-bg, #f0f0f0);
 }
 
 .user-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
+  cursor: pointer;
   overflow: hidden;
   margin-right: 0;
   margin-bottom: 4px;
   flex-shrink: 0;
   border: 2px solid var(--avatar-border, #fff);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.user-avatar:hover {
+  transform: scale(1.05);
+  border-color: var(--primary-color, #409eff);
+  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.3);
 }
 
 .user-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: all 0.3s ease;
+}
+
+.user-avatar:hover img {
+  filter: brightness(1.2) contrast(1.1);
 }
 
 .nav-item {
@@ -626,6 +644,7 @@ const goToLogin = () => {
   padding: 8px 0;
   z-index: 1000;
   min-width: 120px;
+  margin-left: 10px;
 }
 
 .user-card-item {
@@ -820,5 +839,41 @@ const goToLogin = () => {
 
 .delete-account-btn:hover {
   transform: scale(1.1);
+}
+
+/* 版本信息样式 */
+.version-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-size: 11px;
+  color: var(--sub-text-color, #999);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.version-info::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+}
+
+.version-info:hover::before {
+  left: 100%;
+}
+
+.version-info span {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  position: relative;
+  z-index: 1;
 }
 </style>
