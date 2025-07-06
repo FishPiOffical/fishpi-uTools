@@ -67,9 +67,6 @@
               <span>{{ livenessStore.liveness || 0 }}</span>
             </div>
           </div>
-          <div class="version-info">
-            <span>v{{ version }}</span>
-          </div>
         </div>
       </div>
     </div>
@@ -155,7 +152,6 @@ const isCollapsed = ref(true);
 const showUserCard = ref(false);
 const showAccountDialog = ref(false);
 const savedAccounts = ref([]);
-const version = import.meta.env.VITE_VERSION;
 
 const navItems = [
   { path: "/", name: "鱼塘首页", icon: "fas fa-house" },
@@ -437,7 +433,7 @@ const goToLogin = () => {
 .sidebar {
   width: 64px;
   background-color: var(--sidebar-bg, #fff);
-  padding: 20px 10px;
+  padding: 20px 10px 10px 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -839,41 +835,5 @@ const goToLogin = () => {
 
 .delete-account-btn:hover {
   transform: scale(1.1);
-}
-
-/* 版本信息样式 */
-.version-info {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 6px;
-  padding: 4px 8px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  font-size: 11px;
-  color: var(--sub-text-color, #999);
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
-}
-
-.version-info::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-}
-
-.version-info:hover::before {
-  left: 100%;
-}
-
-.version-info span {
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  position: relative;
-  z-index: 1;
 }
 </style>
