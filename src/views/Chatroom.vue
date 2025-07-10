@@ -9,6 +9,7 @@
         :messages="messages"
         :is-loading-more="isLoadingMore"
         :has-more-messages="hasMoreMessages"
+        :show-sidebar="showSidebar"
         @load-more="handleLoadMore"
         @at-user="handleAtUser"
         @send-same-message="handleSendSameMessage"
@@ -620,18 +621,20 @@ onUnmounted(() => {
   right: 150px;
   top: 50%;
   transform: translateY(-50%);
-  width: 20px;
+  width: 12px;
   height: 40px;
   background-color: var(--hover-bg);
   border: 1px solid var(--border-color);
   border-right: none;
-  border-radius: 4px 0 0 4px;
+  border-radius: 12px 0 0 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 10;
   transition: all 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .sidebar-toggle.sidebar-hidden {
@@ -669,5 +672,9 @@ onUnmounted(() => {
   color: var(--primary-color);
   font-weight: 500;
   font-style: italic;
+}
+.sidebar-toggle {
+  opacity: 1;
+  pointer-events: auto;
 }
 </style>
