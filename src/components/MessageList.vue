@@ -31,6 +31,7 @@
     <div
       v-if="hasNewMessages && !isAtBottom && newMessageCount > 0"
       class="new-messages-notification"
+      :style="{ right: showSidebar ? '180px' : '32px' }"
       @click="scrollToBottom"
     >
       <i class="notification-icon">↓</i>
@@ -349,6 +350,10 @@ const props = defineProps({
     default: false,
   },
   hasMoreMessages: {
+    type: Boolean,
+    default: true,
+  },
+  showSidebar: {
     type: Boolean,
     default: true,
   },
@@ -1529,9 +1534,10 @@ const filterBlacklistMessages = () => {
 }
 
 .new-messages-notification {
-  position: absolute;
+  position: fixed;
   bottom: 170px;
-  right: 180px;
+  /* right 由 :style 动态控制 */
+  z-index: 1000;
   background-color: var(--primary-color);
   color: var(--button-text);
   padding: 8px 16px;
@@ -1541,7 +1547,6 @@ const filterBlacklistMessages = () => {
   gap: 8px;
   cursor: pointer;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
   transition: all 0.3s ease;
 }
 
