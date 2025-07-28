@@ -60,7 +60,7 @@
               font-size: 12px;
             "
           >
-            实际红包：{{ taxedMoney }} 积分（含5%猜拳红包税）
+            实际红包：{{ taxedMoney }} 积分（含10%猜拳红包税）
           </div>
 
           <div class="form-item">
@@ -264,7 +264,7 @@ const handleSend = async () => {
   }
 };
 
-const taxedMoney = computed(() => Math.floor(form.money * 0.95));
+const taxedMoney = computed(() => Math.floor(form.money * 0.9));
 </script>
 
 <style scoped>
