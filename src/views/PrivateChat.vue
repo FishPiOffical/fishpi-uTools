@@ -98,7 +98,12 @@
                   <div
                     class="message-text"
                     v-html="processMessageContent(item.content)"
-                    @click="handleImageClick"
+                    @click="
+                      (e) => {
+                        handleImageClick(e);
+                        handleLinkClick(e);
+                      }
+                    "
                     @load="handleImageLoad"
                   ></div>
                 </div>
@@ -869,10 +874,40 @@ const handleImageLoad = () => {
   }
 };
 
-// 处理消息内容，将 Markdown 图片转换为 HTML
+// 处理链接点击
+const handleLinkClick = (e) => {
+  if (e.target.tagName === "A") {
+    e.preventDefault();
+    const url = e.target.href;
+    // 使用系统默认浏览器打开链接
+    utools.shellOpenExternal(url);
+  }
+};
+
+// 处理消息内容，将 Markdown 图片转换为 HTML，并处理链接
 const processMessageContent = (content) => {
-  // 将 Markdown 图片语法转换为 HTML
-  return content.replace(/!\[.*?\]\((.*?)\)/g, '<img src="$1" alt="图片" />');
+  let processedContent = content;
+
+  // 先处理 Markdown 图片语法
+  processedContent = processedContent.replace(
+    /!\[.*?\]\((.*?)\)/g,
+    '<img src="$1" alt="图片" />'
+  );
+
+  // 使用更安全的方法处理链接：先分割文本，只处理纯文本部分
+  const parts = processedContent.split(/(<[^>]+>)/);
+  for (let i = 0; i < parts.length; i += 2) {
+    // 只处理偶数索引的部分（纯文本）
+    if (parts[i]) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      parts[i] = parts[i].replace(
+        urlRegex,
+        '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+      );
+    }
+  }
+
+  return parts.join("");
 };
 
 // 查看用户信息
@@ -1512,11 +1547,21 @@ onUnmounted(() => {
   border-radius: 8px;
   margin: 4px 0;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  display: block;
 }
 
-.message-text :deep(img:hover) {
-  transform: scale(1.02);
+.message-text :deep(a) {
+  color: #1890ff;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.message-text :deep(a:hover) {
+  text-decoration: underline;
+}
+
+.message-row-self .message-text :deep(a) {
+  color: #096dd9;
 }
 
 .online-users-section {
