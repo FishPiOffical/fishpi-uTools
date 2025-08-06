@@ -42,7 +42,12 @@
             >
               {{ isFollowing ? "已关注" : "关注" }}
             </button>
-            <button class="btn message" @click="handleMessage">发消息</button>
+            <button
+              class="btn message"
+              @click="handleMessage(userInfo?.userName)"
+            >
+              发消息
+            </button>
           </div>
 
           <!-- 只显示个人简介内容，如果有的话 -->
@@ -174,7 +179,7 @@ const handleEdit = () => {
   router.push("/settings/profile");
 };
 
-const handleUserMessage = (userName) => {
+const handleMessage = (userName) => {
   utools.dbStorage.setItem("private-chat-user", userName);
   router.push(`/private-chat?user=${userName}`);
 };
