@@ -81,7 +81,7 @@
     <!-- 账号切换弹窗 -->
     <el-dialog
       v-model="showAccountDialog"
-      title="切换账号"
+      title="管理我的账号"
       width="360px"
       :close-on-click-modal="false"
       class="account-switch-dialog"
@@ -89,38 +89,43 @@
       <div class="account-list">
         <div v-if="savedAccounts.length === 0" class="no-accounts">
           <i class="fas fa-user-plus"></i>
-          <span>暂无其他账号</span>
-        </div>
-        <div
-          v-for="account in savedAccounts"
-          :key="account.userName"
-          class="account-item"
-          @click="switchToAccount(account)"
-        >
-          <img
-            :src="account.userAvatarURL"
-            :alt="account.userNickname"
-            class="account-avatar"
-          />
-          <div class="account-info">
-            <div class="account-name">{{ account.userNickname }}</div>
-            <div class="account-username">@{{ account.userName }}</div>
-          </div>
-          <el-button
-            type="danger"
-            size="small"
-            circle
-            class="delete-account-btn"
-            @click="(event) => deleteAccount(account, event)"
+          <span
+            >还没有添加其他账号，点击下方“添加新账号”即可绑定更多账号哦~</span
           >
-            <i class="fas fa-trash-alt"></i>
-          </el-button>
         </div>
+        <template v-else>
+          <div class="account-list-tip">点击账号头像即可切换登录</div>
+          <div
+            v-for="account in savedAccounts"
+            :key="account.userName"
+            class="account-item"
+            @click="switchToAccount(account)"
+          >
+            <img
+              :src="account.userAvatarURL"
+              :alt="account.userNickname"
+              class="account-avatar"
+            />
+            <div class="account-info">
+              <div class="account-name">{{ account.userNickname }}</div>
+              <div class="account-username">@{{ account.userName }}</div>
+            </div>
+            <el-button
+              type="danger"
+              size="small"
+              circle
+              class="delete-account-btn"
+              @click="(event) => deleteAccount(account, event)"
+            >
+              <i class="fas fa-trash-alt"></i>
+            </el-button>
+          </div>
+        </template>
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="showAccountDialog = false">取消</el-button>
-          <el-button type="primary" @click="goToLogin">去登录</el-button>
+          <el-button @click="showAccountDialog = false">关闭</el-button>
+          <el-button type="primary" @click="goToLogin">添加新账号</el-button>
         </div>
       </template>
     </el-dialog>
@@ -355,8 +360,8 @@ const showSwitchAccount = () => {
 const deleteAccount = (account, event) => {
   event.stopPropagation(); // 阻止事件冒泡
   ElMessageBox.confirm(
-    `确定要删除账号 ${account.userNickname} 吗？`,
-    "删除账号",
+    `确定要移除账号 ${account.userNickname} 吗？移除后可随时重新登录~`,
+    "移除账号",
     {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
@@ -372,7 +377,7 @@ const deleteAccount = (account, event) => {
       savedAccounts.value = updatedAccounts.filter(
         (acc) => acc.userName !== userStore.userInfo?.userName
       );
-      ElMessage.success("账号删除成功");
+      ElMessage.success("账号移除成功");
     })
     .catch(() => {
       // 用户取消删除
@@ -835,5 +840,12 @@ const goToLogin = () => {
 
 .delete-account-btn:hover {
   transform: scale(1.1);
+}
+
+.account-list-tip {
+  color: var(--sub-text-color, #999);
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 8px;
 }
 </style>
