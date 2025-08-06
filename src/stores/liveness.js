@@ -27,9 +27,9 @@ export const useLivenessStore = defineStore("liveness", {
       // 立即获取一次
       this.fetchLiveness();
 
-      // 设置定时器，随机30-60秒后再次获取
+      // 设置定时器，每10分钟获取一次
       const scheduleNextFetch = () => {
-        const delay = Math.floor(Math.random() * (60000 - 30000) + 30000);
+        const delay = 10 * 60 * 1000; // 10分钟 = 600000毫秒
         this.checkInterval = setTimeout(async () => {
           await this.fetchLiveness();
           scheduleNextFetch();
