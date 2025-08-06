@@ -52,6 +52,24 @@ export const useUserStore = defineStore("user", {
           this.lastFetchTime = Date.now();
           // 同步到本地存储
           utools.dbStorage.setItem("fishpi_user_info", res.data);
+
+          // 同步更新账号列表中的用户信息
+          const accounts = utools.dbStorage.getItem("fishpi_accounts") || [];
+          const currentUserName = res.data.userName;
+          const accountIndex = accounts.findIndex(
+            (account) => account.userName === currentUserName
+          );
+
+          if (accountIndex !== -1) {
+            // 更新账号列表中的用户信息，保留 apiKey
+            const apiKey = accounts[accountIndex].apiKey;
+            accounts[accountIndex] = {
+              ...res.data,
+              apiKey: apiKey,
+            };
+            utools.dbStorage.setItem("fishpi_accounts", accounts);
+            console.log("已同步更新账号列表中的用户信息");
+          }
         }
         return this.userInfo;
       } catch (error) {
@@ -106,6 +124,24 @@ export const useUserStore = defineStore("user", {
     updateUserInfo(newInfo) {
       this.userInfo = { ...this.userInfo, ...newInfo };
       utools.dbStorage.setItem("fishpi_user_info", this.userInfo);
+
+      // 同步更新账号列表中的用户信息
+      const accounts = utools.dbStorage.getItem("fishpi_accounts") || [];
+      const currentUserName = this.userInfo.userName;
+      const accountIndex = accounts.findIndex(
+        (account) => account.userName === currentUserName
+      );
+
+      if (accountIndex !== -1) {
+        // 更新账号列表中的用户信息，保留 apiKey
+        const apiKey = accounts[accountIndex].apiKey;
+        accounts[accountIndex] = {
+          ...this.userInfo,
+          apiKey: apiKey,
+        };
+        utools.dbStorage.setItem("fishpi_accounts", accounts);
+        console.log("已同步更新账号列表中的用户信息");
+      }
     },
 
     // 设置用户信息（用于切换账号）
