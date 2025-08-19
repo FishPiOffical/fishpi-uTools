@@ -9,6 +9,7 @@ export const useLivenessStore = defineStore("liveness", {
 
   actions: {
     async fetchLiveness() {
+      console.log("开始获取活跃度...");
       try {
         const res = await userApi.getLiveness();
         if (res) {
@@ -48,9 +49,9 @@ export const useLivenessStore = defineStore("liveness", {
 
     async init() {
       // 先停止之前的定时器
-      this.stopChecking();
+      // this.stopChecking();
       // 重置活跃度
-      this.liveness = 0;
+      // this.liveness = 0;
       // 重新开始检查
       this.startChecking();
     },
