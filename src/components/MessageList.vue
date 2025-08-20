@@ -1271,6 +1271,8 @@ const filterBlacklistMessages = () => {
   overflow-y: auto;
   padding: 10px;
   background-color: var(--chatroom-bg);
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
 }
 
 .messages {
