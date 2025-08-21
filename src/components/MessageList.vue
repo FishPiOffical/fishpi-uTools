@@ -1266,9 +1266,9 @@ const filterBlacklistMessages = () => {
 </script>
 
 <style scoped>
-  ::-webkit-scrollbar {
-    display: none;
-  }
+::-webkit-scrollbar-track-piece{
+  background: transparent;
+}
 .message-list {
   flex: 1;
   overflow-y: auto;
