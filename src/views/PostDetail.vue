@@ -107,7 +107,9 @@
                 <div class="comment-info">
                   <div class="comment-author-info">
                     <span class="comment-author">{{
-                        comment.commentAuthorNickName || comment.commentAuthorName
+                        comment.commentAuthorNickName ?
+                            comment.commentAuthorNickName + ' (' + comment.commentAuthorName + ')' :
+                            comment.commentAuthorName
                       }}</span>
                     <span
                         v-if="comment.commentAuthorId === article.articleAuthorId"
@@ -177,7 +179,9 @@
                     <div class="reply-info">
                       <div class="reply-author-info">
                         <span class="reply-author">{{
-                            reply.commentAuthorNickName || reply.commentAuthorName
+                            reply.commentAuthorNickName ?
+                                reply.commentAuthorNickName + ' (' + reply.commentAuthorName + ')' :
+                                reply.commentAuthorName
                           }}</span>
                         <span
                             v-if="
@@ -244,7 +248,9 @@
           :title="
           replyTo
             ? `回复 @${
-                replyTo.commentAuthorNickName || replyTo.commentAuthorName
+            replyTo.commentAuthorNickName ?
+                replyTo.commentAuthorNickName + ' (' + replyTo.commentAuthorName + ')' :
+                replyTo.commentAuthorNickName
               }`
             : '发表评论'
         "
