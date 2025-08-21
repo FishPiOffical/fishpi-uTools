@@ -1266,13 +1266,15 @@ const filterBlacklistMessages = () => {
 </script>
 
 <style scoped>
+  ::-webkit-scrollbar {
+    display: none;
+  }
 .message-list {
   flex: 1;
   overflow-y: auto;
   padding: 10px;
   background-color: var(--chatroom-bg);
-  scrollbar-width: none;
-  scrollbar-color: transparent transparent;
+
 }
 
 .messages {
