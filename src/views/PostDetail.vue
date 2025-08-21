@@ -311,7 +311,7 @@
 <script setup>
 import {nextTick, onMounted, reactive, ref, watch} from "vue";
 import {onBeforeRouteLeave, useRoute, useRouter} from "vue-router";
-import {articleApi, request} from "../api";
+import {articleApi, request, userApi} from "../api";
 import {ElMessage} from "element-plus";
 import {createImagePreviewWindow} from "../utils/imagePreview";
 import Vditor from 'vditor/dist/index.js' // 修正导入路径
@@ -549,8 +549,7 @@ const debounceFn = debounce((callback) => {
 // 异步获取用户列表
 const fetchUsers = async (key) => {
   try {
-    const apiKey = request.getApiKey();
-    const res = await articleApi.users({ name: key });
+    const res = await articleApi.users({name: key});
     if (res.code === 0) {
       const atUsers = res.data.map(user => ({
         value: `@${user.userName} `,
@@ -621,7 +620,36 @@ const initVditor = async () => {
       input: (value) => {
         commentContent.value = value // 实时同步内容到 commentContent
       },
-    })
+      // 添加图片上传配置
+      upload: {
+        // 允许上传的文件类型
+        accept: 'image/*',
+        // 最大文件大小（单位：字节，例如 10MB）
+        max: 20 * 1024 * 1024,
+        // 上传进度提示
+        handler: async (files) => {
+          try {
+            ElMessage.info(`正在上传 ${files.length} 张图片...`);
+            for (const file of files) {
+              const response = await userApi.uploadImage(file);
+              if (response.code === 0 && response.data) {
+                // 将上传成功的图片插入到编辑器
+                Object.entries(response.data.succMap).forEach(([name, url]) => {
+                  contentEditor.value.insertValue(`![${name}](${url})\n`);
+                });
+                ElMessage.success(`成功上传图片`);
+              } else {
+                ElMessage.error('图片上传失败');
+              }
+            }
+          } catch (error) {
+            console.error('图片上传失败:', error);
+            ElMessage.error('图片上传失败，请稍后重试');
+            return error
+          }
+        },
+      },
+    });
   } catch (error) {
     console.error('Vditor 初始化失败:', error)
   }

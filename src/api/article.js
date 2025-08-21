@@ -60,6 +60,7 @@ export const articleApi = {
     return request.get(`/users/emotions?apiKey=${apiKey}`);
   },
 
+  // 用户名联想
   users(name) {
     return request.post("/users/names", name);
   },
