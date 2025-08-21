@@ -1,5 +1,5 @@
-html{
-  --main-layout-bg:#f4f4f4;
+html {
+  --main-layout-bg: #f4f4f4;
   --background-color: #fefefe;
   --text-color: #444;
   --primary-color: #ff9900;
@@ -25,7 +25,7 @@ html{
 }
 
 html[data-theme="dark"] {
-  --main-layout-bg:#1e1e1e;
+  --main-layout-bg: #1e1e1e;
   --background-color: #1e1e1e;
   --text-color: #e0e0e0;
   --primary-color: #ff9900;
@@ -111,6 +111,10 @@ textarea {
 /* 全局滚动条明暗模式适配 + 默认半透明，悬停时变明显 */
 ::-webkit-scrollbar {
   width: 8px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track-piece {
   background: transparent;
 }
 
@@ -294,4 +298,3 @@ textarea {
   background: var(--tooltip-bg) !important;
   border-color: var(--border-color) !important;
 }
-
