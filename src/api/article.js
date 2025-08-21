@@ -55,6 +55,15 @@ export const articleApi = {
     return request.get(`/api/comment/${articleId}`);
   },
 
+  // 用户常用表情
+  emotions(apiKey) {
+    return request.get(`/users/emotions?apiKey=${apiKey}`);
+  },
+
+  users(name) {
+    return request.post("/users/names", name);
+  },
+
   // 发表评论
   postComment(params) {
     return request.post("/comment", params);
