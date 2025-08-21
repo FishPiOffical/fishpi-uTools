@@ -5,8 +5,8 @@ export const useLivenessStore = defineStore("liveness", {
   state: () => ({
     liveness: 0,
     checkInterval: null,
+    lastLivenessTime: 0,
   }),
-
   actions: {
     async fetchLiveness() {
       console.log("开始获取活跃度...");
@@ -15,9 +15,14 @@ export const useLivenessStore = defineStore("liveness", {
         if (res) {
           this.liveness = res.liveness;
           console.log("更新活跃度成功:", this.liveness);
+          utools.dbStorage.setItem("liveness", res.liveness);
+          this.lastLivenessTime = new Date();
+        }else{
+          console.error("上次活跃度获取时间:", this.lastLivenessDuration);
         }
       } catch (error) {
         console.error("获取活跃度失败:", error);
+        console.error("上次活跃度获取时间:", this.lastLivenessDuration);
       }
     },
 
@@ -49,9 +54,9 @@ export const useLivenessStore = defineStore("liveness", {
 
     async init() {
       // 先停止之前的定时器
-      // this.stopChecking();
+      this.stopChecking();
       // 重置活跃度
-      // this.liveness = 0;
+      this.liveness = 0;
       // 重新开始检查
       this.startChecking();
     },
