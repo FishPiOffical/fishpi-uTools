@@ -18,48 +18,48 @@
 
       <div class="post-detail-meta">
         <img
-          :src="article.articleAuthorThumbnailURL48"
-          :alt="article.articleAuthorName"
-          class="author-avatar"
+            :src="article.articleAuthorThumbnailURL48"
+            :alt="article.articleAuthorName"
+            class="author-avatar"
         />
         <div class="meta-info">
           <span class="author-name">{{ article.articleAuthorName }}</span>
           <span class="publish-time">{{ article.timeAgo }} 发布</span>
           <span class="view-count"
-            ><i class="fas fa-eye"></i>
+          ><i class="fas fa-eye"></i>
             {{
               article.articleViewCntDisplayFormat || article.articleViewCount
             }}
             阅读</span
           >
           <span class="comment-count"
-            ><i class="fas fa-comments"></i>
+          ><i class="fas fa-comments"></i>
             {{ article.articleCommentCount }} 评论</span
           >
         </div>
       </div>
 
       <div
-        class="post-detail-content"
-        v-html="article.articleContent || article.articlePreviewContent"
-        @click="handleContentClick"
+          class="post-detail-content"
+          v-html="article.articleContent || article.articlePreviewContent"
+          @click="handleContentClick"
       ></div>
 
       <!-- 文章操作栏 -->
       <div class="article-actions-bar">
         <div class="action-group">
           <button
-            class="action-btn"
-            :class="{ active: article.articleVoteStatus === 1 }"
-            @click="handleUpvote"
+              class="action-btn"
+              :class="{ active: article.articleVoteStatus === 1 }"
+              @click="handleUpvote"
           >
             <i class="fas fa-thumbs-up"></i>
             <span>{{ article.articleGoodCnt || 0 }} 点赞</span>
           </button>
           <button
-            class="action-btn"
-            :class="{ active: article.articleThankStatus === 1 }"
-            @click="handleThank"
+              class="action-btn"
+              :class="{ active: article.articleThankStatus === 1 }"
+              @click="handleThank"
           >
             <i class="fas fa-heart"></i>
             <span>{{ article.articleThankCnt || 0 }} 感谢</span>
@@ -85,8 +85,8 @@
         </div>
 
         <div
-          v-else-if="!comments || comments.length === 0"
-          class="empty-comments"
+            v-else-if="!comments || comments.length === 0"
+            class="empty-comments"
         >
           暂无评论
         </div>
@@ -94,36 +94,38 @@
         <template v-else>
           <div class="comment-list">
             <div
-              v-for="comment in comments"
-              :key="comment.oId"
-              class="comment-item"
+                v-for="comment in comments"
+                :key="comment.oId"
+                class="comment-item"
             >
               <div class="comment-header">
                 <img
-                  :src="comment.commentAuthorThumbnailURL"
-                  :alt="comment.commentAuthorName"
-                  class="comment-avatar"
+                    :src="comment.commentAuthorThumbnailURL"
+                    :alt="comment.commentAuthorName"
+                    class="comment-avatar"
                 />
                 <div class="comment-info">
                   <div class="comment-author-info">
                     <span class="comment-author">{{
-                      comment.commentAuthorNickName || comment.commentAuthorName
-                    }}</span>
+                        comment.commentAuthorNickName ?
+                            comment.commentAuthorNickName + ' (' + comment.commentAuthorName + ')' :
+                            comment.commentAuthorName
+                      }}</span>
                     <span
-                      v-if="comment.commentAuthorId === article.articleAuthorId"
-                      class="author-tag"
-                      >作者</span
+                        v-if="comment.commentAuthorId === article.articleAuthorId"
+                        class="author-tag"
+                    >作者</span
                     >
                     <div
-                      class="user-metals"
-                      v-if="comment.sysMetal && comment.sysMetal.length > 0"
+                        class="user-metals"
+                        v-if="comment.sysMetal && comment.sysMetal.length > 0"
                     >
                       <img
-                        v-for="metal in comment.sysMetal"
-                        :key="metal.name"
-                        :src="metal.attr.split('url=')[1].split('&')[0]"
-                        :title="metal.description"
-                        class="user-metal"
+                          v-for="metal in comment.sysMetal"
+                          :key="metal.name"
+                          :src="metal.attr.split('url=')[1].split('&')[0]"
+                          :title="metal.description"
+                          class="user-metal"
                       />
                     </div>
                   </div>
@@ -132,23 +134,23 @@
               </div>
 
               <div
-                class="comment-content"
-                v-html="comment.commentContent"
+                  class="comment-content"
+                  v-html="comment.commentContent"
               ></div>
 
               <div class="comment-actions">
                 <button
-                  class="action-btn"
-                  :class="{ active: comment.commentVote === 1 }"
-                  @click="handleCommentUpvote(comment)"
+                    class="action-btn"
+                    :class="{ active: comment.commentVote === 1 }"
+                    @click="handleCommentUpvote(comment)"
                 >
                   <i class="far fa-thumbs-up"></i>
                   <span class="count">{{ comment.commentGoodCnt || 0 }}</span>
                 </button>
                 <button
-                  class="action-btn"
-                  :class="{ active: comment.commentThankStatus === 1 }"
-                  @click="handleCommentThank(comment)"
+                    class="action-btn"
+                    :class="{ active: comment.commentThankStatus === 1 }"
+                    @click="handleCommentThank(comment)"
                 >
                   <i class="far fa-heart"></i>
                   <span class="count">{{ comment.commentThankCnt || 0 }}</span>
@@ -160,42 +162,44 @@
 
               <!-- 回复列表 -->
               <div
-                v-if="comment.replies && comment.replies.length > 0"
-                class="reply-list"
+                  v-if="comment.replies && comment.replies.length > 0"
+                  class="reply-list"
               >
                 <div
-                  v-for="reply in comment.replies"
-                  :key="reply.oId"
-                  class="reply-item"
+                    v-for="reply in comment.replies"
+                    :key="reply.oId"
+                    class="reply-item"
                 >
                   <div class="reply-header">
                     <img
-                      :src="reply.commentAuthorThumbnailURL"
-                      :alt="reply.commentAuthorName"
-                      class="reply-avatar"
+                        :src="reply.commentAuthorThumbnailURL"
+                        :alt="reply.commentAuthorName"
+                        class="reply-avatar"
                     />
                     <div class="reply-info">
                       <div class="reply-author-info">
                         <span class="reply-author">{{
-                          reply.commentAuthorNickName || reply.commentAuthorName
-                        }}</span>
+                            reply.commentAuthorNickName ?
+                                reply.commentAuthorNickName + ' (' + reply.commentAuthorName + ')' :
+                                reply.commentAuthorName
+                          }}</span>
                         <span
-                          v-if="
+                            v-if="
                             reply.commentAuthorId === article.articleAuthorId
                           "
-                          class="author-tag"
-                          >作者</span
+                            class="author-tag"
+                        >作者</span
                         >
                         <div
-                          class="user-metals"
-                          v-if="reply.sysMetal && reply.sysMetal.length > 0"
+                            class="user-metals"
+                            v-if="reply.sysMetal && reply.sysMetal.length > 0"
                         >
                           <img
-                            v-for="metal in reply.sysMetal"
-                            :key="metal.name"
-                            :src="metal.attr.split('url=')[1].split('&')[0]"
-                            :title="metal.description"
-                            class="user-metal"
+                              v-for="metal in reply.sysMetal"
+                              :key="metal.name"
+                              :src="metal.attr.split('url=')[1].split('&')[0]"
+                              :title="metal.description"
+                              class="user-metal"
                           />
                         </div>
                       </div>
@@ -204,28 +208,28 @@
                   </div>
 
                   <div
-                    class="reply-content"
-                    v-html="reply.commentContent"
+                      class="reply-content"
+                      v-html="reply.commentContent"
                   ></div>
 
                   <div class="reply-actions">
                     <button
-                      class="action-btn"
-                      :class="{ active: reply.commentVote === 1 }"
-                      @click="handleCommentUpvote(reply)"
+                        class="action-btn"
+                        :class="{ active: reply.commentVote === 1 }"
+                        @click="handleCommentUpvote(reply)"
                     >
                       <i class="far fa-thumbs-up"></i>
                       <span class="count">{{ reply.commentGoodCnt || 0 }}</span>
                     </button>
                     <button
-                      class="action-btn"
-                      :class="{ active: reply.commentThankStatus === 1 }"
-                      @click="handleCommentThank(reply)"
+                        class="action-btn"
+                        :class="{ active: reply.commentThankStatus === 1 }"
+                        @click="handleCommentThank(reply)"
                     >
                       <i class="far fa-heart"></i>
                       <span class="count">{{
-                        reply.commentThankCnt || 0
-                      }}</span>
+                          reply.commentThankCnt || 0
+                        }}</span>
                     </button>
                     <button class="action-btn" @click="handleReply(reply)">
                       <i class="far fa-comment"></i>
@@ -240,51 +244,56 @@
 
       <!-- 评论弹窗 -->
       <el-dialog
-        v-model="showCommentDialog"
-        :title="
+          v-model="showCommentDialog"
+          :title="
           replyTo
             ? `回复 @${
-                replyTo.commentAuthorNickName || replyTo.commentAuthorName
+            replyTo.commentAuthorNickName ?
+                replyTo.commentAuthorNickName + ' (' + replyTo.commentAuthorName + ')' :
+                replyTo.commentAuthorNickName
               }`
             : '发表评论'
         "
-        width="500px"
-        :close-on-click-modal="false"
-        @close="handleDialogClose"
+          width="500px"
+          :close-on-click-modal="false"
+          @open="handleDialogOpen"
+          @close="handleDialogClose"
       >
-        <div class="comment-dialog-content">
-          <textarea
-            v-model="commentContent"
-            class="comment-input"
-            :placeholder="replyTo ? `` : '友善地留下一条评论吧 :)'"
-            rows="2"
-            ref="commentInput"
-            autofocus
-          ></textarea>
-          <div class="comment-options">
-            <label class="comment-option">
-              <input type="checkbox" v-model="commentAnonymous" />
-              <span>匿名评论</span>
-            </label>
-            <label class="comment-option">
-              <input type="checkbox" v-model="commentVisible" />
-              <span>仅楼主可见</span>
-            </label>
-          </div>
-        </div>
+        <!--        <div class="comment-dialog-content">-->
+        <!--          <textarea-->
+        <!--            v-model="commentContent"-->
+        <!--            class="comment-input"-->
+        <!--            :placeholder="replyTo ? `` : '友善地留下一条评论吧 :)'"-->
+        <!--            rows="2"-->
+        <!--            ref="commentInput"-->
+        <!--            autofocus-->
+        <!--          ></textarea>-->
+        <!--          <div class="comment-options">-->
+        <!--            <label class="comment-option">-->
+        <!--              <input type="checkbox" v-model="commentAnonymous" />-->
+        <!--              <span>匿名评论</span>-->
+        <!--            </label>-->
+        <!--            <label class="comment-option">-->
+        <!--              <input type="checkbox" v-model="commentVisible" />-->
+        <!--              <span>仅楼主可见</span>-->
+        <!--            </label>-->
+        <!--          </div>-->
+        <!--        </div>-->
+        <div :id="vditorId" class="vditor-container"></div>
+
         <template #footer>
           <div class="dialog-footer">
             <button
-              v-if="replyTo"
-              class="cancel-reply-btn"
-              @click="cancelReply"
+                v-if="replyTo"
+                class="cancel-reply-btn"
+                @click="cancelReply"
             >
               取消回复
             </button>
             <button
-              class="submit-comment-btn"
-              :disabled="!commentContent.trim() || isSubmitting"
-              @click="submitComment"
+                class="submit-comment-btn"
+                :disabled="!commentContent.trim() || isSubmitting"
+                @click="submitComment"
             >
               {{ isSubmitting ? "提交中..." : "发表评论" }}
             </button>
@@ -306,12 +315,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { articleApi } from "../api";
-import { ElMessage } from "element-plus";
-import { onBeforeRouteLeave } from "vue-router";
-import { createImagePreviewWindow } from "../utils/imagePreview";
+import {nextTick, onMounted, reactive, ref, watch} from "vue";
+import {onBeforeRouteLeave, useRoute, useRouter} from "vue-router";
+import {articleApi, request, userApi} from "../api";
+import {ElMessage} from "element-plus";
+import {createImagePreviewWindow} from "../utils/imagePreview";
+import Vditor from 'vditor/dist/index.js' // 修正导入路径
+import 'vditor/dist/index.css'
+import {debounce} from 'lodash' // 引入 lodash 的防抖函数
 
 const route = useRoute();
 const router = useRouter();
@@ -333,6 +344,16 @@ const userCommentViewMode = ref(1);
 
 // 添加评论弹窗控制变量
 const showCommentDialog = ref(false);
+const contentEditor = ref(null)
+const vditorId = ref('vditor-comment') // 唯一的 Vditor ID
+// 定义响应式 emojiMap
+const emojiMap = reactive({
+  smile: '😊',
+  heart: '❤️',
+  rocket: '🚀',
+  thumbsup: '👍',
+  star: '⭐'
+})
 
 const commentInput = ref(null);
 
@@ -395,7 +416,7 @@ const fetchComments = async () => {
         if (comment.commentOriginalCommentId) {
           // 如果是回复，从主评论列表中移除，并添加到对应主评论的replies中
           const parentComment = commentsMap.get(
-            comment.commentOriginalCommentId
+              comment.commentOriginalCommentId
           );
           if (parentComment) {
             parentComment.replies.push(comment);
@@ -414,7 +435,7 @@ const fetchComments = async () => {
         if (comment.replies && comment.replies.length > 0) {
           comment.replies.sort((a, b) => {
             return (
-              new Date(a.commentCreateTime) - new Date(b.commentCreateTime)
+                new Date(a.commentCreateTime) - new Date(b.commentCreateTime)
             );
           });
         }
@@ -450,8 +471,8 @@ const handleUpvote = async () => {
         // 取消点赞
         article.value.articleVoteStatus = 0;
         article.value.articleGoodCnt = Math.max(
-          0,
-          (article.value.articleGoodCnt || 0) - 1
+            0,
+            (article.value.articleGoodCnt || 0) - 1
         );
         ElMessage.success("已取消点赞");
       }
@@ -486,6 +507,160 @@ const handleThank = async () => {
   }
 };
 
+// 异步加载表情数据
+const fetchEmotions = async () => {
+  try {
+    const apiKey = request.getApiKey()
+    const res = await articleApi.emotions(apiKey)
+    if (res.code === 0) {
+      // 清空现有 emojiMap
+      Object.keys(emojiMap).forEach(key => delete emojiMap[key])
+      // 更新 emojiMap
+      res.data.forEach(item => {
+        const key = Object.keys(item)[0]
+        emojiMap[key] = item[key]
+      })
+      console.log('表情数据加载成功:', emojiMap)
+    } else {
+      console.error('加载表情失败:', res.msg)
+    }
+  } catch (error) {
+    console.error('加载表情失败:', error)
+  }
+}
+
+// 处理 emojiTail 点击事件
+const handleEmojiTailClick = () => {
+  if (typeof utools !== 'undefined' && utools.shellOpenExternal) {
+    utools.shellOpenExternal('https://fishpi.cn/settings/function')
+  } else {
+    console.warn('uTools 不可用，使用默认浏览器打开')
+    window.open('https://fishpi.cn/settings/function', '_blank')
+  }
+}
+
+// 创建一个返回 Promise 的防抖函数
+const debounceFn = debounce((callback) => {
+  return new Promise((resolve, reject) => {
+    try {
+      // 执行回调并解析结果
+      const result = callback();
+      resolve(result);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}, 50);
+
+// 异步获取用户列表
+const fetchUsers = async (key) => {
+  try {
+    const res = await articleApi.users({name: key});
+    if (res.code === 0) {
+      const atUsers = res.data.map(user => ({
+        value: `@${user.userName} `,
+        html: `<img src="${user.userAvatarURL48}" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 8px;" />${user.userName}`
+      }));
+      if (key === '') {
+        atUsers.push({
+          value: '@participants ',
+          html: `<img src="https://fishpi.cn/images/user-thumbnail.png" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 8px;" />参与者`
+        });
+      }
+      return atUsers;
+    } else {
+      ElMessage.error(res.msg || '获取用户列表失败');
+      return [];
+    }
+  } catch (error) {
+    console.error('获取用户列表失败:', error);
+    ElMessage.error('获取用户列表失败');
+    return [];
+  }
+};
+
+
+// 初始化markdown编辑器
+const initVditor = async () => {
+  try {
+    // 在初始化前加载表情数据
+    await fetchEmotions()
+    contentEditor.value = new Vditor(vditorId.value, {
+      height: 360,
+      toolbarConfig: {
+        pin: false // 固定工具栏
+      },
+      hint: {
+        emojiTail: `<span style="cursor: pointer; color: #1890ff;" onclick="(${handleEmojiTailClick.toString()})()">设置常用表情</span>`,
+        emoji: emojiMap,
+        extend: [
+          {
+            key: '@',
+            hint: async (key) => {
+              if (!(/^[a-zA-Z0-9]*$/.test(key) || key === '')) return []; // 无效字符返回空
+              try {
+                // 使用 debounceFn 等待 fetchUsers 的结果
+                const atUsers = await debounceFn(() => fetchUsers(key));
+                console.log('用户列表:', atUsers);
+                return atUsers || [];
+              } catch (error) {
+                console.error('防抖获取用户列表失败:', error);
+                return [];
+              }
+            }
+          }
+        ],
+      },
+      counter: {
+        enable: true,
+      },
+      placeholder: '友善地留下一条评论吧 :)', // 添加 placeholder
+      cache: {
+        enable: false // 禁用缓存
+      },
+      after: async () => {
+        if (contentEditor.value) {
+          contentEditor.value.setValue('') // 初始为空以显示 placeholder
+        }
+      },
+      input: (value) => {
+        commentContent.value = value // 实时同步内容到 commentContent
+      },
+      // 添加图片上传配置
+      upload: {
+        // 允许上传的文件类型
+        accept: 'image/*',
+        // 最大文件大小（单位：字节，例如 10MB）
+        max: 20 * 1024 * 1024,
+        // 上传进度提示
+        handler: async (files) => {
+          try {
+            ElMessage.info(`正在上传 ${files.length} 张图片...`);
+            for (const file of files) {
+              const response = await userApi.uploadImage(file);
+              if (response.code === 0 && response.data) {
+                // 将上传成功的图片插入到编辑器
+                Object.entries(response.data.succMap).forEach(([name, url]) => {
+                  contentEditor.value.insertValue(`![${name}](${url})\n`);
+                });
+                ElMessage.success(`成功上传图片`);
+              } else {
+                ElMessage.error('图片上传失败');
+              }
+            }
+          } catch (error) {
+            console.error('图片上传失败:', error);
+            ElMessage.error('图片上传失败，请稍后重试');
+            return error
+          }
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Vditor 初始化失败:', error)
+  }
+};
+
 // 提交评论
 const submitComment = async () => {
   if (!article.value || !commentContent.value.trim()) return;
@@ -516,7 +691,7 @@ const submitComment = async () => {
       await fetchComments();
       // 更新文章评论数
       article.value.articleCommentCount =
-        (article.value.articleCommentCount || 0) + 1;
+          (article.value.articleCommentCount || 0) + 1;
     } else {
       ElMessage.error(response.msg || "评论失败");
     }
@@ -547,12 +722,20 @@ const cancelReply = () => {
   showCommentDialog.value = false; // 关闭弹窗
 };
 
+// 处理弹窗打开
+const handleDialogOpen = async () => {
+  await initVditor();
+}
+
 // 处理弹窗关闭
 const handleDialogClose = () => {
   replyTo.value = null;
   commentContent.value = "";
   commentAnonymous.value = false;
   commentVisible.value = false;
+  if (contentEditor.value) {
+    contentEditor.value = null
+  }
 };
 
 // 处理评论点赞
@@ -629,7 +812,7 @@ const handleImageClick = async (e) => {
   if (e.target.tagName === "IMG") {
     const imgSrc = e.target.src;
     const allImages = Array.from(
-      document.querySelectorAll(".post-detail-content img")
+        document.querySelectorAll(".post-detail-content img")
     ).map((img) => ({
       src: img.src,
     }));
@@ -647,9 +830,9 @@ const handleImageClick = async (e) => {
       // 窗口关闭时重置变量
       const checkWindowClosed = () => {
         if (
-          previewWindow &&
-          previewWindow.isDestroyed &&
-          previewWindow.isDestroyed()
+            previewWindow &&
+            previewWindow.isDestroyed &&
+            previewWindow.isDestroyed()
         ) {
           previewWindow = null;
         } else {
@@ -686,17 +869,17 @@ onMounted(() => {
 
 // 监听路由变化
 watch(
-  () => route.params.id,
-  (newId, oldId) => {
-    if (newId !== oldId && newId) {
-      // 重置状态和数据
-      article.value = null;
-      loading.value = true;
-      error.value = null;
+    () => route.params.id,
+    (newId, oldId) => {
+      if (newId !== oldId && newId) {
+        // 重置状态和数据
+        article.value = null;
+        loading.value = true;
+        error.value = null;
 
-      fetchArticleDetail();
+        fetchArticleDetail();
+      }
     }
-  }
 );
 </script>
 
@@ -1553,5 +1736,9 @@ watch(
 .write-comment:active {
   transform: translateY(0);
   box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+}
+
+.vditor-container {
+  width: 100%;
 }
 </style>
