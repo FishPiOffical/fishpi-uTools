@@ -171,27 +171,20 @@
               }`
             : '发表评论'
         " width="500px" :close-on-click-modal="false" @open="handleDialogOpen" @close="handleDialogClose">
-        <!--        <div class="comment-dialog-content">-->
-        <!--          <textarea-->
-        <!--            v-model="commentContent"-->
-        <!--            class="comment-input"-->
-        <!--            :placeholder="replyTo ? `` : '友善地留下一条评论吧 :)'"-->
-        <!--            rows="2"-->
-        <!--            ref="commentInput"-->
-        <!--            autofocus-->
-        <!--          ></textarea>-->
-        <!--          <div class="comment-options">-->
-        <!--            <label class="comment-option">-->
-        <!--              <input type="checkbox" v-model="commentAnonymous" />-->
-        <!--              <span>匿名评论</span>-->
-        <!--            </label>-->
-        <!--            <label class="comment-option">-->
-        <!--              <input type="checkbox" v-model="commentVisible" />-->
-        <!--              <span>仅楼主可见</span>-->
-        <!--            </label>-->
-        <!--          </div>-->
-        <!--        </div>-->
-        <div :id="vditorId" class="vditor-container"></div>
+        <div class="comment-dialog-content">
+          <div ref="commentInput" class="comment-input" contenteditable="true" @input="handleCommentInput"
+            @keydown="handleCommentKeydown" :placeholder="replyTo ? `` : '友善地留下一条评论吧 :)'" autofocus></div>
+          <div class="comment-options">
+            <label class="comment-option">
+              <input type="checkbox" v-model="commentAnonymous" />
+              <span>匿名评论</span>
+            </label>
+            <label class="comment-option">
+              <input type="checkbox" v-model="commentVisible" />
+              <span>仅楼主可见</span>
+            </label>
+          </div>
+        </div>
 
         <template #footer>
           <div class="dialog-footer">
@@ -200,6 +193,7 @@
                 <i class="fas fa-smile icon" @click="openEmojiPicker"></i>
                 <EmojiPicker :visible="showEmojiPicker" @select="handleEmojiSelect" @close="showEmojiPicker = false" />
               </div>
+              <i class="fas fa-image icon" @click="openImagePicker"></i>
             </div>
             <div class="right-actions">
               <button v-if="replyTo" class="cancel-reply-btn" @click="cancelReply">
@@ -233,10 +227,8 @@
   import { articleApi, request, userApi } from "../api";
   import { ElMessage } from "element-plus";
   import { createImagePreviewWindow } from "../utils/imagePreview";
-  import Vditor from 'vditor/dist/index.js' // 修正导入路径
-  import 'vditor/dist/index.css'
-  import { debounce } from 'lodash' // 引入 lodash 的防抖函数
   import EmojiPicker from '../components/EmojiPicker.vue'
+  import { debounce } from 'lodash' // 引入 lodash 的防抖函数
 
   const route = useRoute();
   const router = useRouter();
@@ -258,17 +250,7 @@
 
   // 添加评论弹窗控制变量
   const showCommentDialog = ref(false);
-  const contentEditor = ref(null)
-  const vditorId = ref('vditor-comment') // 唯一的 Vditor ID
   const showEmojiPicker = ref(false)
-  // 定义响应式 emojiMap
-  const emojiMap = reactive({
-    smile: '😊',
-    heart: '❤️',
-    rocket: '🚀',
-    thumbsup: '👍',
-    star: '⭐'
-  })
 
   const commentInput = ref(null);
 
@@ -497,205 +479,125 @@
 
   // 初始化markdown编辑器
   const initVditor = async () => {
-    try {
-      // 在初始化前加载表情数据
-      await fetchEmotions()
-      contentEditor.value = new Vditor(vditorId.value, {
-        height: 360,
-        toolbarConfig: {
-          pin: false // 固定工具栏
-        },
-        toolbar: [
-          'emoji',
-          'bold',
-          'italic',
-          'strike',
-          'link',
-          'list',
-          'ordered-list',
-          'quote',
-          'inline-code',
-          'code',
-          'upload',
-          'undo',
-          'redo',
-          'preview'
-        ],
-        hint: {
-          emojiTail: `<span style="cursor: pointer; color: #1890ff;" onclick="(${handleEmojiTailClick.toString()})()">设置常用表情</span>`,
-          emoji: emojiMap,
-          extend: [
-            {
-              key: '@',
-              hint: async (key) => {
-                if (!(/^[a-zA-Z0-9]*$/.test(key) || key === '')) return []; // 无效字符返回空
-                try {
-                  // 使用 debounceFn 等待 fetchUsers 的结果
-                  const atUsers = await debounceFn(() => fetchUsers(key));
-                  console.log('用户列表:', atUsers);
-                  return atUsers || [];
-                } catch (error) {
-                  console.error('防抖获取用户列表失败:', error);
-                  return [];
-                }
-              }
+    // 不再需要初始化 Vditor
+    return;
+  };
+
+  // 新增：打开图片选择器
+  const openImagePicker = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          ElMessage.info("正在上传图片...");
+          const response = await userApi.uploadImage(file);
+          if (response.code === 0 && response.data) {
+            const imageUrl = Object.values(response.data.succMap)[0];
+            if (imageUrl) {
+              // 参考 RoomChatInput 的做法，直接插入图片元素
+              insertImageToComment(imageUrl);
+              ElMessage.success("图片上传成功");
             }
-          ],
-        },
-        counter: {
-          enable: true,
-        },
-        placeholder: '友善地留下一条评论吧 :)', // 添加 placeholder
-        cache: {
-          enable: false // 禁用缓存
-        },
-        after: async () => {
-          if (contentEditor.value) {
-            contentEditor.value.setValue('') // 初始为空以显示 placeholder
+          } else {
+            ElMessage.error('图片上传失败');
           }
-        },
-        input: (value) => {
-          commentContent.value = value // 实时同步内容到 commentContent
-        },
-        // 添加图片上传配置
-        upload: {
-          // 允许上传的文件类型
-          accept: 'image/*',
-          // 最大文件大小（单位：字节，例如 10MB）
-          max: 20 * 1024 * 1024,
-          // 上传进度提示
-          handler: async (files) => {
-            try {
-              ElMessage.info(`正在上传 ${files.length} 张图片...`);
-              for (const file of files) {
-                const response = await userApi.uploadImage(file);
-                if (response.code === 0 && response.data) {
-                  // 将上传成功的图片插入到编辑器
-                  Object.entries(response.data.succMap).forEach(([name, url]) => {
-                    contentEditor.value.insertValue(`![${name}](${url})\n`);
-                  });
-                  ElMessage.success(`成功上传图片`);
-                } else {
-                  ElMessage.error('图片上传失败');
-                }
-              }
-            } catch (error) {
-              console.error('图片上传失败:', error);
-              ElMessage.error('图片上传失败，请稍后重试');
-              return error
-            }
-          },
-        },
-      });
-    } catch (error) {
-      console.error('Vditor 初始化失败:', error)
-    }
-  };
-
-  // 提交评论
-  const submitComment = async () => {
-    if (!article.value || !commentContent.value.trim()) return;
-
-    try {
-      isSubmitting.value = true;
-      const params = {
-        articleId: article.value.oId,
-        commentContent: commentContent.value.trim(),
-        commentAnonymous: commentAnonymous.value,
-        commentVisible: commentVisible.value,
-        userCommentViewMode: userCommentViewMode.value,
-      };
-
-      if (replyTo.value) {
-        params.commentOriginalCommentId = replyTo.value.oId;
+        } catch (error) {
+          console.error('图片上传失败:', error);
+          ElMessage.error('图片上传失败，请稍后重试');
+        }
       }
+    };
+    input.click();
+  };
 
-      const response = await articleApi.postComment(params);
-      if (response.code === 0) {
-        ElMessage.success(replyTo.value ? "回复成功" : "评论成功");
-        commentContent.value = "";
-        replyTo.value = null;
-        commentAnonymous.value = false;
-        commentVisible.value = false;
-        showCommentDialog.value = false; // 关闭弹窗
-        // 重新获取评论列表
-        await fetchComments();
-        // 更新文章评论数
-        article.value.articleCommentCount =
-          (article.value.articleCommentCount || 0) + 1;
-      } else {
-        ElMessage.error(response.msg || "评论失败");
-      }
-    } catch (err) {
-      console.error("评论失败:", err);
-      ElMessage.error("评论失败，请稍后重试");
-    } finally {
-      isSubmitting.value = false;
+  // 新增：插入图片到评论输入框
+  const insertImageToComment = (imageUrl) => {
+    const inputContent = commentInput.value;
+    if (inputContent) {
+      // 创建图片元素
+      const img = document.createElement('img');
+      img.src = imageUrl;
+      img.style.maxWidth = '120px';
+      img.style.verticalAlign = 'middle';
+      img.style.margin = '0 4px';
+      img.style.objectFit = 'contain';
+      img.style.cursor = 'pointer';
+
+      // 在光标位置插入图片
+      const currentContent = inputContent.innerHTML;
+      inputContent.innerHTML = currentContent + img.outerHTML;
+
+      // 更新输入框内容
+      commentContent.value = inputContent.innerHTML;
+
+      // 保持焦点并将光标移到末尾
+      inputContent.focus();
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(inputContent);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
     }
   };
 
-  // 处理回复
-  const handleReply = (comment) => {
-    replyTo.value = comment;
-    showCommentDialog.value = true;
-    // 确保在下一个 tick 后聚焦
-    nextTick(() => {
-      setTimeout(() => {
-        commentInput.value?.focus();
-      }, 100);
-    });
-  };
-
-  // 取消回复
-  const cancelReply = () => {
-    replyTo.value = null;
-    commentContent.value = "";
-    showCommentDialog.value = false; // 关闭弹窗
-  };
-
-  // 处理弹窗打开
-  const handleDialogOpen = async () => {
-    await initVditor();
-  }
-
-  // 处理弹窗关闭
-  const handleDialogClose = () => {
-    replyTo.value = null;
-    commentContent.value = "";
-    commentAnonymous.value = false;
-    commentVisible.value = false;
-    showEmojiPicker.value = false;
-    if (contentEditor.value) {
-      contentEditor.value = null
-    }
-  };
-
-  // 新增：打开/关闭表情选择
-  const openEmojiPicker = () => {
-    showEmojiPicker.value = !showEmojiPicker.value
-  }
-
-  // 新增：处理表情选择并插入到 Vditor
+  // 新增：处理表情选择并插入到输入框
   const handleEmojiSelect = (emoji) => {
-    if (!contentEditor.value) return
     if (typeof emoji === 'string') {
       const trimmed = emoji.trim()
       const isUrl = /^https?:\/\//i.test(trimmed)
       if (isUrl) {
-        contentEditor.value.insertValue(`![图片](${trimmed})`)
+        // 插入图片元素
+        insertImageToComment(trimmed);
       } else {
-        contentEditor.value.insertValue(trimmed)
+        // 插入普通表情文本
+        const inputContent = commentInput.value;
+        if (inputContent) {
+          const currentContent = inputContent.innerHTML;
+          inputContent.innerHTML = currentContent + trimmed;
+          commentContent.value = inputContent.innerHTML;
+
+          // 保持焦点并将光标移到末尾
+          inputContent.focus();
+          const range = document.createRange();
+          const sel = window.getSelection();
+          range.selectNodeContents(inputContent);
+          range.collapse(false);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
       }
       showEmojiPicker.value = false
     } else if (emoji && typeof emoji === 'object') {
       // 选择了表情包：插入封面图
       const cover = emoji.cover || ''
       if (cover) {
-        contentEditor.value.insertValue(`![图片](${cover})`)
+        insertImageToComment(cover);
       }
       showEmojiPicker.value = false
     } else {
       showEmojiPicker.value = false
+    }
+  }
+
+  // 新增：打开/关闭表情选择
+  const openEmojiPicker = () => {
+    showEmojiPicker.value = !showEmojiPicker.value
+  }
+
+  // 新增：处理评论输入
+  const handleCommentInput = (e) => {
+    commentContent.value = e.target.innerHTML;
+  }
+
+  // 新增：处理评论按键
+  const handleCommentKeydown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitComment();
     }
   }
 
@@ -742,6 +644,87 @@
     } catch (err) {
       console.error("感谢操作失败:", err);
     }
+  };
+
+  // 提交评论
+  const submitComment = async () => {
+    if (!article.value || !commentContent.value.trim()) return;
+
+    try {
+      isSubmitting.value = true;
+      const params = {
+        articleId: article.value.oId,
+        commentContent: commentContent.value.trim(),
+        commentAnonymous: commentAnonymous.value,
+        commentVisible: commentVisible.value,
+        userCommentViewMode: userCommentViewMode.value,
+      };
+
+      if (replyTo.value) {
+        params.commentOriginalCommentId = replyTo.value.oId;
+      }
+
+      const response = await articleApi.postComment(params);
+      if (response.code === 0) {
+        ElMessage.success(replyTo.value ? "回复成功" : "评论成功");
+        commentContent.value = "";
+        if (commentInput.value) {
+          commentInput.value.innerHTML = "";
+        }
+        replyTo.value = null;
+        commentAnonymous.value = false;
+        commentVisible.value = false;
+        showCommentDialog.value = false; // 关闭弹窗
+        // 重新获取评论列表
+        await fetchComments();
+        // 更新文章评论数
+        article.value.articleCommentCount =
+          (article.value.articleCommentCount || 0) + 1;
+      } else {
+        ElMessage.error(response.msg || "评论失败");
+      }
+    } catch (err) {
+      console.error("评论失败:", err);
+      ElMessage.error("评论失败，请稍后重试");
+    } finally {
+      isSubmitting.value = false;
+    }
+  };
+
+  // 处理回复
+  const handleReply = (comment) => {
+    replyTo.value = comment;
+    showCommentDialog.value = true;
+    // 确保在下一个 tick 后聚焦
+    nextTick(() => {
+      setTimeout(() => {
+        commentInput.value?.focus();
+      }, 100);
+    });
+  };
+
+  // 取消回复
+  const cancelReply = () => {
+    replyTo.value = null;
+    commentContent.value = "";
+    showCommentDialog.value = false; // 关闭弹窗
+  };
+
+  // 处理弹窗打开
+  const handleDialogOpen = async () => {
+    // 不再需要初始化 Vditor
+  }
+
+  // 处理弹窗关闭
+  const handleDialogClose = () => {
+    replyTo.value = null;
+    commentContent.value = "";
+    if (commentInput.value) {
+      commentInput.value.innerHTML = "";
+    }
+    commentAnonymous.value = false;
+    commentVisible.value = false;
+    showEmojiPicker.value = false;
   };
 
   // 添加返回列表方法
@@ -1120,11 +1103,28 @@
     padding: 12px 0;
   }
 
+  .comment-dialog-content .comment-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 0 8px;
+  }
+
+  .comment-dialog-content .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+
+
   .comment-dialog-content .comment-input {
     width: 100%;
     min-height: 80px;
-    padding: 8px 0;
-    border: none !important;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
     resize: none;
     font-family: inherit;
     font-size: 14px;
@@ -1136,6 +1136,21 @@
     caret-color: var(--primary-color);
     outline: none !important;
     box-shadow: none !important;
+    overflow-y: auto;
+  }
+
+  .comment-dialog-content .comment-input:empty:before {
+    content: attr(placeholder);
+    color: var(--sub-text-color);
+    pointer-events: none;
+  }
+
+  .comment-dialog-content .comment-input img {
+    max-width: 120px;
+    vertical-align: middle;
+    margin: 0 4px;
+    object-fit: contain;
+    cursor: pointer;
   }
 
   .comment-dialog-content .comment-input:focus {
@@ -1147,6 +1162,17 @@
   .comment-dialog-content .comment-input::placeholder {
     color: var(--sub-text-color);
     font-size: 14px;
+  }
+
+  :deep(.emoji-picker) {
+    position: absolute;
+    bottom: calc(100% + 15px);
+    left: -5px;
+    z-index: 1000;
+  }
+
+  .emoji-icon-wrapper {
+    position: relative;
   }
 
   .comment-dialog-content .comment-input::selection {
@@ -1195,10 +1221,6 @@
     display: flex;
     align-items: center;
     gap: 12px;
-  }
-
-  .emoji-icon-wrapper {
-    position: relative;
   }
 
   .dialog-footer .icon {
