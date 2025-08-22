@@ -1,13 +1,9 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import terser from "@rollup/plugin-terser";
-import AutoImport from "unplugin-auto-import/vite";
-import { resolve } from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  const isDev = mode === "development";
-  return {
+export default defineConfig({
     plugins: [
       vue(),
       terser({
@@ -18,22 +14,6 @@ export default defineConfig(({ mode }) => {
         output: {
           comments: false, // 移除注释
         },
-      }),
-      AutoImport({
-        imports: ["vue"],
-        dts: "src/auto-imports.d.ts",
-        resolvers: isDev
-          ? [
-              (name) => {
-                if (name === "utools") {
-                  return {
-                    name: "default",
-                    from: "@/utils/utools",
-                  };
-                }
-              },
-            ]
-          : [],
       }),
     ],
     base: "./",
@@ -58,10 +38,4 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    resolve: {
-      alias: {
-        "@": resolve(__dirname, "src"),
-      },
-    },
-  };
 });
