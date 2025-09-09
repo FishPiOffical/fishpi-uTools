@@ -95,7 +95,9 @@
           <div class="comment-list">
             <div
               v-for="comment in comments"
+              :ref="setcommentRef(el, comment.commentOriginalCommentId)"
               :key="comment.oId"
+              :data-id="comment.commentOriginalCommentId"
               class="comment-item"
             >
               <div class="comment-header">
@@ -306,7 +308,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, watch, nextTick, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { articleApi } from "../api";
 import { ElMessage } from "element-plus";
@@ -319,6 +321,7 @@ const article = ref(null);
 const loading = ref(true);
 const error = ref(null);
 const containerRef = ref(null);
+const commentRef = reactive({})
 
 // 评论相关状态
 const comments = ref([]);
@@ -339,8 +342,29 @@ const commentInput = ref(null);
 // 图片预览相关
 let previewWindow = null;
 
+const setcommentRef = (el, cid) => {
+  if(el){
+    commentRef[cid] = el;
+  }
+}
+
+// 跳转到评论
+const scrollToComment = (cId) => {
+  console.log('cid,', cId)
+  const commentEl = commentRef[cId]
+  console.log('全部评论节点', commentRef)
+  console.log('评论节点', commentEl)
+  commentEl.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
+  });
+
+}
+
 const fetchArticleDetail = async () => {
   const articleId = route.params.id;
+  const commentId = route.query.commentId ?? undefined;
+  console.log('帖子详情中查看oid:', commentId)
   if (!articleId) {
     error.value = new Error("未提供帖子ID");
     loading.value = false;
@@ -365,6 +389,10 @@ const fetchArticleDetail = async () => {
     article.value = null;
   } finally {
     loading.value = false;
+  }
+
+  if(commentId){
+    scrollToComment(commentId);
   }
 };
 
@@ -603,7 +631,7 @@ const handleCommentThank = async (comment) => {
 // 添加返回列表方法
 const goBack = () => {
   console.log("点击返回按钮");
-  router.push("/posts");
+  router.back();
 };
 
 // 添加路由离开守卫

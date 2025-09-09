@@ -27,21 +27,46 @@ const handleClick = () => {
   if (!props.notification.hasRead) {
     emit("mark-as-read", props.notification.oId);
   }
-  if (props.notification.dataType === 13) {
-    gotoCommentPostDetail(props.notification);
-  }
+
+  gotoCommentPostDetail(props.notification);
 };
 
 // 跳转至帖子详情
 const gotoCommentPostDetail = (notificat) => {
-  const postid = notificat.commentSharpURL.replace("/article/", "").split("?")[0];
-  // tiaozhua
-  console.log('查看id', postid);
+  let acticalurl = ''; // 帖子url
+  const datatype = notificat.dataType ?? 0; 
+  let cId = '';
+  switch(datatype){
+    case 4: // 关注-发布新文章
+      acticalurl = notificat.url;
+      break;
+    case 8: // 积分-感谢回帖
+    case 25:  // at我-赞同回帖
+      acticalurl = notificat.description;
+      break;
+    case 0: // 评论
+    case 13: // 回复评论
+      acticalurl = notificat.commentSharpURL;
+      break;
+    case 39: // at我-专属红包-聊天室信息
+    case 11: //积分明细
+      return;
+  };
+  const postid = acticalurl.match(/\/article\/(\d+)/)[1]; // 获取文章ID
+  console.log('1',acticalurl.includes('#'))
+  if (acticalurl.includes('#')) {
+    cId = acticalurl.match(/#(\d+)/)[1]
+    // let commentId = acticalurl.split('#')[-1]
+  }
+  console.log('postid', postid)
+  console.log('cid', cId)
+
+  // 跳转帖子 并滚到评论位置
   router.push({
     path: `/post/${postid}`,
-    // params: {
-    //   commentId: notificat.oId,
-    // },
+    query: {
+      commentId: cId
+    },
   });
 };
 </script>
