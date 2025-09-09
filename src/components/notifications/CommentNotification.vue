@@ -34,7 +34,11 @@
 
 <script setup>
 import { defineProps, defineEmits } from "vue";
+import { useRouter, onBeforeRouteLeave } from "vue-router";
+
 import BaseNotification from "./BaseNotification.vue";
+
+const router = useRouter(); // 获取router实例
 
 const props = defineProps({
   notification: {
@@ -70,6 +74,19 @@ const formatTime = (time) => {
 
   return `${year}-${month}-${day} ${hour}:${minute}`;
 };
+
+// 跳转至帖子详情
+// const gotoCommentPostDetail = (notificat) => {
+//   const postid = notificat.commentSharpURL.replace("/article/", "").split("?")[0];
+//   // tiaozhua
+//   console.log('查看id', postid);
+//   router.push({
+//     path: `/post/${postid}`,
+//     // params: {
+//     //   commentId: notificat.oId,
+//     // },
+//   });
+// };
 </script>
 
 <style scoped>

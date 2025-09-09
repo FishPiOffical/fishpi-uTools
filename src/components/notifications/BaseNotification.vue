@@ -9,6 +9,9 @@
 
 <script setup>
 import { defineProps, defineEmits } from "vue";
+import { useRouter, onBeforeRouteLeave } from "vue-router";
+
+const router = useRouter(); // 获取router实例
 
 const props = defineProps({
   notification: {
@@ -20,9 +23,26 @@ const props = defineProps({
 const emit = defineEmits(["mark-as-read"]);
 
 const handleClick = () => {
+  console.log("handleClick", props.notification);
   if (!props.notification.hasRead) {
     emit("mark-as-read", props.notification.oId);
   }
+  if (props.notification.dataType === 13) {
+    gotoCommentPostDetail(props.notification);
+  }
+};
+
+// 跳转至帖子详情
+const gotoCommentPostDetail = (notificat) => {
+  const postid = notificat.commentSharpURL.replace("/article/", "").split("?")[0];
+  // tiaozhua
+  console.log('查看id', postid);
+  router.push({
+    path: `/post/${postid}`,
+    // params: {
+    //   commentId: notificat.oId,
+    // },
+  });
 };
 </script>
 
