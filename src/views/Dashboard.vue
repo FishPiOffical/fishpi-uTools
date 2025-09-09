@@ -241,6 +241,7 @@ const fetchRewardStatus = async () => {
   try {
     const res = await userApi.checkLivenessRewardStatus();
     rewardStatus.value = res.isCollectedYesterdayLivenessReward;
+    
   } catch (error) {
     console.error("获取奖励状态失败:", error);
   }

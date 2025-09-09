@@ -178,7 +178,6 @@ const isNewUser = computed(() => {
 // 刷新活跃度
 const refreshLiveness = () => {
   livenessStore.fetchLiveness();
-  console.log("刷新活跃度", livenessStore.lastLivenessTime.toTimeString());
 };
 
 // 处理私信消息
