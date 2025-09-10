@@ -71,7 +71,6 @@
 
         <template v-else>
           <div class="comment-list">
-
             <div
               v-for="comment in comments"
               :ref="setcommentRef"
@@ -165,7 +164,9 @@
                 </div>
               </div>
             </div>
+            </div>
           </div>
+
         </template>
       </div>
 
@@ -236,6 +237,7 @@ import { articleApi } from "../api";
 import { ElMessage } from "element-plus";
 import { onBeforeRouteLeave } from "vue-router";
 import { createImagePreviewWindow } from "../utils/imagePreview";
+import { debounce } from "lodash";
 
 const route = useRoute();
 const router = useRouter();
@@ -312,14 +314,6 @@ const fetchArticleDetail = async () => {
     } finally {
       loading.value = false;
     }
-  } catch (err) {
-    console.error("获取帖子详情失败:", err);
-    error.value = new Error("网络请求失败");
-    article.value = null;
-  } finally {
-    loading.value = false;
-  }
-
   // if(commentId){
   //   scrollToComment(commentId);
   // }
@@ -379,6 +373,7 @@ const fetchComments = async () => {
         // 更新响应式数据
         comments.value = sortedComments;
         console.log("评论数据:", comments.value);
+      });
       } else {
         commentError.value = new Error(response.msg || "获取评论失败");
       }
@@ -727,9 +722,6 @@ const fetchComments = async () => {
     } finally {
       isSubmitting.value = false;
     }
-  } catch (err) {
-    console.error("感谢操作失败:", err);
-  }
 };
 
 // 添加返回列表方法
@@ -737,17 +729,6 @@ const goBack = () => {
   console.log("点击返回按钮");
   router.back();
 };
-
-// 添加路由离开守卫
-onBeforeRouteLeave((to, from, next) => {
-  console.log("离开帖子详情页", to.path);
-  next();
-});
-
-// 修改 showCommentDialog 的监听
-watch(showCommentDialog, (newVal) => {
-  if (newVal) {
-  };
 
   // 处理回复
   const handleReply = (comment) => {
@@ -785,11 +766,6 @@ watch(showCommentDialog, (newVal) => {
     showEmojiPicker.value = false;
   };
 
-  // 添加返回列表方法
-  const goBack = () => {
-    console.log("点击返回按钮");
-    router.push("/posts");
-  };
 
   // 添加路由离开守卫
   onBeforeRouteLeave((to, from, next) => {
