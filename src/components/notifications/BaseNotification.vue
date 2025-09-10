@@ -33,9 +33,9 @@ const handleClick = () => {
 
 // 跳转至帖子详情
 const gotoCommentPostDetail = (notificat) => {
-  let acticalurl = ''; // 帖子url
+  let acticalurl = null; // 帖子url
   const datatype = notificat.dataType ?? 0; 
-  let cId = '';
+  let cId = null;
   switch(datatype){
     case 4: // 关注-发布新文章
       acticalurl = notificat.url;
@@ -50,6 +50,8 @@ const gotoCommentPostDetail = (notificat) => {
       break;
     case 39: // at我-专属红包-聊天室信息
     case 11: //积分明细
+      return;
+    default:
       return;
   };
   const postid = acticalurl.match(/\/article\/(\d+)/)[1]; // 获取文章ID
