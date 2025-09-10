@@ -95,7 +95,7 @@
           <div class="comment-list">
             <div
               v-for="comment in comments"
-              :ref="setcommentRef(el, comment.commentOriginalCommentId)"
+              :ref="setcommentRef"
               :key="comment.oId"
               :data-id="comment.commentOriginalCommentId"
               class="comment-item"
@@ -321,7 +321,7 @@ const article = ref(null);
 const loading = ref(true);
 const error = ref(null);
 const containerRef = ref(null);
-const commentRef = reactive({})
+const commentRef = ref([]);
 
 // 评论相关状态
 const comments = ref([]);
@@ -342,17 +342,17 @@ const commentInput = ref(null);
 // 图片预览相关
 let previewWindow = null;
 
-const setcommentRef = (el, cid) => {
+const setcommentRef = (el) => {
   if(el){
-    commentRef[cid] = el;
+    commentRef.value.push(el)
   }
 }
 
 // 跳转到评论
 const scrollToComment = (cId) => {
   console.log('cid,', cId)
-  const commentEl = commentRef[cId]
-  console.log('全部评论节点', commentRef)
+  const commentEl = commentRef.value.find(item => item.id === cId)
+  console.log('全部评论节点', commentRef.value)
   console.log('评论节点', commentEl)
   commentEl.scrollIntoView({
     behavior: 'smooth',
@@ -391,9 +391,9 @@ const fetchArticleDetail = async () => {
     loading.value = false;
   }
 
-  if(commentId){
-    scrollToComment(commentId);
-  }
+  // if(commentId){
+  //   scrollToComment(commentId);
+  // }
 };
 
 // 获取评论列表
