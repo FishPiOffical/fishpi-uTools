@@ -72,14 +72,8 @@
         <template v-else>
           <div class="comment-list">
 
-            <div
-              v-for="comment in comments"
-              :ref="setcommentRef"
-              :key="comment.oId"
-              :data-id="comment.commentOriginalCommentId"
-              class="comment-item"
-            >
-            <div v-for="comment in comments" :key="comment.oId" class="comment-item">
+            <div v-for="comment in comments" :ref="setcommentRef" :key="comment.oId"
+              :data-id="comment.commentOriginalCommentId" class="comment-item">
               <div class="comment-header">
                 <img :src="comment.commentAuthorThumbnailURL" :alt="comment.commentAuthorName" class="comment-avatar" />
                 <div class="comment-info">
@@ -230,68 +224,86 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick, reactive } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { articleApi } from "../api";
-import { ElMessage } from "element-plus";
-import { onBeforeRouteLeave } from "vue-router";
-import { createImagePreviewWindow } from "../utils/imagePreview";
+  import { ref, onMounted, onUnmounted, watch, nextTick, reactive } from "vue";
+  import { useRoute, useRouter } from "vue-router";
+  import { articleApi } from "../api";
+  import { ElMessage } from "element-plus";
+  import { onBeforeRouteLeave } from "vue-router";
+  import { createImagePreviewWindow } from "../utils/imagePreview";
+  import { userApi } from "../api";
 
-const route = useRoute();
-const router = useRouter();
-const article = ref(null);
-const loading = ref(true);
-const error = ref(null);
-const containerRef = ref(null);
-const commentRef = ref([]);
+  // 防抖函数
+  const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  };
 
-// 评论相关状态
-const comments = ref([]);
-const commentLoading = ref(false);
-const commentError = ref(null);
-const commentContent = ref("");
-const replyTo = ref(null);
-const isSubmitting = ref(false);
-const commentAnonymous = ref(false);
-const commentVisible = ref(false);
-const userCommentViewMode = ref(1);
+  const route = useRoute();
+  const router = useRouter();
+  const article = ref(null);
+  const loading = ref(true);
+  const error = ref(null);
+  const containerRef = ref(null);
+  const commentRef = ref([]);
 
-// 添加评论弹窗控制变量
-const showCommentDialog = ref(false);
+  // 评论相关状态
+  const comments = ref([]);
+  const commentLoading = ref(false);
+  const commentError = ref(null);
+  const commentContent = ref("");
+  const replyTo = ref(null);
+  const isSubmitting = ref(false);
+  const commentAnonymous = ref(false);
+  const commentVisible = ref(false);
+  const userCommentViewMode = ref(1);
 
-const commentInput = ref(null);
+  // 添加评论弹窗控制变量
+  const showCommentDialog = ref(false);
 
-// 图片预览相关
-let previewWindow = null;
+  const commentInput = ref(null);
 
-const setcommentRef = (el) => {
-  if(el){
-    commentRef.value.push(el)
+  // 图片预览相关
+  let previewWindow = null;
+
+  // 添加缺失的变量
+  const showEmojiPicker = ref(false);
+  const emojiMap = reactive({});
+
+  const setcommentRef = (el) => {
+    if (el) {
+      commentRef.value.push(el)
+    }
   }
-}
 
-// 跳转到评论
-const scrollToComment = (cId) => {
-  console.log('cid,', cId)
-  const commentEl = commentRef.value.find(item => item.id === cId)
-  console.log('全部评论节点', commentRef.value)
-  console.log('评论节点', commentEl)
-  commentEl.scrollIntoView({
-    behavior: 'smooth',
-    block: 'center'
-  });
+  // 跳转到评论
+  const scrollToComment = (cId) => {
+    console.log('cid,', cId)
+    const commentEl = commentRef.value.find(item => item.id === cId)
+    console.log('全部评论节点', commentRef.value)
+    console.log('评论节点', commentEl)
+    commentEl.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
 
-}
-
-const fetchArticleDetail = async () => {
-  const articleId = route.params.id;
-  const commentId = route.query.commentId ?? undefined;
-  console.log('帖子详情中查看oid:', commentId)
-  if (!articleId) {
-    error.value = new Error("未提供帖子ID");
-    loading.value = false;
-    return;
   }
+
+  const fetchArticleDetail = async () => {
+    const articleId = route.params.id;
+    const commentId = route.query.commentId ?? undefined;
+    console.log('帖子详情中查看oid:', commentId)
+    if (!articleId) {
+      error.value = new Error("未提供帖子ID");
+      loading.value = false;
+      return;
+    }
 
     try {
       loading.value = true;
@@ -312,38 +324,28 @@ const fetchArticleDetail = async () => {
     } finally {
       loading.value = false;
     }
-  } catch (err) {
-    console.error("获取帖子详情失败:", err);
-    error.value = new Error("网络请求失败");
-    article.value = null;
-  } finally {
-    loading.value = false;
-  }
+  };
 
-  // if(commentId){
-  //   scrollToComment(commentId);
-  // }
-};
+  // 获取评论列表
+  const fetchComments = async () => {
+    if (!article.value) return;
 
-// 获取评论列表
-const fetchComments = async () => {
-  if (!article.value) return;
+    try {
+      commentLoading.value = true;
+      commentError.value = null;
+      const response = await articleApi.getArticleComments(article.value.oId);
+      if (response.code === 0) {
+        // 处理评论数据，将回复归类到对应的评论下
+        const commentsMap = new Map();
+        const commentsData = response.data.articleComments || [];
 
-  try {
-    commentLoading.value = true;
-    commentError.value = null;
-    const response = await articleApi.getArticleComments(article.value.oId);
-    if (response.code === 0) {
-      // 处理评论数据，将回复归类到对应的评论下
-      const commentsMap = new Map();
-      const commentsData = response.data.articleComments || [];
-
-      // 先处理所有评论
-      commentsData.forEach((comment) => {
-        // 所有评论都先作为主评论处理
-        commentsMap.set(comment.oId, {
-          ...comment,
-          replies: [],
+        // 先处理所有评论
+        commentsData.forEach((comment) => {
+          // 所有评论都先作为主评论处理
+          commentsMap.set(comment.oId, {
+            ...comment,
+            replies: [],
+          });
         });
 
         // 再处理回复关系
@@ -727,27 +729,32 @@ const fetchComments = async () => {
     } finally {
       isSubmitting.value = false;
     }
-  } catch (err) {
-    console.error("感谢操作失败:", err);
   }
-};
 
-// 添加返回列表方法
-const goBack = () => {
-  console.log("点击返回按钮");
-  router.back();
-};
-
-// 添加路由离开守卫
-onBeforeRouteLeave((to, from, next) => {
-  console.log("离开帖子详情页", to.path);
-  next();
-});
-
-// 修改 showCommentDialog 的监听
-watch(showCommentDialog, (newVal) => {
-  if (newVal) {
+  // 添加返回列表方法
+  const goBack = () => {
+    console.log("点击返回按钮");
+    router.back();
   };
+
+  // 添加路由离开守卫
+  onBeforeRouteLeave((to, from, next) => {
+    console.log("离开帖子详情页", to.path);
+    next();
+  });
+
+  // 修改 showCommentDialog 的监听
+  // 修改 showCommentDialog 的监听
+  watch(showCommentDialog, (newVal) => {
+    if (newVal) {
+      // 确保在下一个 tick 后聚焦
+      nextTick(() => {
+        setTimeout(() => {
+          commentInput.value?.focus();
+        }, 100);
+      });
+    }
+  });
 
   // 处理回复
   const handleReply = (comment) => {
@@ -783,12 +790,6 @@ watch(showCommentDialog, (newVal) => {
     commentAnonymous.value = false;
     commentVisible.value = false;
     showEmojiPicker.value = false;
-  };
-
-  // 添加返回列表方法
-  const goBack = () => {
-    console.log("点击返回按钮");
-    router.push("/posts");
   };
 
   // 添加路由离开守卫
