@@ -58,7 +58,8 @@
               <span>退出登录</span>
             </div>
           </div>
-          <div class="collapsed-liveness">
+          <!-- 活跃度展示 -->
+          <div class="collapsed-liveness" @click="refreshLiveness">
             <div
               class="liveness-info"
               :class="{ signed: livenessStore.liveness >= 10 }"
@@ -173,6 +174,11 @@ const navItems = [
 const isNewUser = computed(() => {
   return userStore.userInfo?.userRole === "新人";
 });
+
+// 刷新活跃度
+const refreshLiveness = () => {
+  livenessStore.fetchLiveness();
+};
 
 // 处理私信消息
 const handleMessage = (data) => {

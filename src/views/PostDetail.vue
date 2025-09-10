@@ -71,6 +71,14 @@
 
         <template v-else>
           <div class="comment-list">
+
+            <div
+              v-for="comment in comments"
+              :ref="setcommentRef"
+              :key="comment.oId"
+              :data-id="comment.commentOriginalCommentId"
+              class="comment-item"
+            >
             <div v-for="comment in comments" :key="comment.oId" class="comment-item">
               <div class="comment-header">
                 <img :src="comment.commentAuthorThumbnailURL" :alt="comment.commentAuthorName" class="comment-avatar" />
@@ -222,48 +230,68 @@
 </template>
 
 <script setup>
-  import { nextTick, onMounted, reactive, ref, watch } from "vue";
-  import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
-  import { articleApi, request, userApi } from "../api";
-  import { ElMessage } from "element-plus";
-  import { createImagePreviewWindow } from "../utils/imagePreview";
-  import EmojiPicker from '../components/EmojiPicker.vue'
-  import { debounce } from 'lodash' // 引入 lodash 的防抖函数
+import { ref, onMounted, onUnmounted, watch, nextTick, reactive } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { articleApi } from "../api";
+import { ElMessage } from "element-plus";
+import { onBeforeRouteLeave } from "vue-router";
+import { createImagePreviewWindow } from "../utils/imagePreview";
 
-  const route = useRoute();
-  const router = useRouter();
-  const article = ref(null);
-  const loading = ref(true);
-  const error = ref(null);
-  const containerRef = ref(null);
+const route = useRoute();
+const router = useRouter();
+const article = ref(null);
+const loading = ref(true);
+const error = ref(null);
+const containerRef = ref(null);
+const commentRef = ref([]);
 
-  // 评论相关状态
-  const comments = ref([]);
-  const commentLoading = ref(false);
-  const commentError = ref(null);
-  const commentContent = ref("");
-  const replyTo = ref(null);
-  const isSubmitting = ref(false);
-  const commentAnonymous = ref(false);
-  const commentVisible = ref(false);
-  const userCommentViewMode = ref(1);
+// 评论相关状态
+const comments = ref([]);
+const commentLoading = ref(false);
+const commentError = ref(null);
+const commentContent = ref("");
+const replyTo = ref(null);
+const isSubmitting = ref(false);
+const commentAnonymous = ref(false);
+const commentVisible = ref(false);
+const userCommentViewMode = ref(1);
 
-  // 添加评论弹窗控制变量
-  const showCommentDialog = ref(false);
-  const showEmojiPicker = ref(false)
+// 添加评论弹窗控制变量
+const showCommentDialog = ref(false);
 
-  const commentInput = ref(null);
+const commentInput = ref(null);
 
-  // 图片预览相关
-  let previewWindow = null;
+// 图片预览相关
+let previewWindow = null;
 
-  const fetchArticleDetail = async () => {
-    const articleId = route.params.id;
-    if (!articleId) {
-      error.value = new Error("未提供帖子ID");
-      loading.value = false;
-      return;
-    }
+const setcommentRef = (el) => {
+  if(el){
+    commentRef.value.push(el)
+  }
+}
+
+// 跳转到评论
+const scrollToComment = (cId) => {
+  console.log('cid,', cId)
+  const commentEl = commentRef.value.find(item => item.id === cId)
+  console.log('全部评论节点', commentRef.value)
+  console.log('评论节点', commentEl)
+  commentEl.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
+  });
+
+}
+
+const fetchArticleDetail = async () => {
+  const articleId = route.params.id;
+  const commentId = route.query.commentId ?? undefined;
+  console.log('帖子详情中查看oid:', commentId)
+  if (!articleId) {
+    error.value = new Error("未提供帖子ID");
+    loading.value = false;
+    return;
+  }
 
     try {
       loading.value = true;
@@ -284,28 +312,38 @@
     } finally {
       loading.value = false;
     }
-  };
+  } catch (err) {
+    console.error("获取帖子详情失败:", err);
+    error.value = new Error("网络请求失败");
+    article.value = null;
+  } finally {
+    loading.value = false;
+  }
 
-  // 获取评论列表
-  const fetchComments = async () => {
-    if (!article.value) return;
+  // if(commentId){
+  //   scrollToComment(commentId);
+  // }
+};
 
-    try {
-      commentLoading.value = true;
-      commentError.value = null;
-      const response = await articleApi.getArticleComments(article.value.oId);
-      if (response.code === 0) {
-        // 处理评论数据，将回复归类到对应的评论下
-        const commentsMap = new Map();
-        const commentsData = response.data.articleComments || [];
+// 获取评论列表
+const fetchComments = async () => {
+  if (!article.value) return;
 
-        // 先处理所有评论
-        commentsData.forEach((comment) => {
-          // 所有评论都先作为主评论处理
-          commentsMap.set(comment.oId, {
-            ...comment,
-            replies: [],
-          });
+  try {
+    commentLoading.value = true;
+    commentError.value = null;
+    const response = await articleApi.getArticleComments(article.value.oId);
+    if (response.code === 0) {
+      // 处理评论数据，将回复归类到对应的评论下
+      const commentsMap = new Map();
+      const commentsData = response.data.articleComments || [];
+
+      // 先处理所有评论
+      commentsData.forEach((comment) => {
+        // 所有评论都先作为主评论处理
+        commentsMap.set(comment.oId, {
+          ...comment,
+          replies: [],
         });
 
         // 再处理回复关系
@@ -689,6 +727,26 @@
     } finally {
       isSubmitting.value = false;
     }
+  } catch (err) {
+    console.error("感谢操作失败:", err);
+  }
+};
+
+// 添加返回列表方法
+const goBack = () => {
+  console.log("点击返回按钮");
+  router.back();
+};
+
+// 添加路由离开守卫
+onBeforeRouteLeave((to, from, next) => {
+  console.log("离开帖子详情页", to.path);
+  next();
+});
+
+// 修改 showCommentDialog 的监听
+watch(showCommentDialog, (newVal) => {
+  if (newVal) {
   };
 
   // 处理回复

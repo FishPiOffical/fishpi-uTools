@@ -41,7 +41,7 @@ export const userApi = {
 
   // 获取活跃度
   getLiveness() {
-    return request.get("/user/liveness");
+    return request.get(`/user/liveness?_t=${new Date().getTime()}`);
   },
 
   // 获取签到状态
