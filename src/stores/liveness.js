@@ -34,7 +34,7 @@ export const useLivenessStore = defineStore("liveness", {
 
       // 设置定时器，每10分钟获取一次
       const scheduleNextFetch = () => {
-        const delay = 1 * 60 * 1000; // 10分钟 = 600000毫秒
+        const delay = 10 * 60 * 1000; // 10分钟 = 600000毫秒
         this.checkInterval = setTimeout(async () => {
           await this.fetchLiveness();
           scheduleNextFetch();
