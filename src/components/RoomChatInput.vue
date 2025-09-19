@@ -14,9 +14,7 @@
           quoteContent
         }}</span>
         <div v-else class="quoted-image-preview">
-          <span class="quoted-image-text"
-            >{{ quoteData.userName }}：[图片]</span
-          >
+          <span class="quoted-image-text">{{ quoteData.userName }}：[图片]</span>
         </div>
       </div>
       <i class="fas fa-times close-icon" @click="clearQuote"></i>
@@ -25,63 +23,40 @@
       <!-- 表情图标 -->
       <div class="emoji-icon-wrapper">
         <i class="fas fa-smile icon" @click="openEmojiPicker" title="表情"></i>
-        <EmojiPicker
-          :visible="showEmojiPicker"
-          @select="handleEmojiSelect"
-          @close="showEmojiPicker = false"
-        />
+        <EmojiPicker :visible="showEmojiPicker" @select="handleEmojiSelect" @close="showEmojiPicker = false" />
       </div>
       <!-- 图片图标 -->
       <i class="fas fa-image icon" @click="openImagePicker" title="图片"></i>
       <!-- 红包图标 -->
       <i class="fas fa-gift icon" @click="openRedPacketDialog" title="红包"></i>
       <!-- 弹幕图标 -->
-      <i
-        class="fas fa-comment-dots icon"
-        @click="openDanmakuDialog"
-        title="弹幕"
-      ></i>
+      <i class="fas fa-comment-dots icon" @click="openDanmakuDialog" title="弹幕"></i>
       <!-- 小尾巴图标 -->
-      <i
-        class="fas fa-pen-fancy icon"
-        @click="openSignatureDialog"
-        title="小尾巴"
-      ></i>
+      <i class="fas fa-pen-fancy icon" @click="openSignatureDialog" title="小尾巴"></i>
+      <!-- 关键词图标 -->
+
+      <i class="fas fa-bell icon" @click="openBellDialog" title="关键词提醒"></i>
     </div>
+
     <div class="input-wrapper">
-      <div
-        ref="textareaRef"
-        class="input-content"
-        contenteditable="true"
-        @keydown="handleKeyDown"
-        @input="handleInput"
-        @focus="showEmojiPicker = false"
-        @click="
+      <div ref="textareaRef" class="input-content" contenteditable="true" @keydown="handleKeyDown" @input="handleInput"
+        @focus="showEmojiPicker = false" @click="
           handleImageClick;
-          closeEmojiSearch();
-        "
-      ></div>
+        closeEmojiSearch();
+        "></div>
       <!-- @提及用户列表 -->
       <div v-if="showMentionList" class="mention-list">
-        <div
-          v-for="user in filteredUsers"
-          :key="user.userName"
-          class="mention-item"
-          @click="selectMention(user)"
-        >
+        <div v-for="user in filteredUsers" :key="user.userName" class="mention-item" @click="selectMention(user)">
           <img :src="user.userAvatarURL" alt="avatar" class="mention-avatar" />
           <span class="mention-name">{{ user.userName }}</span>
         </div>
       </div>
 
       <!-- 表情包搜索结果 -->
-      <div
-        v-if="
-          showEmojiSearch &&
-          (emojiSearchLoading || emojiSearchResults.length > 0)
-        "
-        class="emoji-search-results"
-      >
+      <div v-if="
+        showEmojiSearch &&
+        (emojiSearchLoading || emojiSearchResults.length > 0)
+      " class="emoji-search-results">
         <div class="emoji-search-header">
           <span class="emoji-search-title">推荐表情</span>
           <i class="fas fa-times close-icon" @click="closeEmojiSearch"></i>
@@ -91,49 +66,26 @@
           <span>搜索中...</span>
         </div>
         <div v-else class="emoji-search-grid">
-          <div
-            v-for="(image, index) in emojiSearchResults"
-            :key="index"
-            class="emoji-search-item"
-            @click="selectEmojiImage(image)"
-          >
-            <img
-              :src="image.thumbURL"
-              :alt="image.title"
-              class="emoji-search-image"
-              @error="handleImageError"
-            />
+          <div v-for="(image, index) in emojiSearchResults" :key="index" class="emoji-search-item"
+            @click="selectEmojiImage(image)">
+            <img :src="image.thumbURL" :alt="image.title" class="emoji-search-image" @error="handleImageError" />
           </div>
         </div>
       </div>
     </div>
     <div class="input-footer">
       <span class="tip">按 Enter 发送，Shift + Enter 换行</span>
-      <button
-        @click="sendMessage"
-        :disabled="!message.trim()"
-        :class="{ disabled: !message.trim() }"
-      >
+      <button @click="sendMessage" :disabled="!message.trim()" :class="{ disabled: !message.trim() }">
         发送
       </button>
     </div>
-    <RedPacketDialog
-      :visible="showRedPacketDialog"
-      :online-users="onlineUsers"
-      @close="showRedPacketDialog = false"
-      @send="handleRedPacketSend"
-    />
-    <DanmakuDialog
-      :visible="showDanmakuDialog"
-      @close="showDanmakuDialog = false"
-      @send="handleDanmakuSend"
-    />
-    <SignatureDialog
-      :visible="showSignatureDialog"
-      :default-signature="signature"
-      @close="showSignatureDialog = false"
-      @save="handleSignatureSave"
-    />
+    <RedPacketDialog :visible="showRedPacketDialog" :online-users="onlineUsers" @close="showRedPacketDialog = false"
+      @send="handleRedPacketSend" />
+    <DanmakuDialog :visible="showDanmakuDialog" @close="showDanmakuDialog = false" @send="handleDanmakuSend" />
+    <SignatureDialog :visible="showSignatureDialog" :default-signature="signature" @close="showSignatureDialog = false"
+      @save="handleSignatureSave" />
+    <BellDialog :visible="showBellDialog" :locatbell="bells" @close="showBellDialog = false"
+     />
   </div>
 </template>
 
@@ -151,6 +103,7 @@ import EmojiPicker from "./EmojiPicker.vue";
 import RedPacketDialog from "./RedPacketDialog.vue";
 import DanmakuDialog from "./DanmakuDialog.vue";
 import SignatureDialog from "./SignatureDialog.vue";
+import BellDialog from "./BellDialog.vue";
 import { userApi } from "../api/user";
 import { baiduImageAPI } from "../api/baidu";
 import { ElMessage } from "element-plus";
@@ -175,7 +128,9 @@ const currentTopic = ref("");
 const quoteData = ref(null); // 新增：引用消息数据
 const showDanmakuDialog = ref(false);
 const showSignatureDialog = ref(false);
+const showBellDialog = ref(false);
 const signature = ref("");
+const bells = ref([]);
 const emit = defineEmits([
   "send-message",
   "select-emoji",
@@ -224,24 +179,28 @@ onMounted(() => {
 
   // 获取当前用户的小尾巴
   const savedSignatures = utools.dbStorage.getItem("fishpi_signatures") || {};
+  const savedBells = utools.dbStorage.getItem("fishpi_bells") || [];
   const currentUsername = userStore.userInfo?.userName;
   signature.value = currentUsername
     ? savedSignatures[currentUsername] || ""
     : savedSignatures.default || "";
-
+  bells.value = savedBells
   // 监听账号切换事件
   window.addEventListener("fishpi:account-switched", () => {
     const savedSignatures = utools.dbStorage.getItem("fishpi_signatures") || {};
+    const savedBells = utools.dbStorage.getItem("fishpi_bells") || [];
     const currentUsername = userStore.userInfo?.userName;
     signature.value = currentUsername
       ? savedSignatures[currentUsername] || ""
       : savedSignatures.default || "";
+    bells.value = savedBells
+
   });
 });
 
 onUnmounted(() => {
   textareaRef.value?.removeEventListener("paste", handlePaste);
-  window.removeEventListener("fishpi:account-switched", () => {});
+  window.removeEventListener("fishpi:account-switched", () => { });
 
   // 清理表情包搜索定时器
   if (emojiSearchDebounceTimer.value) {
@@ -304,6 +263,7 @@ const focus = () => {
   textareaRef.value?.focus();
 };
 
+// 插入消息内容
 const insertAtUser = (userName) => {
   textareaRef.value?.focus();
   console.log("insertAtUser", userName);
@@ -591,9 +551,8 @@ const sendMessage = () => {
     ) {
       const quote = quoteData.value;
       const oId = quote.oId || "";
-      const quotePrefix = `\n\n ##### 引用 @${quote.userName}${
-        oId ? ` [↩](https://fishpi.cn/cr#chatroom${oId} "跳转至原消息")` : ""
-      }\n\n> ${quote.content}\n\n`;
+      const quotePrefix = `\n\n ##### 引用 @${quote.userName}${oId ? ` [↩](https://fishpi.cn/cr#chatroom${oId} "跳转至原消息")` : ""
+        }\n\n> ${quote.content}\n\n`;
       content = content + quotePrefix;
     }
 
@@ -737,9 +696,17 @@ const openSignatureDialog = () => {
   showSignatureDialog.value = true;
 };
 
+const openBellDialog = () => {
+  const savedBells = utools.dbStorage.getItem("fishpi_bells") || [];
+  bells.value = savedBells
+  showBellDialog.value = true;
+
+};
+
 const handleSignatureSave = (newSignature) => {
   signature.value = newSignature;
 };
+
 
 // 处理按键事件
 const handleKeyDown = (e) => {
