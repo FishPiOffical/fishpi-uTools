@@ -23,7 +23,7 @@
       </div>
       <div class="dialog-footer">
         <button @click="handleClear">重置所有</button>
-        <button @click="handleSave">确定</button>
+        <button @click="handleSave">提交</button>
       </div>
     </div>
   </div>
@@ -110,6 +110,15 @@
       });
       return;
     }  // Prevent duplicates
+    if (keyword.value.trim() === "") {
+      ElMessage({
+        message: "请输入关键词",
+        type: "warning",
+        duration: 2000,
+        showClose: true,
+      });
+      return;
+    }
     saveUserBells(keyword.value);
     handleClose();
     keyword.value = '';

@@ -3,7 +3,6 @@
     <div class="chat-area" :class="{ 'full-width': !showSidebar }">
       <!-- 聊天头部组件 -->
       <ChatHeader />
-
       <!-- 消息列表组件 -->
       <MessageList :messages="messages" :is-loading-more="isLoadingMore" :has-more-messages="hasMoreMessages"
         :show-sidebar="showSidebar" @load-more="handleLoadMore" @at-user="handleAtUser"
@@ -17,7 +16,6 @@
     <div class="sidebar-toggle" :class="{ 'sidebar-hidden': !showSidebar }" @click="toggleSidebar">
       <i :class="showSidebar ? 'fas fa-chevron-right' : 'fas fa-chevron-left'"></i>
     </div>
-
     <div class="sidebar" v-show="showSidebar">
       <!-- 侧边栏组件 -->
       <Sidebar :online-users="onlineUsers" :current-topic="currentTopic" @topic-click="handleTopicClick" />
@@ -112,7 +110,12 @@ const messageHandlers = {
     // 确保消息有必要字段，并添加到消息列表
     if (data.oId && data.content) {
       const isSelf = data.userName === userStore.userInfo?.userName;
-
+      if (/\<img[^>]+src=/.test(data.content)) {
+        if (data.content.indexOf('https://fishpi.cn/gen?scale') !== -1) {
+          data.content = generateImageCardFromString(data.md);
+          console.log("特殊图片解析:", data);
+        }
+      }
       messages.value = [
         ...messages.value,
         { ...data, isHistory: false, isSelf },
@@ -583,7 +586,80 @@ onMounted(() => {
   // 监听黑名单更新事件
   window.addEventListener("fishpi:blacklist-updated", handleBlacklistUpdated);
 });
+//从特殊图片链接字符串中解析参数
+const parseImageParams = (inputStr) => {
+  // 使用正则表达式提取图片URL部分
+  const urlMatch = inputStr.match(/!\[.*?\]\((https?[^)]+)\)/);
+  if (!urlMatch) {
+    throw new Error('未找到有效的图片URL');
+  }
 
+  const url = urlMatch[1];
+
+  // 解析URL参数
+  const urlObj = new URL(url);
+  const urlParams = new URLSearchParams(urlObj.search);
+
+  return {
+    imageUrl: urlParams.get('url'),
+    text: urlParams.get('txt'),
+    backgroundColor: '#' + urlParams.get('backcolor'),
+    fontColor: '#' + urlParams.get('fontcolor'),
+    scale: parseFloat(urlParams.get('scale')),
+    altText: "图片表情",
+    originalUrl: url
+  };
+}
+//重新生成特殊图片消息内容
+const generateImageCard = (imageUrl, text, backgroundColor = '#F59B95', fontColor = '#f3f1f1', scale = 0.7) => {
+  return `
+<figure style="
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    line-height: 0;
+    background-color: ${backgroundColor};
+    padding: 10px;
+    border-radius: 80px;
+    text-align: center;
+    box-shadow: #666 0px 0px 10px;
+    position: relative;
+">
+    <img src="${imageUrl}" 
+         alt="${text}" 
+         style="
+            position: absolute;
+            width:47px;
+            height: 47px;
+            left:0px;
+            border-radius: 50%;
+             box-shadow: #fffeee 0px 0px 10px;
+         ">
+    <figcaption style="
+        color: ${fontColor};
+        font-family: sans-serif;
+        font-size: 18px;
+        line-height: 1.2;
+        margin-left: 42px;
+        opacity: 0;
+        transform: translateX(-30px);
+        animation: fadeSlideIn 0.7s ease-out 0.5s forwards;
+    ">${text}</figcaption>
+</figure>
+  `.trim();
+}
+//根据输入字符串生成图片卡片内容
+const generateImageCardFromString = (inputStr) => {
+  const params = parseImageParams(inputStr);
+  return generateImageCard(
+    params.imageUrl,
+    params.text,
+    params.backgroundColor,
+    params.fontColor,
+    params.scale
+  );
+}
 onUnmounted(() => {
   wsManager.close("chat-room");
   // 移除事件监听
