@@ -298,3 +298,10 @@ textarea {
   background: var(--tooltip-bg) !important;
   border-color: var(--border-color) !important;
 }
+
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
