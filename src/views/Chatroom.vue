@@ -110,12 +110,31 @@ const messageHandlers = {
     // 确保消息有必要字段，并添加到消息列表
     if (data.oId && data.content) {
       const isSelf = data.userName === userStore.userInfo?.userName;
-      if (/\<img[^>]+src=/.test(data.content)) {
-        if (data.content.indexOf('https://fishpi.cn/gen?scale') !== -1) {
-          data.content = generateImageCardFromString(data.md);
-          console.log("特殊图片解析:", data);
+      const hasImgTag = /\<img[^>]+src=/.test(data.content);
+      const containsGenUrlInContent = /https?:\/\/fishpi\.cn\/gen/.test(data.content || '');
+      const containsGenUrlInMd = /https?:\/\/fishpi\.cn\/gen/.test(data.md || '');
+      // 优先处理“引用”场景：md 中包含引用头，渲染为嵌套 blockquote，并在内部替换特殊图片
+      let handledQuote = false;
+      if ((data.md || '').includes('引用')) {
+        try {
+          const md = data.md || '';
+          const rendered = renderNestedQuotesFromMd(md);
+          if (rendered && rendered.trim()) {
+            data.content = rendered;
+            handledQuote = true;
+          }
+        } catch (e) {
+          handledQuote = false;
         }
       }
+      if (!handledQuote) {
+        if (hasImgTag && containsGenUrlInContent) {
+          data.content = generateImageCardFromString(data.content);
+        } else if (containsGenUrlInMd) {
+          data.content = generateImageCardFromString(data.md);
+        }
+      }
+
       messages.value = [
         ...messages.value,
         { ...data, isHistory: false, isSelf },
@@ -297,7 +316,6 @@ const handleMessage = (data) => {
 // 加载历史消息
 const loadMessages = async (page = 1) => {
   if (isLoadingMore.value || (!hasMoreMessages.value && page !== 1)) return;
-
   isLoadingMore.value = true;
   try {
     const response = await chatApi.getChatMessages(page);
@@ -311,7 +329,14 @@ const loadMessages = async (page = 1) => {
       // 所有分页的消息都需要翻转
       const reversedMessages = filteredMessages
         .reverse()
-        .map((msg) => ({ ...msg, isHistory: true }));
+        .map((msg) => {
+          try {
+            const content = replaceSpecialImagesInHtmlContent(msg.content || '');
+            return { ...msg, content, isHistory: true };
+          } catch (e) {
+            return { ...msg, isHistory: true };
+          }
+        });
 
       if (page === 1) {
         messages.value = reversedMessages;
@@ -557,6 +582,347 @@ const checkBellsInMessage = (mainString, elementsArray) => {
   return foundElements.length > 0;
 }
 
+//从特殊图片链接字符串中解析参数
+const parseImageParams = (inputStr) => {
+  console.log("parseImageParams12222222222222222222222222222333333123333333333333333333333333333333:", inputStr); 
+  // 支持三种输入：Markdown 图片、HTML <img>、直接 URL 字符串
+  let url = null;
+  let title = null;
+  // Markdown
+  const mdMatch = inputStr.match(/!\[.*?\]\((https?[^)]+)\)/);
+  if (mdMatch) {
+    url = mdMatch[1];
+  }
+  // HTML <img>
+  if (!url) {
+    const htmlMatch = inputStr.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if (htmlMatch) {
+      url = htmlMatch[1];
+      const titleMatch = inputStr.match(/<img[^>]+title=["']([^"']+)["']/i);
+      if (titleMatch) {
+        title = titleMatch[1];
+      }
+    }
+  }
+  // 直接 URL
+  if (!url && /^https?:\/\//.test(inputStr.trim())) {
+    url = inputStr.trim();
+  }
+
+  if (!url) {
+    throw new Error('未找到有效的图片URL');
+  }
+
+  // 解析URL参数
+  const decodeHtmlEntities = (s) => String(s)
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+
+  const normalizedUrl = decodeHtmlEntities(url);
+  const urlObj = new URL(normalizedUrl);
+  const urlParams = new URLSearchParams(urlObj.search);
+  // 解析颜色参数：支持单色、逗号分隔多色或 auto
+  const parseColorParam = (raw) => {
+    if (!raw) return { value: null, values: null, isAuto: false };
+    const v = String(raw).trim();
+    if (!v) return { value: null, values: null, isAuto: false };
+    if (v.toLowerCase() === 'auto') return { value: 'auto', values: null, isAuto: true };
+    const parts = v.split(',').map(s => s.trim()).filter(Boolean);
+    const normalizeHex = (s) => s.startsWith('#') ? s : ('#' + s);
+    if (parts.length > 1) {
+      return { value: null, values: parts.map(normalizeHex), isAuto: false };
+    }
+    return { value: normalizeHex(parts[0]), values: null, isAuto: false };
+  };
+
+  const backParsed = parseColorParam(urlParams.get('backcolor'));
+  const fontParsed = parseColorParam(urlParams.get('fontcolor'));
+
+  return {
+    // 原有字段
+    imageUrl: urlParams.get('url'),
+    text: (() => { const t = urlParams.get('txt'); try { return t ? decodeURIComponent(t) : t; } catch { return t; } })(),
+    backgroundColor: backParsed.value, // 单色时为字符串；多色/auto时为 null
+    fontColor: fontParsed.value,       // 单色时为字符串；多色/auto时为 null
+    altText: "图片表情",
+    originalUrl: normalizedUrl,
+    title: title || '加辣',
+
+    // 新增字段
+    version: urlParams.get('ver') || '0.1',
+    way: urlParams.get('way') || 'bottom',
+    fontway: urlParams.get('fontway') || 'bottom',
+    shadow: parseFloat(urlParams.get('shadow')),
+    anime: parseFloat(urlParams.get('anime')),
+    border: parseInt(urlParams.get('border')),
+    barlen: parseInt(urlParams.get('barlen')),
+    fontsize: parseInt(urlParams.get('fontsize')),
+    barradius: parseInt(urlParams.get('barradius')),
+
+    // 颜色增强信息
+    backgroundColors: backParsed.values, // 多色时为数组，否则为 null
+    backgroundAuto: backParsed.isAuto,
+    fontColors: fontParsed.values,       // 多色时为数组，否则为 null
+    fontAuto: fontParsed.isAuto,
+  };
+}
+//重新生成特殊图片消息内容（兼容旧签名 + 新参数对象）
+const generateImageCard = (arg1, text, backgroundColor = '#F59B95', fontColor = '#f3f1f1', scale = 0.7) => {
+  const isNew = typeof arg1 === 'object' && arg1 !== null && 'imageUrl' in arg1;
+  const p = isNew
+    ? arg1
+    : {
+      imageUrl: arg1,
+      text,
+      backgroundColor,
+      fontColor,
+      scale,
+      title: '加辣',
+      version: '0.1',
+      way: 'bottom',
+      fontway: 'bottom',
+      shadow: 0,
+      anime: 0.7,
+      size: 48,
+      border: 10,
+      barlen: undefined,
+      fontsize: 18,
+      barradius: 80,
+      backgroundColors: null,
+      backgroundAuto: false,
+      fontColors: null,
+      fontAuto: false,
+    };
+
+  const toCssDirection = (dir) => {
+    const map = {
+      top: 'to top',
+      bottom: 'to bottom',
+      left: 'to left',
+      right: 'to right',
+      'top-left': 'to top left',
+      'top-right': 'to top right',
+      'bottom-left': 'to bottom left',
+      'bottom-right': 'to bottom right',
+    };
+    if (!dir) return 'to bottom';
+    if (/^\d+deg$/.test(dir)) return dir;
+    return map[dir] || 'to bottom';
+  };
+
+  const buildBackground = () => {
+    const dir = toCssDirection(p.way);
+    if (p.backgroundAuto) {
+      return `linear-gradient(${dir}, #ffecd2, #fcb69f)`;
+    }
+    if (Array.isArray(p.backgroundColors) && p.backgroundColors.length > 1) {
+      return `linear-gradient(${dir}, ${p.backgroundColors.join(', ')})`;
+    }
+    return p.backgroundColor || '#F59B95';
+  };
+
+  const buildFontStyles = () => {
+    const dir = toCssDirection(p.fontway);
+    if (p.fontAuto) {
+      return {
+        color: 'transparent',
+        bg: `linear-gradient(${dir}, #89f7fe, #66a6ff)`,
+      };
+    }
+    if (Array.isArray(p.fontColors) && p.fontColors.length > 1) {
+      return {
+        color: 'transparent',
+        bg: `linear-gradient(${dir}, ${p.fontColors.join(', ')})`,
+      };
+    }
+    return { color: p.fontColor || '#f3f1f1', bg: null };
+  };
+
+  const bg = buildBackground();
+  const font = buildFontStyles();
+  const figureHeight = Number.isFinite(p.size) ? `${p.size}px` : '48px';
+  const avatarSize = Number.isFinite(p.size) ? `${Math.max(24, Math.round(p.size * 0.98))}px` : '47px';
+  const padding = Number.isFinite(p.border) ? `${p.border}px` : '10px';
+  const boxShadowBlur = Number.isFinite(p.border) ? Math.max(6, 10 + p.border) : 10;
+  const shadowOpacity = Number.isFinite(p.shadow) ? Math.min(1, Math.max(0, p.shadow)) : 0.5;
+  const animationDuration = Number.isFinite(p.anime) ? p.anime : 0.7;
+  const captionFontSize = Number.isFinite(p.fontsize) ? `${p.fontsize}px` : '18px';
+  const captionRadius = Number.isFinite(p.barradius) ? `${p.barradius}px` : '80px';
+  const captionWidth = Number.isFinite(p.barlen) ? `${p.barlen}px` : 'auto';
+  const transformScale = Number.isFinite(p.scale) ? p.scale : 0.7;
+
+  const captionExtra = font.bg
+    ? `background: ${font.bg}; -webkit-background-clip: text; background-clip: text; color: transparent;`
+    : `color: ${font.color};`;
+
+  return `
+<figure style="
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    line-height: 0;
+    background: ${bg};
+    padding: ${padding};
+    border-radius: ${captionRadius};
+    text-align: center;
+    box-shadow: rgba(0,0,0,${shadowOpacity}) 0px 0px ${boxShadowBlur}px;
+    position: relative;
+    height: ${figureHeight};
+    transform: scale(${transformScale});
+    transform-origin: left center;
+">
+    <img src="${p.imageUrl}" 
+         alt="${p.text}" 
+         title="${p.title || '加辣'}" 
+         style="
+            position: absolute;
+            width:${avatarSize};
+            height: ${avatarSize};
+            left:0px;
+            border-radius: 50%;
+            box-shadow: rgba(255, 254, 238, ${Math.min(1, 0.6 + shadowOpacity / 2)}) 0px 0px 10px;
+         ">
+    <figcaption style="
+        ${captionExtra}
+        font-family: sans-serif;
+        font-size: ${captionFontSize};
+        line-height: 1.2;
+        margin-left: calc(${avatarSize} - 5px);
+        opacity: 0;
+        transform: translateX(-30px);
+        animation: fadeSlideIn ${animationDuration}s ease-out 0.5s forwards;
+        display: inline-block;
+        min-width: ${captionWidth};
+        border-radius: ${captionRadius};
+        padding: 0 6px;
+    ">${p.text}</figcaption>
+</figure>
+  `.trim();
+}
+//根据输入字符串生成图片卡片内容
+const generateImageCardFromString = (inputStr) => {
+  const params = parseImageParams(inputStr);
+  return generateImageCard(params);
+}
+
+// 在完整 HTML 片段中将 fishpi 特殊图片 <img> 原位替换为 <figure>
+const replaceSpecialImagesInHtmlContent = (html) => {
+  if (!html) return html;
+  return html.replace(/<img[^>]+src=["'](https?:[^"']*fishpi\.cn\/gen[^"']*)["'][^>]*>/gi, (match) => {
+    console.log("match12222222222222222222222222222333333123333333333333333333333333333333:", match);
+    try {
+      return generateImageCardFromString(match);
+    } catch (e) {
+      return match;
+    }
+  });
+};
+
+// 将 Markdown 中的特殊图片语法替换成生成的 figure（支持多处）
+const replaceSpecialImagesInLine = (line) => {
+  return line.replace(/!\[[^\]]*\]\((https?:[^)]+fishpi\.cn\/gen[^)]*)\)/g, (match) => {
+    try {
+      return generateImageCardFromString(match);
+    } catch (e) {
+      return match;
+    }
+  });
+};
+
+// 转义 HTML
+const escapeHtml = (s) => String(s)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/\"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+// 渲染引用头部 h5（##### 引用 @user [↩](url "title")）
+const renderQuoteHeader = (content) => {
+  const m = content.match(/^#{1,6}\s*引用\s*@([^\s\[]+)\s*\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)/);
+  if (!m) return null;
+  const user = m[1];
+  const link = m[2];
+  const memberUrl = user ? `https://fishpi.cn/member/${user}` : '#';
+  return `<h5>引用 @<a href="${memberUrl}" aria-label="${user}" rel="nofollow">${user}</a> <a href="${link}" title="跳转至原消息" rel="nofollow">↩</a></h5>`;
+};
+
+// 将包含多级 > 的 Markdown 引用转换为嵌套的 blockquote 结构，且在任意层内替换特殊图片
+const renderNestedQuotesFromMd = (md) => {
+  const full = String(md || '');
+  const headerIdx = full.search(/#{1,6}\s*引用\s*@/);
+  const lines = full.split('\n');
+  // 计算第一条以 > 开头的行的字符位置
+  let firstQuoteLineIdx = -1;
+  let pos = 0;
+  for (let li = 0; li < lines.length; li++) {
+    if (/^\s*>+/.test(lines[li])) { firstQuoteLineIdx = pos; break; }
+    pos += lines[li].length + 1; // +1 for the newline
+  }
+  // 计算起始：取最早出现的 引用头 或 > 行
+  let startIdx = -1;
+  if (headerIdx >= 0 && firstQuoteLineIdx >= 0) startIdx = Math.min(headerIdx, firstQuoteLineIdx);
+  else if (headerIdx >= 0) startIdx = headerIdx;
+  else startIdx = firstQuoteLineIdx; // may be -1
+
+  let leadRaw = '';
+  let quoteSegment = '';
+  if (startIdx >= 0) {
+    leadRaw = full.slice(0, startIdx).trim();
+    quoteSegment = full.slice(startIdx);
+  } else {
+    // 没有引用，仅正文
+    return full.trim() ? `<p>${escapeHtml(full.trim())}</p>` : '';
+  }
+
+  const qLines = quoteSegment.split('\n');
+  let htmlParts = [];
+  let currentLevel = 0;
+  // 如果开头就是“##### 引用 @...”而非 > 行，先渲染 header 行
+  const firstLine = qLines[0] || '';
+  const firstHeader = renderQuoteHeader(firstLine.trim());
+  let qStart = 0;
+  if (firstHeader) {
+    htmlParts.push(firstHeader);
+    qStart = 1;
+  }
+  // 从 qStart 开始处理 > 引用行
+  for (let i = qStart; i < qLines.length; i++) {
+    const line = qLines[i];
+    const m = line.match(/^\s*(>+)\s?(.*)$/);
+    if (!m) { continue; }
+    const level = m[1].length;
+    const content = m[2];
+    if (level > currentLevel) {
+      for (let k = 0; k < level - currentLevel; k++) htmlParts.push('<blockquote>');
+    } else if (level < currentLevel) {
+      for (let k = 0; k < currentLevel - level; k++) htmlParts.push('</blockquote>');
+    }
+    currentLevel = level;
+    const trimmed = content.trim();
+    const headerHtml = renderQuoteHeader(trimmed);
+    if (headerHtml) {
+      htmlParts.push(headerHtml);
+    } else {
+      const replaced = replaceSpecialImagesInLine(trimmed);
+      if (replaced === trimmed) {
+        const safe = escapeHtml(trimmed);
+        if (safe.trim()) htmlParts.push(`<p>${safe}</p>`);
+      } else {
+        htmlParts.push(`<p>${replaced}</p>`);
+      }
+    }
+  }
+  for (let k = 0; k < currentLevel; k++) htmlParts.push('</blockquote>');
+
+  const leadHtml = leadRaw ? `<p>${escapeHtml(leadRaw)}</p>` : '';
+  return leadHtml + htmlParts.join('');
+};
+
 
 onMounted(() => {
   // 初始化聊天室store
@@ -586,80 +952,7 @@ onMounted(() => {
   // 监听黑名单更新事件
   window.addEventListener("fishpi:blacklist-updated", handleBlacklistUpdated);
 });
-//从特殊图片链接字符串中解析参数
-const parseImageParams = (inputStr) => {
-  // 使用正则表达式提取图片URL部分
-  const urlMatch = inputStr.match(/!\[.*?\]\((https?[^)]+)\)/);
-  if (!urlMatch) {
-    throw new Error('未找到有效的图片URL');
-  }
 
-  const url = urlMatch[1];
-
-  // 解析URL参数
-  const urlObj = new URL(url);
-  const urlParams = new URLSearchParams(urlObj.search);
-
-  return {
-    imageUrl: urlParams.get('url'),
-    text: urlParams.get('txt'),
-    backgroundColor: '#' + urlParams.get('backcolor'),
-    fontColor: '#' + urlParams.get('fontcolor'),
-    scale: parseFloat(urlParams.get('scale')),
-    altText: "图片表情",
-    originalUrl: url
-  };
-}
-//重新生成特殊图片消息内容
-const generateImageCard = (imageUrl, text, backgroundColor = '#F59B95', fontColor = '#f3f1f1', scale = 0.7) => {
-  return `
-<figure style="
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0;
-    line-height: 0;
-    background-color: ${backgroundColor};
-    padding: 10px;
-    border-radius: 80px;
-    text-align: center;
-    box-shadow: #666 0px 0px 10px;
-    position: relative;
-">
-    <img src="${imageUrl}" 
-         alt="${text}" 
-         style="
-            position: absolute;
-            width:47px;
-            height: 47px;
-            left:0px;
-            border-radius: 50%;
-             box-shadow: #fffeee 0px 0px 10px;
-         ">
-    <figcaption style="
-        color: ${fontColor};
-        font-family: sans-serif;
-        font-size: 18px;
-        line-height: 1.2;
-        margin-left: 42px;
-        opacity: 0;
-        transform: translateX(-30px);
-        animation: fadeSlideIn 0.7s ease-out 0.5s forwards;
-    ">${text}</figcaption>
-</figure>
-  `.trim();
-}
-//根据输入字符串生成图片卡片内容
-const generateImageCardFromString = (inputStr) => {
-  const params = parseImageParams(inputStr);
-  return generateImageCard(
-    params.imageUrl,
-    params.text,
-    params.backgroundColor,
-    params.fontColor,
-    params.scale
-  );
-}
 onUnmounted(() => {
   wsManager.close("chat-room");
   // 移除事件监听
