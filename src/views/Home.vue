@@ -7,27 +7,17 @@
       </div>
       <nav class="navigation">
         <ul>
-          <li
-            v-for="item in navItems"
-            :key="item.path"
-            @click="navigateTo(item.path)"
-            :class="['nav-item', { active: currentPath === item.path }]"
-          >
+          <li v-for="item in navItems" :key="item.path" @click="navigateTo(item.path)"
+            :class="['nav-item', { active: currentPath === item.path }]">
             <i :class="item.icon"></i>
             <div class="tooltip">{{ item.name }}</div>
-            <span
-              v-if="item.path === '/private-chat' && unreadPrivateCount > 0"
-              class="notification-badge"
-            >
+            <span v-if="item.path === '/private-chat' && unreadPrivateCount > 0" class="notification-badge">
               {{ unreadPrivateCount }}
             </span>
-            <span
-              v-if="
-                item.path === '/notifications' &&
-                notificationStore.unreadCount > 0
-              "
-              class="notification-badge"
-            >
+            <span v-if="
+              item.path === '/notifications' &&
+              notificationStore.unreadCount > 0
+            " class="notification-badge">
               {{ notificationStore.unreadCount }}
             </span>
           </li>
@@ -35,20 +25,12 @@
       </nav>
       <div class="user-info-container">
         <div class="user-info-details">
-          <div
-            class="user-avatar"
-            @click="showUserProfile"
-            @mouseenter="showUserCard = true"
-            @mouseleave="showUserCard = false"
-          >
+          <div class="user-avatar" @click="showUserProfile" @mouseenter="showUserCard = true"
+            @mouseleave="showUserCard = false">
             <img :src="userStore.userInfo?.userAvatarURL" alt="用户头像" />
           </div>
-          <div
-            v-if="showUserCard"
-            class="user-card"
-            @mouseenter="showUserCard = true"
-            @mouseleave="showUserCard = false"
-          >
+          <div v-if="showUserCard" class="user-card" @mouseenter="showUserCard = true"
+            @mouseleave="showUserCard = false">
             <div class="user-card-item" @click.stop="showSwitchAccount">
               <i class="fas fa-exchange-alt"></i>
               <span>切换账号</span>
@@ -60,10 +42,7 @@
           </div>
           <!-- 活跃度展示 -->
           <div class="collapsed-liveness" @click="refreshLiveness">
-            <div
-              class="liveness-info"
-              :class="{ signed: livenessStore.liveness >= 10 }"
-            >
+            <div class="liveness-info" :class="{ signed: livenessStore.liveness >= 10 }">
               <i class="fas fa-fire"></i>
               <span>{{ livenessStore.liveness || 0 }}</span>
             </div>
@@ -80,44 +59,24 @@
       </router-view>
     </div>
     <!-- 账号切换弹窗 -->
-    <el-dialog
-      v-model="showAccountDialog"
-      title="管理我的账号"
-      width="360px"
-      :close-on-click-modal="false"
-      class="account-switch-dialog"
-    >
+    <el-dialog v-model="showAccountDialog" title="管理我的账号" width="360px" :close-on-click-modal="false"
+      class="account-switch-dialog">
       <div class="account-list">
         <div v-if="savedAccounts.length === 0" class="no-accounts">
           <i class="fas fa-user-plus"></i>
-          <span
-            >还没有添加其他账号，点击下方“添加新账号”即可绑定更多账号哦~</span
-          >
+          <span>还没有添加其他账号，点击下方“添加新账号”即可绑定更多账号哦~</span>
         </div>
         <template v-else>
           <div class="account-list-tip">点击账号头像即可切换登录</div>
-          <div
-            v-for="account in savedAccounts"
-            :key="account.userName"
-            class="account-item"
-            @click="switchToAccount(account)"
-          >
-            <img
-              :src="account.userAvatarURL"
-              :alt="account.userNickname"
-              class="account-avatar"
-            />
+          <div v-for="account in savedAccounts" :key="account.userName" class="account-item"
+            @click="switchToAccount(account)">
+            <img :src="account.userAvatarURL" :alt="account.userNickname" class="account-avatar" />
             <div class="account-info">
               <div class="account-name">{{ account.userNickname }}</div>
               <div class="account-username">@{{ account.userName }}</div>
             </div>
-            <el-button
-              type="danger"
-              size="small"
-              circle
-              class="delete-account-btn"
-              @click="(event) => deleteAccount(account, event)"
-            >
+            <el-button type="danger" size="small" circle class="delete-account-btn"
+              @click="(event) => deleteAccount(account, event)">
               <i class="fas fa-trash-alt"></i>
             </el-button>
           </div>
@@ -167,6 +126,7 @@ const navItems = [
   { path: "/moon", name: "清风明月", icon: "fas fa-moon" },
   { path: "/games", name: "鱼排游戏", icon: "fas fa-gamepad" },
   { path: "/notifications", name: "消息通知", icon: "fas fa-bell" },
+  { path: "/vip", name: "开通VIP", icon: "fas fa-gem" },
   { path: "/settings", name: "系统设置", icon: "fas fa-cog" },
 ];
 
@@ -242,10 +202,10 @@ const handleMessage = (data) => {
       }
 
       // 向摸鱼小窗发送系统通知
-      sendMessageToMoYuWindow({
-        type: "system-notification",
-        content: "有新的通知！",
-      });
+      // sendMessageToMoYuWindow({
+      //   type: "system-notification",
+      //   content: "有新的通知！",
+      // });
 
       // 获取用户设置
       const userSettings = utools.dbStorage.getItem("fishpi_settings") || {};
@@ -390,8 +350,9 @@ const deleteAccount = (account, event) => {
     });
 };
 
-const switchToAccount = (account) => {
+const switchToAccount =async (account) => {
   try {
+
     // 保存当前账号设置
     const currentUsername = userStore.userInfo?.userName;
     if (currentUsername) {
@@ -399,6 +360,7 @@ const switchToAccount = (account) => {
       settings[currentUsername] = settings[currentUsername] || {};
       utools.dbStorage.setItem("fishpi_settings", settings);
     }
+   
 
     // 断开旧的 WebSocket 连接
     wsManager.close("home-channel");
@@ -407,6 +369,7 @@ const switchToAccount = (account) => {
     userStore.setUserInfo(account);
     showAccountDialog.value = false;
     ElMessage.success("账号切换成功");
+    router.push("/");
 
     // 重新连接 WebSocket
     wsManager
@@ -662,9 +625,12 @@ const goToLogin = () => {
   cursor: pointer;
   transition: all 0.3s ease;
 }
+
 .user-card-item span {
-  color: var(--text-color, #222); /* 默认深色，优先用你的主题变量 */
+  color: var(--text-color, #222);
+  /* 默认深色，优先用你的主题变量 */
 }
+
 .user-card-item:hover {
   background-color: var(--hover-bg, #f5f5f5);
 }
@@ -679,7 +645,7 @@ const goToLogin = () => {
 }
 
 /* Placeholder styles for content areas */
-.content-area > div {
+.content-area>div {
   height: 100%;
   background-color: var(--card-bg, #fff);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);

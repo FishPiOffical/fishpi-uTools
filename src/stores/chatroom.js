@@ -35,7 +35,7 @@ export const useChatroomStore = defineStore("chatroom", {
     // 从缓存加载数据
     loadFromCache() {
       try {
-        const cached = utools.dbStorage.getItem("fishpi_chatroom_cache");
+        const cached = JSON.parse(utools.dbStorage.getItem("fishpi_chatroom_cache"));
         if (cached && cached.timestamp) {
           const now = Date.now();
           if (now - cached.timestamp < this.cacheExpiry) {
@@ -60,7 +60,7 @@ export const useChatroomStore = defineStore("chatroom", {
           currentTopic: this.currentTopic,
           timestamp: Date.now(),
         };
-        utools.dbStorage.setItem("fishpi_chatroom_cache", cacheData);
+        utools.dbStorage.setItem("fishpi_chatroom_cache",JSON.stringify(cacheData));
         console.log("聊天室数据已缓存");
       } catch (error) {
         console.error("保存缓存失败:", error);

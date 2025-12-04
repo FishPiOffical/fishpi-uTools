@@ -5,7 +5,7 @@
       <ChatHeader />
       <!-- 消息列表组件 -->
       <MessageList :messages="messages" :is-loading-more="isLoadingMore" :has-more-messages="hasMoreMessages"
-        :show-sidebar="showSidebar" @load-more="handleLoadMore" @at-user="handleAtUser"
+        :show-sidebar="showSidebar" @load-more="handleLoadMore" @at-user="handleAtUser" :vip-user-list="vipUserList"
         @send-same-message="handleSendSameMessage" @quote="handleQuote" @add-emoji="handleAddEmoji"
         @update-messages="handleUpdateMessages" />
       <!-- 消息输入组件 -->
@@ -36,10 +36,12 @@ import { useChatroomStore } from "../stores/chatroom";
 import { userApi } from "../api/user";
 import { ElMessage } from "element-plus";
 import { ArrowLeft, ArrowRight } from "@element-plus/icons-vue";
+import { useVipStore } from "../stores/vip";
 
 const chatInputRef = ref(null);
 const userStore = useUserStore();
 const chatroomStore = useChatroomStore();
+const vipStore = useVipStore();
 
 // 聊天室状态
 const messages = ref([]);
@@ -47,12 +49,16 @@ const currentPage = ref(1);
 const isLoadingMore = ref(false);
 const hasMoreMessages = ref(true);
 
+
 // 在线用户和话题 - 从store获取
 const onlineUsers = ref([]);
 const currentTopic = ref("");
 
 // 侧边栏状态
 const showSidebar = ref(true);
+
+//vip用户信息
+const vipUserList = ref([]);
 
 const bells = ref([])
 
@@ -99,7 +105,7 @@ const getCurrentBlacklist = () => {
 // 消息处理器映射
 const messageHandlers = {
   online: (data) => {
-    // console.log("处理在线用户消息:", data);
+    console.log("处理在线用户消息:", data);
     // 使用store更新数据，自动处理缓存
     chatroomStore.updateData(data);
     // 同步到本地ref
@@ -109,6 +115,7 @@ const messageHandlers = {
   msg: (data) => {
     // 确保消息有必要字段，并添加到消息列表
     if (data.oId && data.content) {
+      // const originalContent = data.md || data.content || "";
       const isSelf = data.userName === userStore.userInfo?.userName;
       const hasImgTag = /\<img[^>]+src=/.test(data.content);
       const containsGenUrlInContent = /https?:\/\/fishpi\.cn\/gen/.test(data.content || '');
@@ -137,6 +144,7 @@ const messageHandlers = {
 
       messages.value = [
         ...messages.value,
+        // { ...data, originalContent, isHistory: false, isSelf },
         { ...data, isHistory: false, isSelf },
       ];
     }
@@ -296,7 +304,6 @@ const handleMessage = (data) => {
       return; // 黑名单消息直接丢弃
     }
   }
-  // console.log("接收到消息：", data);
 
   // 根据消息类型调用相应的处理器
   const handler = messageHandlers[data.type];
@@ -308,7 +315,11 @@ const handleMessage = (data) => {
     // 确保消息有必要字段，并添加到消息列表
     if (data.oId && data.content) {
       const isSelf = data.userName === userStore.userInfo?.userName;
-      messages.value = [...messages.value, { ...data, isSelf }];
+      const originalContent = data.md || data.content || "";
+      messages.value = [
+        ...messages.value,
+        { ...data, originalContent, isSelf },
+      ];
     }
   }
 };
@@ -331,10 +342,19 @@ const loadMessages = async (page = 1) => {
         .reverse()
         .map((msg) => {
           try {
-            const content = replaceSpecialImagesInHtmlContent(msg.content || '');
-            return { ...msg, content, isHistory: true };
+            // const content = replaceSpecialImagesInHtmlContent(msg.content || '');
+            return {
+              ...msg,
+              content,
+              originalContent: msg.md || msg.content || '',
+              isHistory: true,
+            };
           } catch (e) {
-            return { ...msg, isHistory: true };
+            return {
+              ...msg,
+              originalContent: msg.md || msg.content || '',
+              isHistory: true,
+            };
           }
         });
 
@@ -386,6 +406,8 @@ const handleLoadMore = () => {
 
 // 处理发送消息
 const handleSendMessage = async (content) => {
+  console.log("发送消息!!!!!!!!!!!!!!!!!!!!!!!!",content);
+  
   if (!content || !content.trim()) return;
 
   try {
@@ -574,17 +596,9 @@ const getBells = () => {
   const savedBells = utools.dbStorage.getItem("fishpi_bells") || [];
   return savedBells;
 }
-// 检查是否包含
-const checkBellsInMessage = (mainString, elementsArray) => {
-  const foundElements = elementsArray.filter(element =>
-    mainString.includes(element)
-  );
-  return foundElements.length > 0;
-}
 
 //从特殊图片链接字符串中解析参数
 const parseImageParams = (inputStr) => {
-  console.log("parseImageParams12222222222222222222222222222333333123333333333333333333333333333333:", inputStr); 
   // 支持三种输入：Markdown 图片、HTML <img>、直接 URL 字符串
   let url = null;
   let title = null;
@@ -813,7 +827,6 @@ const generateImageCardFromString = (inputStr) => {
 const replaceSpecialImagesInHtmlContent = (html) => {
   if (!html) return html;
   return html.replace(/<img[^>]+src=["'](https?:[^"']*fishpi\.cn\/gen[^"']*)["'][^>]*>/gi, (match) => {
-    console.log("match12222222222222222222222222222333333123333333333333333333333333333333:", match);
     try {
       return generateImageCardFromString(match);
     } catch (e) {
@@ -822,15 +835,30 @@ const replaceSpecialImagesInHtmlContent = (html) => {
   });
 };
 
-// 将 Markdown 中的特殊图片语法替换成生成的 figure（支持多处）
-const replaceSpecialImagesInLine = (line) => {
-  return line.replace(/!\[[^\]]*\]\((https?:[^)]+fishpi\.cn\/gen[^)]*)\)/g, (match) => {
+//将 Markdown 图片语法转换成可直接渲染的 HTML（兼容特殊图 + 普通图）
+const transformImagesInLine = (line) => {
+  if (!line) return line;
+
+  let replaced = line.replace(/!\[[^\]]*\]\((https?:[^)]+fishpi\.cn\/gen[^)]*)\)/g, (match) => {
     try {
       return generateImageCardFromString(match);
     } catch (e) {
       return match;
     }
   });
+
+  // 普通 Markdown 图片转成安全的 <img>，避免被 escape 后显示标签文本
+  replaced = replaced.replace(
+    /!\[([^\]]*)\]\((https?:[^\s)]+)(?:\s+"([^"]*)")?\)/g,
+    (_match, alt = "", src = "", title = "") => {
+      const safeAlt = escapeHtml(alt || "图片");
+      const safeTitle = escapeHtml(title || "");
+      const safeSrc = escapeHtml(src);
+      return `<img src="${safeSrc}" alt="${safeAlt}"${safeTitle ? ` title="${safeTitle}"` : ""}>`;
+    }
+  );
+
+  return replaced;
 };
 
 // 转义 HTML
@@ -876,7 +904,7 @@ const renderNestedQuotesFromMd = (md) => {
     quoteSegment = full.slice(startIdx);
   } else {
     // 没有引用，仅正文
-    return full.trim() ? `<p>${escapeHtml(full.trim())}</p>` : '';
+    return full.trim() ? `p${escapeHtml(full.trim())}p` : '';
   }
 
   const qLines = quoteSegment.split('\n');
@@ -908,7 +936,7 @@ const renderNestedQuotesFromMd = (md) => {
     if (headerHtml) {
       htmlParts.push(headerHtml);
     } else {
-      const replaced = replaceSpecialImagesInLine(trimmed);
+      const replaced = transformImagesInLine(trimmed);
       if (replaced === trimmed) {
         const safe = escapeHtml(trimmed);
         if (safe.trim()) htmlParts.push(`<p>${safe}</p>`);
@@ -924,7 +952,17 @@ const renderNestedQuotesFromMd = (md) => {
 };
 
 
-onMounted(() => {
+onMounted(async () => {
+  // 先确保从接口 / 本地缓存中加载 VIP 信息
+  try {
+    await vipStore.refresh(false); // 使用缓存（如果有效），避免频繁请求
+  } catch (e) {
+    console.warn("加载 VIP 信息失败：", e);
+  }
+
+  vipUserList.value = vipStore.vipProfile;
+  console.log("vipUserList", vipUserList.value);
+ 
   // 初始化聊天室store
   chatroomStore.init();
 

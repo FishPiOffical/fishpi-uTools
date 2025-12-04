@@ -37,7 +37,7 @@ export const articleApi = {
 
   // 文章打赏
   rewardArticle(articleId) {
-    return request.post("/article/reward", { articleId });
+    return request.post(`/article/reward?articleId=${articleId}`);
   },
 
   // 获取文章详情

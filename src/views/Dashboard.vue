@@ -129,15 +129,18 @@ import { ref, onMounted, computed, onUnmounted } from "vue";
 import { userApi } from "../api";
 import { useUserStore } from "../stores/user";
 import { useLivenessStore } from "../stores/liveness";
+import { VipStore } from "../stores/vip";
 import { useDashboardStore } from "../stores/dashboard";
 import { ElRow, ElCol, ElMessage } from "element-plus";
 
+const vipStore = VipStore();
 const userStore = useUserStore();
 const livenessStore = useLivenessStore();
 const dashboardStore = useDashboardStore();
 const rewardStatus = ref(false);
 const showRewardDialog = ref(false);
 const rewardPoints = ref(0);
+
 
 // 新增：欢迎卡片相关数据
 const todayStr = ref("");
@@ -205,7 +208,9 @@ const holidayMessage = computed(() => dashboardStore.holidayMessage);
 const dailyQuote = computed(() => dashboardStore.dailyQuote);
 const quoteAuthor = computed(() => dashboardStore.quoteAuthor);
 
+
 onMounted(async () => {
+  getVipList()
   await fetchRewardStatus();
   // 设置今日日期
   const now = new Date();
@@ -266,6 +271,10 @@ const claimReward = async () => {
 
 const openHelpLink = () => {
   utools.shellOpenExternal("https://fishpi.cn/article/1683775497629");
+};
+
+const getVipList=async () => {
+   await vipStore.fetchVipProfile();
 };
 </script>
 

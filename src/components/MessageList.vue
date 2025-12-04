@@ -60,13 +60,22 @@
               onAvatarContextMenu($event, item.userName, item.userAvatarURL48)
               " />
           <div class="message-bubble">
-            <div class="message-header" v-if="item.userName !== userStore.userInfo?.userName">
-              <span class="user-nickname">
-                {{
-                  item.userNickname
-                    ? `${item.userNickname} (${item.userName})`
-                    : item.userName
-                }}
+            <div
+              class="message-header"
+              v-if="
+                item.userName !== userStore.userInfo?.userName ||
+                showSelfNicknameInChat
+              "
+              :title="
+                item.userName === userStore.userInfo?.userName
+                  ? '双击可隐藏'
+                  : ''
+              "
+              @dblclick="handleSelfNicknameDblClick(item)"
+            >
+              <span :class="'user-nickname ' + getVipConfigs(item.userOId)?.color"
+                :style="getVipConfigsStyle(item.userOId)">
+                {{ item.userNickname ? `${item.userNickname} (${item.userName})` : item.userName }}
               </span>
             </div>
             <div class="message-content" @click="
@@ -170,7 +179,7 @@
                 <div class="message-text" v-else v-html="item.content"
                   @contextmenu.prevent="onMsgContextMenu($event, item)" @load="handleImageLoad"></div>
                 <!-- +1按钮移动到气泡右侧 -->
-                <button v-if="item.isGrouped" class="plus-one-btn" @click="sendSameMessage(item.content)">
+                <button v-if="item.isGrouped" class="plus-one-btn" @click="sendSameMessage(item)">
                   +1
                 </button>
               </div>
@@ -209,7 +218,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick, computed } from "vue";
+import { ref, onMounted, watch, nextTick, computed, onUnmounted } from "vue";
 import dayjs from "dayjs";
 import { useUserStore } from "../stores/user";
 import { chatApi } from "../api/chat";
@@ -239,6 +248,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  vipUserList: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const emit = defineEmits([
@@ -262,6 +275,29 @@ const isReceiving = ref(false);
 const router = useRouter();
 const isPageVisible = ref(true);
 const bells = ref([]);
+const showSelfNicknameInChat = ref(true);
+
+const loadShowSelfNicknameSetting = () => {
+  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
+  const currentUsername = userStore.userInfo?.userName;
+  const userSettings = currentUsername
+    ? savedSettings[currentUsername] || {}
+    : savedSettings;
+  showSelfNicknameInChat.value =
+    userSettings.showSelfNicknameInChat !== false;
+};
+
+const handleSettingsUpdated = (event) => {
+  if (
+    event?.detail &&
+    Object.prototype.hasOwnProperty.call(
+      event.detail,
+      "showSelfNicknameInChat"
+    )
+  ) {
+    showSelfNicknameInChat.value = event.detail.showSelfNicknameInChat;
+  }
+};
 
 // 监听页面可见性变化
 onMounted(() => {
@@ -269,7 +305,29 @@ onMounted(() => {
     console.log("页面监听页面可见性变化");
     isPageVisible.value = document.visibilityState === "visible";
   });
+
+  loadShowSelfNicknameSetting();
+  window.addEventListener("fishpi:settings-updated", handleSettingsUpdated);
 });
+
+onUnmounted(() => {
+  window.removeEventListener("fishpi:settings-updated", handleSettingsUpdated);
+});
+
+//获取处理vip配置数据
+const getVipConfigs = (userId) => {
+  return props.vipUserList.find(vip => vip.userId == userId)?.configJson ? JSON.parse(props.vipUserList.find(vip => vip.userId == userId).configJson) : null;
+};
+
+//获取处理vip配置样式数据
+const getVipConfigsStyle = (userId) => {
+  const vipConfigs = getVipConfigs(userId);
+  let objStyle = {};
+  objStyle.color = vipConfigs?.color;
+  objStyle['font-weight'] = vipConfigs?.bold ? 'bold' : 'normal';
+  objStyle['text-decoration'] = vipConfigs?.underline ? 'underline' : 'none';
+  return objStyle
+};
 
 // 时间分隔阈值（分钟）
 const TIME_SEPARATOR_THRESHOLD_MINUTES = 5;
@@ -487,7 +545,7 @@ watch(
             }
           }
         });
-      checkBellsInMessage(newMsg.md, bells.value) && utools.showNotification(`有人提了关键词`)
+        checkBellsInMessage(newMsg.md, bells.value) && utools.showNotification(`有人提了关键词`)
 
       });
     }
@@ -871,9 +929,12 @@ function handleMsgContextMenuAction(type) {
     emit("at-user", item.userName);
   } else if (type === "repeat") {
     // 复读机功能
-    const temp = document.createElement("div");
-    temp.innerHTML = item.content;
-    emit("send-same-message", item.md || item.content);
+    const payload = item.originalContent || item.md || item.content;
+    if (!payload) {
+      ElMessage.warning("无法复读该消息");
+      return;
+    }
+    emit("send-same-message", payload);
     ElMessage.success(" 复读成功");
   } else if (type === "add-emoji") {
     emit("add-emoji", item);
@@ -909,8 +970,16 @@ window.addEventListener("click", () => {
 });
 
 // 发送同样内容
-function sendSameMessage(content) {
-  emit("send-same-message", content);
+function sendSameMessage(target) {
+  const payload =
+    typeof target === "string"
+      ? target
+      : target?.originalContent || target?.md || target?.content || "";
+  if (!payload) {
+    ElMessage.warning("无法复读该消息");
+    return;
+  }
+  emit("send-same-message", payload);
 }
 
 // 在 script setup 部分添加手气王判断函数
@@ -1114,6 +1183,44 @@ const userContextMenuItems = computed(() => [
   { label: "查看资料", action: "profile", icon: "fas fa-user" },
   { label: "加入黑名单", action: "blacklist", icon: "fas fa-user-slash" },
 ]);
+
+const handleSelfNicknameDblClick = (item) => {
+  if (item.userName !== userStore.userInfo?.userName) {
+    return;
+  }
+  if (!showSelfNicknameInChat.value) {
+    return;
+  }
+
+  showSelfNicknameInChat.value = false;
+
+  // 持久化到本地设置
+  const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
+  const currentUsername = userStore.userInfo?.userName;
+  if (currentUsername) {
+    savedSettings[currentUsername] = {
+      ...(savedSettings[currentUsername] || {}),
+      showSelfNicknameInChat: false,
+    };
+  } else {
+    Object.assign(savedSettings, { showSelfNicknameInChat: false });
+  }
+  utools.dbStorage.setItem("fishpi_settings", savedSettings);
+
+  // 通知其他组件
+  window.dispatchEvent(
+    new CustomEvent("fishpi:settings-updated", {
+      detail: { showSelfNicknameInChat: false },
+    })
+  );
+
+  ElMessage({
+    message: "已隐藏自己的昵称，可在设置中重新开启",
+    type: "success",
+    duration: 2000,
+    showClose: true,
+  });
+};
 
 // 黑名单相关
 const addToBlacklist = (userName, avatarUrl) => {
