@@ -14,19 +14,19 @@ class Request {
           // 检查是否是文件上传请求
           const isFileUpload =
             config.headers["Content-Type"] === "multipart/form-data";
-
           if (isFileUpload) {
             // 文件上传请求，将apiKey添加到URL参数中
-            config.url = `${config.url}${
-              config.url.includes("?") ? "&" : "?"
-            }apiKey=${apiKey}`;
-          } else if (config.method === "get") {
+            config.url = `${config.url}${config.url.includes("?") ? "&" : "?"
+              }apiKey=${apiKey}`;
+          } else if (config.method === "get"||config.method === "put") {
             // GET 请求将 apiKey 添加到 URL 参数中
             config.params = {
               ...config.params,
               apiKey: apiKey,
             };
-          } else {
+
+          } 
+          else {
             // 其他 POST 请求将 apiKey 添加到请求体中
             config.data = {
               ...config.data,

@@ -12,6 +12,13 @@
       <div class="settings-sidebar">
         <ul class="group-nav">
           <li
+            :class="{ active: activeGroup === 'basic' }"
+            @click="activeGroup = 'basic'"
+          >
+            <i class="fas fa-cog"></i>
+            基础设置
+          </li>
+          <li
             :class="{ active: activeGroup === 'theme' }"
             @click="activeGroup = 'theme'"
           >
@@ -57,6 +64,36 @@
       </div>
       <!-- 右侧分组内容 -->
       <div class="settings-content">
+        <div v-show="activeGroup === 'basic'">
+          <div class="data-card">
+            <div class="card-header">
+              <h2>基础设置</h2>
+            </div>
+            <div class="settings-item">
+              <div class="settings-item-left">
+                <div class="settings-item-title">
+                  <span>显示自己消息昵称</span>
+                  <el-tooltip
+                    content="控制在聊天室中是否显示自己发送消息的昵称"
+                    placement="top"
+                    effect="dark"
+                  >
+                    <i class="fas fa-question-circle"></i>
+                  </el-tooltip>
+                </div>
+              </div>
+              <div class="settings-item-right">
+                <el-switch
+                  v-model="showSelfNicknameInChat"
+                  @change="handleShowSelfNicknameChange"
+                  active-text="显示"
+                  inactive-text="隐藏"
+                  inline-prompt
+                />
+              </div>
+            </div>
+          </div>
+        </div>
         <div v-show="activeGroup === 'theme'">
           <div class="data-card">
             <div class="card-header">
@@ -418,9 +455,10 @@ const defaultPage = ref("dashboard");
 const enableBackgroundNotification = ref(true);
 const defaultChatSidebarState = ref(false);
 const currentTheme = ref("auto");
+const showSelfNicknameInChat = ref(true);
 const salary = ref(5000);
 const payday = ref(1);
-const activeGroup = ref("theme");
+const activeGroup = ref("basic");
 
 // 黑名单相关
 const blacklist = ref([]);
@@ -492,6 +530,8 @@ onMounted(() => {
   defaultChatSidebarState.value =
     userSettings.defaultChatSidebarCollapsed || false;
   currentTheme.value = userSettings.currentTheme || "auto";
+  showSelfNicknameInChat.value =
+    userSettings.showSelfNicknameInChat !== false; // 默认显示
   salary.value = userSettings.salary || 0;
   payday.value = userSettings.payday || 1;
 
@@ -519,6 +559,8 @@ onMounted(() => {
     defaultChatSidebarState.value =
       userSettings.defaultChatSidebarCollapsed || false;
     currentTheme.value = userSettings.currentTheme || "auto";
+    showSelfNicknameInChat.value =
+      userSettings.showSelfNicknameInChat !== false;
     salary.value = userSettings.salary || 0;
     payday.value = userSettings.payday || 1;
 
@@ -688,6 +730,24 @@ const handlePaydayChange = (value) => {
 
   ElMessage({
     message: "发薪日设置已更新",
+    type: "success",
+    duration: 2000,
+    showClose: true,
+  });
+};
+
+const handleShowSelfNicknameChange = (value) => {
+  saveUserSettings({ showSelfNicknameInChat: value });
+
+  // 通知其他组件设置已更新
+  window.dispatchEvent(
+    new CustomEvent("fishpi:settings-updated", {
+      detail: { showSelfNicknameInChat: value },
+    })
+  );
+
+  ElMessage({
+    message: "显示自己昵称设置已更新",
     type: "success",
     duration: 2000,
     showClose: true,

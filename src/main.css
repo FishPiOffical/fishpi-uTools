@@ -61,7 +61,7 @@ button {
   background: var(--button-bg);
   color: var(--button-text);
   cursor: pointer;
-  transition: opacity .2s;
+  transition: opacity 0.2s;
 }
 
 button:disabled {
@@ -84,7 +84,7 @@ textarea {
   }
 
   ::-webkit-scrollbar-track-piece {
-    background-color: transparent;
+    background-color: rgba(0, 0, 0, 0) !important;
   }
 
   ::-webkit-scrollbar-thumb {
@@ -94,7 +94,7 @@ textarea {
 
 @media (prefers-color-scheme: dark) {
   &::-webkit-scrollbar-track-piece {
-    background-color: transparent;
+    background-color: rgba(0, 0, 0, 0) !important;
   }
 
   &::-webkit-scrollbar-thumb {
@@ -303,5 +303,208 @@ textarea {
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+/* 彩虹效果 */
+.rainbow {
+  background: linear-gradient(
+    90deg,
+    #ff0000,
+    #ff8000,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #8000ff,
+    #ff00ff
+  );
+  background-size: 800% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: rgba(0, 0, 0, 0) !important;
+  animation: rainbow 6s linear infinite;
+}
+
+@keyframes rainbow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* 霓虹效果 */
+.neon {
+  background: linear-gradient(
+    90deg,
+    #ff00cc,
+    #ff0066,
+    #ff3333,
+    #ff6600,
+    #ffcc00
+  );
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: rgba(0, 0, 0, 0) !important;
+  animation: neon 3s ease infinite;
+  text-shadow: 0 0 5px rgba(255, 0, 204, 0.5);
+}
+
+@keyframes neon {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* 火焰效果 */
+.fire {
+  background: linear-gradient(90deg, #ff8a00, #ff0000, #ff8a00, #ff4500);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: rgba(0, 0, 0, 0) !important;
+  animation: fire 2.5s ease-in-out infinite;
+}
+
+@keyframes fire {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* 海洋效果 */
+.ocean {
+  background: linear-gradient(90deg, #00b4db, #0083b0, #00b4db, #00c9ff);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: rgba(0, 0, 0, 0) !important;
+  animation: ocean 5s ease-in-out infinite;
+}
+
+@keyframes ocean {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* 森林效果 */
+.forest {
+  background: linear-gradient(90deg, #00ff7f, #32cd32, #228b22, #006400);
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: rgba(0, 0, 0, 0) !important;
+  animation: forest 7s ease infinite;
+}
+
+@keyframes forest {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 日落效果 */
+.sunset {
+  background: linear-gradient(90deg, #ff7e5f, #feb47b, #ff7e5f, #ff512f);
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: rgba(0, 0, 0, 0) !important;
+  animation: sunset 6s ease infinite;
+}
+
+@keyframes sunset {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* 金属效果 */
+.metal {
+  background: linear-gradient(90deg, #bdc3c7, #2c3e50, #bdc3c7, #95a5a6);
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: rgba(0, 0, 0, 0) !important;
+  animation: metal 4s linear infinite;
+}
+
+@keyframes metal {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* 星空效果 */
+.galaxy {
+  background: linear-gradient(90deg, #8a2be2, #4b0082, #9400d3, #8a2be2);
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: rgba(0, 0, 0, 0) !important;
+  animation: galaxy 8s ease infinite;
+  text-shadow: 0 0 8px rgba(138, 43, 226, 0.4);
+}
+
+@keyframes galaxy {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 脉冲效果 */
+.pulse {
+  background: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0);
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: rgba(0, 0, 0, 0) !important;
+  animation: pulse 4s ease infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    background-position: 0% 50%;
+    opacity: 1;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 0.8;
   }
 }

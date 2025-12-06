@@ -12,6 +12,7 @@ import Dashboard from "../views/Dashboard.vue";
 import PrivateChat from "../views/PrivateChat.vue";
 import UserProfile from "../views/UserProfile.vue";
 import Games from "../views/Games.vue";
+import Vip from "../views/vip.vue";
 
 const routes = [
   {
@@ -56,6 +57,11 @@ const routes = [
         path: "/moon",
         name: "Moon",
         component: Moon,
+      },
+      {
+        path: "/vip",
+        name: "Vip",
+        component: Vip,
       },
       {
         path: "/settings",

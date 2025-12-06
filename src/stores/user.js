@@ -169,6 +169,7 @@ export const useUserStore = defineStore("user", {
         userPoint: userInfo.userPoint,
         userIntro: userInfo.userIntro,
         followingUserCount: userInfo.followingUserCount,
+        oId: userInfo.oId,
         followerCount: userInfo.followerCount,
         apiKey: userInfo.apiKey,
       };
