@@ -20,7 +20,7 @@
                             {{
                                 currentUserVipInfo && currentUserVipInfo.state !== 0
                                     ? "已是VIP"
-                            : "立即开通"
+                                    : "立即开通"
                             }}
                         </button>
                     </article>
@@ -175,8 +175,6 @@ const parseBenefits = (benefitsStr) => {
 
         if (benefits.bold) features.push("昵称加粗");
         if (benefits.underline) features.push("昵称下划线");
-        console.log("benefits:", benefits);
-
         if (benefits.checkinCard) {
             features.push(`免签卡(年付): ${benefits.checkinCard} 张`);
         }
@@ -336,17 +334,18 @@ const displayPrice = (tier) =>
 
 const COLOR_EFFECT = "plain";
 
-const previewText = ref(userStore.userNickname || "drda");
-const nicknameColor = ref("#f03e3e");
-const isBold = ref(true);
+const previewText = ref(userStore.userInfo.userNickname ? userStore.userInfo.userNickname + "(" + userStore.userInfo.userName + ")" : userStore.userInfo.userName);
+const nicknameColor = ref("#000000");
+const isBold = ref(false);
 const hasUnderline = ref(false);
-const previewEffect = ref("rainbow");
+const previewEffect = ref("");
 
 // 从configJson更新预览配置
 const updatePreviewFromConfig = (configJson) => {
     if (!configJson) return;
     try {
         const config = JSON.parse(configJson);
+
         if (config.bold !== undefined) isBold.value = config.bold;
         if (config.underline !== undefined) hasUnderline.value = config.underline;
         if (config.color) {
@@ -358,7 +357,7 @@ const updatePreviewFromConfig = (configJson) => {
                     previewEffect.value = config.color;
                 } else {
                     previewEffect.value = COLOR_EFFECT;
-                    nicknameColor.value = "#f03e3e";
+                    nicknameColor.value = "#000000";
                 }
             } else {
                 // 如果是颜色值
@@ -402,11 +401,11 @@ const applyEffect = (effectKey) => {
 };
 
 const resetPreview = () => {
-    previewText.value = userStore.userNickname || "drda";
-    nicknameColor.value = "#f03e3e";
-    isBold.value = true;
+    previewText.value = userStore.userInfo.userNickname ? userStore.userInfo.userNickname + "(" + userStore.userInfo.userName + ")" : userStore.userInfo.userName
+    nicknameColor.value = "#000000";
+    isBold.value = false;
     hasUnderline.value = false;
-    previewEffect.value = "rainbow";
+    previewEffect.value = "";
 
     // 如果有当前用户的配置，恢复到原始配置
     if (currentUserVipInfo.value?.configJson) {
@@ -424,17 +423,27 @@ const saveConfig = async () => {
                     ? nicknameColor.value
                     : previewEffect.value,
         };
+        // VIP1配置
+        if (vipLevel.value === "VIP1") {
+            config.checkinCard = 20; //
+            delete config.color;
+        }
+        // VIP2 VIP3配置
+        if (vipLevel.value !== "VIP1" && vipLevel.value !== "VIP4") {
+            config.checkinCard = vipLevel.value == "VIP2" ? 50 : 120;
+        }
+
 
         // 如果当前用户有VIP4，可能还有metal和jointVip等配置
         if (currentUserVipInfo.value?.configJson) {
             try {
                 const existingConfig = JSON.parse(currentUserVipInfo.value.configJson);
                 if (existingConfig.metal !== undefined)
-                    config.metal = existingConfig.metal;
+                    config.metal = existingConfig.metal; //DIY动态勋章
                 if (existingConfig.jointVip !== undefined)
-                    config.jointVip = existingConfig.jointVip;
+                    config.jointVip = existingConfig.jointVip; //联合会员
                 if (existingConfig.autoCheckin !== undefined)
-                    config.autoCheckin = existingConfig.autoCheckin;
+                    config.autoCheckin = existingConfig.autoCheckin;//自动签到
             } catch (e) {
                 console.error("解析现有配置失败:", e);
             }
@@ -495,9 +504,7 @@ const purchaseTier = async (tier) => {
                 if (res.code === 0) {
                     ElMessage.success(`已成功开通 ${tier.name}${durationType}`);
                     // 刷新VIP信息
-                    if (userStore.userInfo?.userOId) {
-                        await getVipUserInfo(userStore.userInfo.userOId);
-                    }
+                    await getVipUserInfo(userStore.userInfo.oId);
                 } else {
                     ElMessage.error(res.message || "开通失败");
                 }
@@ -582,7 +589,7 @@ const getVipUserInfo = async (userId) => {
                 vipLevel.value = level;
 
                 vipProfile.value = {
-                    plan: `${type === "monthly" ? "月费" : "年费"} ${tierName} ${level}`,
+                    plan: `${type === "monthly" ? "月费" : "年费"} ${tierName}`,
                     expireAt: res.data.expiresAt
                         ? new Date(res.data.expiresAt).toLocaleString("zh-CN", {
                             year: "numeric",
@@ -597,7 +604,7 @@ const getVipUserInfo = async (userId) => {
                 // 更新预览配置
                 if (res.data.configJson) {
                     updatePreviewFromConfig(res.data.configJson);
-                    previewText.value = userStore.userNickname || "drda";
+                    previewText.value = userStore.userInfo.userNickname ? userStore.userInfo.userNickname + "(" + userStore.userInfo.userName + ")" : userStore.userInfo.userName
                 }
             } else {
                 // 用户没有VIP
