@@ -51,6 +51,7 @@ import { ref } from "vue";
 import { ArrowRight } from "@element-plus/icons-vue";
 
 const games = ref([
+
   {
     name: "《进化-Evolve》",
     url: "https://fishpi.cn/games/evolve/",
@@ -78,6 +79,13 @@ const games = ref([
     description:
       "游戏规则十分简单，游戏开始会随机生成一个迷宫，但每次只显示你所在当下位置周围 3 × 3 的迷宫，你只需要凭直觉找到出口即可。通过游戏右上角 Login 按钮使用摸鱼派账号登录后，每次通关将会奖励关卡数 × 10的积分。",
     logo: "https://file.fishpi.cn/2023/05/icon-4d115aa0.png",
+  },
+  {
+    name: "WJU 谜题",
+    url: "https://wju.adventext.fun/",
+    description:
+      "游戏开始会随机生成 WJU 三个字母组成的字符串，你需要通过 5 种字符串的操作，来生成最终的目标字符串。使用摸鱼派账号登录后，每次通关将会随机奖励 128 ~ 1024 的积分。连续通关奖励可以叠加！",
+    logo: "https://wju.adventext.fun/images/logo.png",
   },
   {
     name: "《Fight》",
