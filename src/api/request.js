@@ -18,14 +18,14 @@ class Request {
             // 文件上传请求，将apiKey添加到URL参数中
             config.url = `${config.url}${config.url.includes("?") ? "&" : "?"
               }apiKey=${apiKey}`;
-          } else if (config.method === "get"||config.method === "put") {
+          } else if (config.method === "get" || config.method === "put") {
             // GET 请求将 apiKey 添加到 URL 参数中
             config.params = {
               ...config.params,
               apiKey: apiKey,
             };
 
-          } 
+          }
           else {
             // 其他 POST 请求将 apiKey 添加到请求体中
             config.data = {
@@ -51,6 +51,15 @@ class Request {
         if (res.code === -1) {
           if (res.msg === "Invalid API Key" || res.msg.includes("API Key")) {
             this.clearApiKey();
+            // 显示确认提示
+            alert(`API Key 无效或已过期，将返回登录页重新登录`);
+
+            setTimeout(() => {
+              utools.dbStorage.removeItem("fishpi_user_info");
+              // 跳转到登录页
+              window.location.hash = "#/login";
+            }, 1000);
+
             // 触发登录失效事件
             window.dispatchEvent(new CustomEvent("fishpi:login-invalid"));
           }
