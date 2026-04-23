@@ -17,6 +17,7 @@
     "lottie-web": "^5.13.0",
     "pinia": "^3.0.2",
     "vue": "^3.4.15",
+    "vue-easy-lightbox": "^1.19.0",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {

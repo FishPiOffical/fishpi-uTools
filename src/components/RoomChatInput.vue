@@ -41,7 +41,7 @@
     <div class="input-wrapper">
       <div ref="textareaRef" class="input-content" contenteditable="true" @keydown="handleKeyDown" @input="handleInput"
         @focus="showEmojiPicker = false" @click="
-          handleImageClick;
+          handleImageClick($event);
         closeEmojiSearch();
         "></div>
       <!-- @提及用户列表 -->
@@ -85,6 +85,12 @@
     <SignatureDialog :visible="showSignatureDialog" :default-signature="signature" @close="showSignatureDialog = false"
       @save="handleSignatureSave" />
     <BellDialog :visible="showBellDialog" :locatbell="bells" @close="showBellDialog = false" @save="handleBellSave" />
+    <vue-easy-lightbox
+      :visible="previewVisible"
+      :imgs="previewImages"
+      :index="previewIndex"
+      @hide="previewVisible = false"
+    />
   </div>
 </template>
 
@@ -107,7 +113,7 @@
   import { baiduImageAPI } from "../api/baidu";
   import { ElMessage } from "element-plus";
   import { useUserStore } from "../stores/user";
-  import { createImagePreviewWindow } from "../utils/imagePreview";
+  import VueEasyLightbox from "vue-easy-lightbox";
 
   const props = defineProps({
     onlineUsers: {
@@ -169,8 +175,10 @@
     "祝福",
   ];
 
-  // 图片预览窗口
-  let previewWindow = null;
+  // 输入框图片预览（旧方案）
+  const previewVisible = ref(false);
+  const previewImages = ref([]);
+  const previewIndex = ref(0);
 
   // 添加粘贴事件监听
   onMounted(() => {
@@ -720,7 +728,7 @@
     }
   };
   // 处理图片点击
-  const handleImageClick = async (e) => {
+  const handleImageClick = (e) => {
     if (e.target.tagName === "IMG") {
       const imgSrc = e.target.src;
       const allImages = Array.from(
@@ -728,34 +736,9 @@
       ).map((img) => ({
         src: img.src,
       }));
-      const currentIndex = allImages.findIndex((img) => img.src === imgSrc);
-
-      // 关闭之前的预览窗口
-      if (previewWindow && !previewWindow.isDestroyed()) {
-        previewWindow.close();
-      }
-
-      try {
-        // 使用新的工具函数创建预览窗口
-        previewWindow = await createImagePreviewWindow(allImages, currentIndex);
-
-        // 窗口关闭时重置变量
-        const checkWindowClosed = () => {
-          if (
-            previewWindow &&
-            previewWindow.isDestroyed &&
-            previewWindow.isDestroyed()
-          ) {
-            previewWindow = null;
-          } else {
-            setTimeout(checkWindowClosed, 1000);
-          }
-        };
-        checkWindowClosed();
-      } catch (error) {
-        console.error("创建图片预览窗口失败:", error);
-        ElMessage.error("图片预览失败");
-      }
+      previewIndex.value = allImages.findIndex((img) => img.src === imgSrc);
+      previewImages.value = allImages;
+      previewVisible.value = true;
     }
   };
 

@@ -283,6 +283,14 @@
 
     <MsgContextMenu :visible="showMsgContextMenu" :x="msgContextMenuX" :y="msgContextMenuY" :items="msgContextMenuItems"
       @action="handleMsgContextMenuAction" />
+
+    <!-- 图片预览组件（旧方案：站内 Lightbox） -->
+    <vue-easy-lightbox
+      :visible="previewVisible"
+      :imgs="previewImages"
+      :index="previewIndex"
+      @hide="previewVisible = false"
+    />
   </div>
 </template>
 
@@ -298,7 +306,7 @@ import UserContextMenu from "./UserContextMenu.vue";
 import MsgContextMenu from "./MsgContextMenu.vue";
 import { ElMessage } from "element-plus";
 import RedPacketModal from "./RedPacketModal.vue";
-import { createImagePreviewWindow } from "../utils/imagePreview";
+import VueEasyLightbox from "vue-easy-lightbox";
 import EmojiReactionBar from "./EmojiReactionBar.vue";
 import EmojiReactionPicker from "./EmojiReactionPicker.vue";
 
@@ -361,6 +369,11 @@ const handleSelectReaction = (oId, value) => {
   // 选完即关闭
   openReactionPickerOId.value = null;
 };
+
+// 图片预览（旧方案）
+const previewVisible = ref(false);
+const previewImages = ref([]);
+const previewIndex = ref(0);
 
 const loadShowSelfNicknameSetting = () => {
   const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
@@ -1092,11 +1105,8 @@ const isLuckyKing = (receiver) => {
   );
 };
 
-// 图片预览相关
-let previewWindow = null;
-
 // 处理图片点击
-const handleImageClick = async (e) => {
+const handleImageClick = (e) => {
   if (e.target.tagName === "IMG") {
     const imgSrc = e.target.src;
     const allImages = Array.from(
@@ -1104,34 +1114,9 @@ const handleImageClick = async (e) => {
     ).map((img) => ({
       src: img.src,
     }));
-    const currentIndex = allImages.findIndex((img) => img.src === imgSrc);
-
-    // 关闭之前的预览窗口
-    if (previewWindow && !previewWindow.isDestroyed()) {
-      previewWindow.close();
-    }
-
-    try {
-      // 使用新的工具函数创建预览窗口
-      previewWindow = await createImagePreviewWindow(allImages, currentIndex);
-
-      // 窗口关闭时重置变量
-      const checkWindowClosed = () => {
-        if (
-          previewWindow &&
-          previewWindow.isDestroyed &&
-          previewWindow.isDestroyed()
-        ) {
-          previewWindow = null;
-        } else {
-          setTimeout(checkWindowClosed, 1000);
-        }
-      };
-      checkWindowClosed();
-    } catch (error) {
-      console.error("创建图片预览窗口失败:", error);
-      ElMessage.error("图片预览失败");
-    }
+    previewIndex.value = allImages.findIndex((img) => img.src === imgSrc);
+    previewImages.value = allImages;
+    previewVisible.value = true;
   }
 };
 
