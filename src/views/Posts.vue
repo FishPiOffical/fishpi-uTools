@@ -133,6 +133,7 @@ const articleTypes = ref([
   { label: "点赞", value: "good" },
   { label: "热门", value: "hot" },
   { label: "最近回复", value: "reply" },
+  { label: "最新长篇", value: "long" },
 ]);
 const currentType = ref("recent"); // 默认显示最近文章
 
@@ -151,6 +152,9 @@ const getArticles = async (page = 1) => {
         break;
       case "good":
         response = await articleApi.getGoodArticles(page, pageSize);
+        break;
+      case "long":
+        response = await articleApi.getRecentLongArticles(page, pageSize);
         break;
       case "hot":
         response = await articleApi.getHotArticles(page, pageSize);

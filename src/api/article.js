@@ -30,6 +30,11 @@ export const articleApi = {
     return request.get("/api/articles/recent/reply", { p, size });
   },
 
+  // 获取最新长篇帖子
+  getRecentLongArticles(p = 1, size = 20) {
+    return request.get("/api/articles/recent/long", { p, size });
+  },
+
   // 获取用户文章
   getUserArticles(username, p = 1, size = 20) {
     return request.get(`/api/user/${username}/articles`, { p, size });
