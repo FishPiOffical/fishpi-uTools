@@ -176,8 +176,77 @@
                     </button>
                   </div>
                 </div>
-                <div class="message-text" v-else v-html="item.content"
-                  @contextmenu.prevent="onMsgContextMenu($event, item)" @load="handleImageLoad"></div>
+                <!-- 自己消息：气泡在右，按钮放气泡左侧 -->
+                <el-popover
+                  v-if="item.oId && item.userName === userStore.userInfo?.userName"
+                  placement="bottom-end"
+                  trigger="manual"
+                  :visible="openReactionPickerOId === item.oId"
+                  @update:visible="(v) => (openReactionPickerOId = v ? item.oId : null)"
+                  :width="340"
+                  popper-class="emoji-reaction-popper"
+                >
+                  <template #reference>
+                    <button
+                      type="button"
+                      class="reaction-fab reaction-fab--self"
+                      title="贴表情"
+                      @click.stop="toggleReactionPicker(item.oId)"
+                    >
+                      🙂
+                    </button>
+                  </template>
+                  <EmojiReactionPicker
+                    @select="(value) => handleSelectReaction(item.oId, value)"
+                  />
+                </el-popover>
+                <div class="message-text">
+                  <div
+                    class="message-text-content"
+                    v-if="!isMusicMessage(item.content) && !isWeatherMessage(item.content) && !isRedPacketMessage(item.content)"
+                    v-html="item.content"
+                    @contextmenu.prevent="onMsgContextMenu($event, item)"
+                    @load="handleImageLoad"
+                  ></div>
+                  <template v-else>
+                    <!-- 原有特殊消息分支保持不变（上方 v-if/v-else-if 已处理），这里不会走到 -->
+                  </template>
+
+                  <div
+                    class="message-reactions"
+                    v-if="item.oId && Array.isArray(item.reactionSummary) && item.reactionSummary.length > 0"
+                  >
+                    <EmojiReactionBar
+                      :summary="item.reactionSummary"
+                      picker-trigger="none"
+                      @react="(value) => emit('react-chat', { oId: item.oId, value })"
+                    />
+                  </div>
+                </div>
+                <!-- 他人消息：气泡在左，按钮放气泡右侧 -->
+                <el-popover
+                  v-if="item.oId && item.userName !== userStore.userInfo?.userName"
+                  placement="bottom-end"
+                  trigger="manual"
+                  :visible="openReactionPickerOId === item.oId"
+                  @update:visible="(v) => (openReactionPickerOId = v ? item.oId : null)"
+                  :width="340"
+                  popper-class="emoji-reaction-popper"
+                >
+                  <template #reference>
+                    <button
+                      type="button"
+                      class="reaction-fab reaction-fab--other"
+                      title="贴表情"
+                      @click.stop="toggleReactionPicker(item.oId)"
+                    >
+                      🙂
+                    </button>
+                  </template>
+                  <EmojiReactionPicker
+                    @select="(value) => handleSelectReaction(item.oId, value)"
+                  />
+                </el-popover>
                 <!-- +1按钮移动到气泡右侧 -->
                 <button v-if="item.isGrouped" class="plus-one-btn" @click="sendSameMessage(item)">
                   +1
@@ -230,6 +299,8 @@ import MsgContextMenu from "./MsgContextMenu.vue";
 import { ElMessage } from "element-plus";
 import RedPacketModal from "./RedPacketModal.vue";
 import { createImagePreviewWindow } from "../utils/imagePreview";
+import EmojiReactionBar from "./EmojiReactionBar.vue";
+import EmojiReactionPicker from "./EmojiReactionPicker.vue";
 
 const props = defineProps({
   messages: {
@@ -262,6 +333,7 @@ const emit = defineEmits([
   "add-emoji",
   "send-same-message",
   "update-messages",
+  "react-chat",
 ]);
 
 const userStore = useUserStore();
@@ -276,6 +348,19 @@ const router = useRouter();
 const isPageVisible = ref(true);
 const bells = ref([]);
 const showSelfNicknameInChat = ref(true);
+
+// 当前打开的“贴表情”面板（同一时间只开一个）
+const openReactionPickerOId = ref(null);
+
+const toggleReactionPicker = (oId) => {
+  openReactionPickerOId.value = openReactionPickerOId.value === oId ? null : oId;
+};
+
+const handleSelectReaction = (oId, value) => {
+  emit("react-chat", { oId, value });
+  // 选完即关闭
+  openReactionPickerOId.value = null;
+};
 
 const loadShowSelfNicknameSetting = () => {
   const savedSettings = utools.dbStorage.getItem("fishpi_settings") || {};
@@ -1341,7 +1426,7 @@ const filterBlacklistMessages = () => {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 100%;
+  /* width: 100%; */
 }
 
 .message-text {
@@ -1356,6 +1441,54 @@ const filterBlacklistMessages = () => {
   position: relative;
   width: fit-content;
   max-width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-text-content {
+  width: 100%;
+}
+
+.message-reactions {
+  margin-top: 6px;
+}
+
+.reaction-fab {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  color: var(--sub-text-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  margin-left: 8px;
+  transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  align-self: flex-end;
+}
+
+/* 移入气泡区域才显示（按钮在气泡外侧） */
+.message-content:hover .reaction-fab {
+  opacity: 1;
+}
+
+.reaction-fab:hover {
+  background: var(--hover-bg);
+  color: var(--primary-color);
+}
+
+.reaction-fab--self {
+  /* 自己消息按钮在气泡左侧：用右边距替代左边距 */
+  margin-left: 0;
+  margin-right: 8px;
+}
+
+.reaction-fab--other {
+  margin-left: 8px;
+  margin-right: 0;
 }
 
 .message-row-self .message-text {

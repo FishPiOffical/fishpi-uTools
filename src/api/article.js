@@ -82,4 +82,22 @@ export const articleApi = {
   upvoteArticle(articleId) {
     return request.post("/vote/up/article", { dataId: articleId });
   },
+
+  // 帖子：添加/切换/取消 emoji reaction
+  reactToArticle(articleId, value) {
+    return request.post("/article/reaction", {
+      articleId,
+      groupType: "emoji",
+      value,
+    });
+  },
+
+  // 评论：添加/切换/取消 emoji reaction
+  reactToComment(commentId, value) {
+    return request.post("/comment/reaction", {
+      commentId,
+      groupType: "emoji",
+      value,
+    });
+  },
 };

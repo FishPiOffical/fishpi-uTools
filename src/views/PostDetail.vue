@@ -33,6 +33,13 @@
 
       <div class="post-detail-content" v-html="article.articleContent || article.articlePreviewContent"
         @click="handleContentClick"></div>
+
+      <div class="article-reactions">
+        <EmojiReactionBar
+          :summary="article.reactionSummary"
+          @react="handleReactArticle"
+        />
+      </div>
       <!-- 打赏区 articleRewardContent -->
       <div class="post-reward-content" v-if="article.rewarded" v-html="article.articleRewardContent"
         @click="handleRewardContentClick">
@@ -109,6 +116,17 @@
 
               <div class="comment-content" v-html="comment.commentContent"></div>
 
+              <div
+                class="comment-reactions"
+                v-if="Array.isArray(comment.reactionSummary) && comment.reactionSummary.length > 0"
+              >
+                <EmojiReactionBar
+                  :summary="comment.reactionSummary"
+                  picker-trigger="none"
+                  @react="(value) => handleReactComment(comment, value)"
+                />
+              </div>
+
               <div class="comment-actions">
                 <button class="action-btn" :class="{ active: comment.commentVote === 1 }"
                   @click="handleCommentUpvote(comment)">
@@ -123,6 +141,27 @@
                 <button class="action-btn" @click="handleReply(comment)">
                   <i class="far fa-comment"></i>
                 </button>
+                <el-popover
+                  v-if="comment.oId"
+                  placement="bottom-end"
+                  trigger="manual"
+                  :visible="openCommentReactionPickerId === comment.oId"
+                  @update:visible="(v) => (openCommentReactionPickerId = v ? comment.oId : null)"
+                  :width="340"
+                  popper-class="emoji-reaction-popper"
+                >
+                  <template #reference>
+                    <button
+                      type="button"
+                      class="reaction-fab"
+                      title="贴表情"
+                      @click.stop="toggleCommentReactionPicker(comment.oId)"
+                    >
+                      🙂
+                    </button>
+                  </template>
+                  <EmojiReactionPicker @select="(value) => handleSelectCommentReaction(comment, value)" />
+                </el-popover>
               </div>
 
               <!-- 回复列表 -->
@@ -152,6 +191,17 @@
 
                   <div class="reply-content" v-html="reply.commentContent"></div>
 
+                  <div
+                    class="reply-reactions"
+                    v-if="Array.isArray(reply.reactionSummary) && reply.reactionSummary.length > 0"
+                  >
+                    <EmojiReactionBar
+                      :summary="reply.reactionSummary"
+                      picker-trigger="none"
+                      @react="(value) => handleReactComment(reply, value)"
+                    />
+                  </div>
+
                   <div class="reply-actions">
                     <button class="action-btn" :class="{ active: reply.commentVote === 1 }"
                       @click="handleCommentUpvote(reply)">
@@ -168,6 +218,27 @@
                     <button class="action-btn" @click="handleReply(reply)">
                       <i class="far fa-comment"></i>
                     </button>
+                    <el-popover
+                      v-if="reply.oId"
+                      placement="bottom-end"
+                      trigger="manual"
+                      :visible="openCommentReactionPickerId === reply.oId"
+                      @update:visible="(v) => (openCommentReactionPickerId = v ? reply.oId : null)"
+                      :width="340"
+                      popper-class="emoji-reaction-popper"
+                    >
+                      <template #reference>
+                        <button
+                          type="button"
+                          class="reaction-fab"
+                          title="贴表情"
+                          @click.stop="toggleCommentReactionPicker(reply.oId)"
+                        >
+                          🙂
+                        </button>
+                      </template>
+                      <EmojiReactionPicker @select="(value) => handleSelectCommentReaction(reply, value)" />
+                    </el-popover>
                   </div>
                 </div>
               </div>
@@ -243,7 +314,10 @@ import { onBeforeRouteLeave } from "vue-router";
 import { createImagePreviewWindow } from "../utils/imagePreview";
 import { userApi } from "../api";
 import EmojiPicker from "../components/EmojiPicker.vue";
+import EmojiReactionBar from "../components/EmojiReactionBar.vue";
+import EmojiReactionPicker from "../components/EmojiReactionPicker.vue";
 import { useUserStore } from "../stores/user";
+import wsManager from "../utils/websocket";
 
 const userStore = useUserStore();
 // 防抖函数
@@ -286,9 +360,23 @@ const commentInput = ref(null);
 // 图片预览相关
 let previewWindow = null;
 
+// 文章页频道（/article-channel）连接 ID
+const articleChannelConnectionId = ref("");
+
 // 添加缺失的变量
 const showEmojiPicker = ref(false);
 const emojiMap = reactive({});
+
+// 评论区：当前打开的“贴表情”面板（同一时间只开一个）
+const openCommentReactionPickerId = ref(null);
+const toggleCommentReactionPicker = (commentId) => {
+  openCommentReactionPickerId.value =
+    openCommentReactionPickerId.value === commentId ? null : commentId;
+};
+const handleSelectCommentReaction = async (comment, value) => {
+  await handleReactComment(comment, value);
+  openCommentReactionPickerId.value = null;
+};
 
 const setcommentRef = (el) => {
   if (el) {
@@ -325,6 +413,8 @@ const fetchArticleDetail = async () => {
     const response = await articleApi.getArticleDetail(articleId);
     if (response.code === 0 && response.data && response.data.article) {
       article.value = response.data.article;
+      // 连接文章页频道，接收 emoji reaction 增量
+      connectArticleChannel(article.value.oId);
       // 文章加载完成后立即获取评论
       await fetchComments();
     } else {
@@ -337,6 +427,94 @@ const fetchArticleDetail = async () => {
     article.value = null;
   } finally {
     loading.value = false;
+  }
+};
+
+const connectArticleChannel = async (articleId) => {
+  if (!articleId) return;
+  const connectionId = `article-${articleId}`;
+  articleChannelConnectionId.value = connectionId;
+  try {
+    await wsManager.connect("wss://fishpi.cn/article-channel", {
+      connectionId,
+      params: { articleId },
+    });
+    wsManager.on("message", handleArticleChannelMessage, connectionId);
+  } catch (e) {
+    // 静默失败：不影响页面正常使用
+    console.warn("article-channel 连接失败：", e);
+  }
+};
+
+const handleArticleChannelMessage = (data) => {
+  if (!data || !data.type) return;
+
+  if (data.type === "articleReaction") {
+    if (article.value && data.articleId === article.value.oId) {
+      article.value.reactionSummary =
+        data.summary || article.value.reactionSummary || [];
+      if (data.actorUserId === userStore.userInfo?.userId) {
+        article.value.currentUserReaction = data.actorReaction || "";
+      }
+    }
+    return;
+  }
+
+  if (data.type === "commentReaction") {
+    const commentId = data.commentId;
+    if (!commentId) return;
+
+    for (const c of comments.value || []) {
+      if (c.oId === commentId) {
+        c.reactionSummary = data.summary || c.reactionSummary || [];
+        if (data.actorUserId === userStore.userInfo?.userId) {
+          c.currentUserReaction = data.actorReaction || "";
+        }
+        return;
+      }
+      if (Array.isArray(c.replies)) {
+        const r = c.replies.find((x) => x.oId === commentId);
+        if (r) {
+          r.reactionSummary = data.summary || r.reactionSummary || [];
+          if (data.actorUserId === userStore.userInfo?.userId) {
+            r.currentUserReaction = data.actorReaction || "";
+          }
+          return;
+        }
+      }
+    }
+  }
+};
+
+onUnmounted(() => {
+  if (articleChannelConnectionId.value) {
+    wsManager.close(articleChannelConnectionId.value);
+  }
+});
+
+const handleReactArticle = async (value) => {
+  if (!article.value?.oId || !value) return;
+  try {
+    const res = await articleApi.reactToArticle(article.value.oId, value);
+    if (res.code === 0 && res.data) {
+      article.value.reactionSummary = res.data.summary || [];
+      article.value.currentUserReaction = res.data.currentUserReaction || "";
+    }
+  } catch (e) {
+    ElMessage.error(e?.message || "贴 emoji 失败");
+  }
+};
+
+const handleReactComment = async (comment, value) => {
+  if (!comment?.oId || !value) return;
+  try {
+    const res = await articleApi.reactToComment(comment.oId, value);
+    if (res.code === 0 && res.data) {
+      comment.reactionSummary = res.data.summary || [];
+      comment.currentUserReaction = res.data.currentUserReaction || "";
+    }
+  } catch (e) {
+    ElMessage.error(e?.message || "贴 emoji 失败");
   }
 };
 
@@ -1623,6 +1801,15 @@ watch(
   display: flex;
   gap: 12px;
   margin-left: 48px;
+  align-items: center;
+}
+
+.comment-reactions {
+  margin: 0 0 12px 48px;
+}
+
+.reply-reactions {
+  margin: 0 0 8px 36px;
 }
 
 .comment-actions .action-btn {
@@ -1729,6 +1916,33 @@ watch(
   display: flex;
   gap: 12px;
   margin-left: 36px;
+  align-items: center;
+}
+
+.reaction-fab {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  color: var(--sub-text-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  margin-left: 6px;
+  transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.comment-item:hover .reaction-fab,
+.reply-item:hover .reaction-fab {
+  opacity: 1;
+}
+
+.reaction-fab:hover {
+  background: var(--hover-bg);
+  color: var(--primary-color);
 }
 
 .reply-actions .action-btn {

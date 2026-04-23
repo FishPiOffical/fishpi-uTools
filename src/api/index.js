@@ -6,3 +6,4 @@ export { breezemoonApi } from "./breezemoon";
 export { notificationApi } from "./notification";
 export { stickApi } from "./stick";
 export { vipApi } from "./vip";
+export { emojiApi } from "./emoji";

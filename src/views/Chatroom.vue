@@ -7,6 +7,7 @@
       <MessageList :messages="messages" :is-loading-more="isLoadingMore" :has-more-messages="hasMoreMessages"
         :show-sidebar="showSidebar" @load-more="handleLoadMore" @at-user="handleAtUser" :vip-user-list="vipUserList"
         @send-same-message="handleSendSameMessage" @quote="handleQuote" @add-emoji="handleAddEmoji"
+        @react-chat="handleReactChatMessage"
         @update-messages="handleUpdateMessages" />
       <!-- 消息输入组件 -->
       <RoomChatInput ref="chatInputRef" :online-users="onlineUsers" @send-message="handleSendMessage"
@@ -33,9 +34,8 @@ import { chatApi } from "../api/chat";
 import wsManager from "../utils/websocket";
 import { useUserStore } from "../stores/user";
 import { useChatroomStore } from "../stores/chatroom";
-import { userApi } from "../api/user";
+import { emojiApi } from "../api/emoji";
 import { ElMessage } from "element-plus";
-import { ArrowLeft, ArrowRight } from "@element-plus/icons-vue";
 import { useVipStore } from "../stores/vip";
 
 const chatInputRef = ref(null);
@@ -148,6 +148,22 @@ const messageHandlers = {
         { ...data, isHistory: false, isSelf },
       ];
     }
+  },
+  chatReaction: (data) => {
+    // 增量更新某条消息的 reaction 汇总
+    const idx = messages.value.findIndex((m) => m.oId === data.oId);
+    if (idx === -1) return;
+    const old = messages.value[idx];
+    messages.value[idx] = {
+      ...old,
+      reactionSummary: data.summary || old.reactionSummary || [],
+      // 这里只能确认“actor”更新了哪个表情；对当前用户而言，服务端会在下一次拉取时给 currentUserReaction
+      // 为了交互即时性：如果是自己触发，直接使用 actorReaction
+      currentUserReaction:
+        data.actorUserId === userStore.userInfo?.userId
+          ? data.actorReaction || ""
+          : old.currentUserReaction || "",
+    };
   },
   barrager: (data) => {
     console.log("处理弹幕消息:", data);
@@ -476,6 +492,27 @@ const handleSendSameMessage = (content) => {
   handleSendMessage(content);
 };
 
+// 贴 emoji：聊天室消息 reaction
+const handleReactChatMessage = async ({ oId, value }) => {
+  if (!oId || !value) return;
+  try {
+    const res = await chatApi.reactToChatMessage(oId, value);
+    if (res.code === 0 && res.data) {
+      const idx = messages.value.findIndex((m) => m.oId === oId);
+      if (idx !== -1) {
+        const old = messages.value[idx];
+        messages.value[idx] = {
+          ...old,
+          reactionSummary: res.data.summary || old.reactionSummary || [],
+          currentUserReaction: res.data.currentUserReaction ?? old.currentUserReaction ?? "",
+        };
+      }
+    }
+  } catch (e) {
+    ElMessage.error(e?.message || "贴 emoji 失败");
+  }
+};
+
 // 处理话题点击
 const handleTopicClick = (formattedTopic) => {
   chatInputRef.value?.insertTopic(formattedTopic);
@@ -497,45 +534,16 @@ const handleAddEmoji = async (item) => {
     }
 
     const imgSrc = match[1];
-    // 获取当前表情包列表
-    const res = await userApi.getEmotionPack("emojis");
-
-    if (res.code !== 0) {
-      ElMessage.error("获取表情包列表失败");
+    const groupId = await emojiApi.getAllGroupId();
+    if (!groupId) {
+      ElMessage.error("未找到“全部”表情分组");
       return;
     }
-
-    // 解析表情包数据，处理空数据的情况
-    let urls = [];
-    try {
-      urls = res.data ? JSON.parse(res.data) : [];
-      // 确保urls是数组
-      if (!Array.isArray(urls)) {
-        urls = [];
-      }
-    } catch (e) {
-      console.warn("解析表情包数据失败，将使用空数组", e);
-      urls = [];
-    }
-
-    // 检查是否已存在相同的表情
-    if (urls.includes(imgSrc)) {
-      ElMessage.warning("该表情已存在");
-      return;
-    }
-
-    // 添加新的图片URL
-    urls.push(imgSrc);
-
-    // 同步到服务器
-    const syncRes = await userApi.syncEmotionPack(
-      "emojis",
-      JSON.stringify(urls)
-    );
-    if (syncRes.code === 0) {
+    const addRes = await emojiApi.addUrlEmoji(groupId, imgSrc, { sort: 0 });
+    if (addRes.code === 0) {
       ElMessage.success("添加表情成功");
     } else {
-      ElMessage.error("同步表情包失败");
+      ElMessage.error(addRes.msg || "添加表情失败");
     }
   } catch (error) {
     console.error("添加表情失败:", error);

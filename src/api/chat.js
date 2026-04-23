@@ -16,11 +16,6 @@ export const chatApi = {
     return request.get("/users/emotions");
   },
 
-  // 获取表情包
-  getEmotionPack(gameId) {
-    return request.post("/api/cloud/get", { gameId });
-  },
-
   // 发送消息
   sendMessage(content) {
     return request.post("/chat-room/send", {
@@ -32,6 +27,15 @@ export const chatApi = {
   // 撤回消息
   revokeMessage(oId) {
     return request.delete(`/chat-room/revoke/${oId}`);
+  },
+
+  // 聊天室：添加/切换/取消 emoji reaction
+  reactToChatMessage(oId, value) {
+    return request.post("/chat-room/reaction", {
+      oId,
+      groupType: "emoji",
+      value,
+    });
   },
 
   // 打开红包

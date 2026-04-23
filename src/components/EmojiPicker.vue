@@ -120,6 +120,7 @@
 <script setup>
 import { ref, onMounted, watch, computed } from "vue";
 import { userApi } from "../api/user";
+import { emojiApi } from "../api/emoji";
 import { baiduImageAPI } from "../api/baidu";
 import { ElMessage } from "element-plus";
 
@@ -142,6 +143,7 @@ const currentTab = ref("default");
 const defaultEmotions = ref([]);
 const emotionPacks = ref([]);
 const searchKeyword = ref("");
+const allGroupId = ref("");
 
 // 在线表情包搜索相关
 const onlineSearchKeyword = ref("");
@@ -187,13 +189,19 @@ const fetchDefaultEmotions = async () => {
 // 获取表情包列表
 const fetchEmotionPacks = async () => {
   try {
-    const res = await userApi.getEmotionPack("emojis");
+    allGroupId.value = await emojiApi.getAllGroupId();
+    if (!allGroupId.value) return;
+    const res = await emojiApi.getGroupEmojis(allGroupId.value);
     if (res.code === 0) {
-      const urls = JSON.parse(res.data);
-      emotionPacks.value = urls.map((url, index) => ({
-        id: index,
-        cover: url,
-      }));
+      const list = res.data || [];
+      const arr = Array.isArray(list) ? list : [];
+      emotionPacks.value = arr
+        .map((it, index) => {
+          const cover = it.url || it.cover || it.emojiURL || it.src || it.imageURL;
+          const id = it.emojiId || it.id || it.oId || it.emojiOId || index;
+          return cover ? { id, cover, raw: it } : null;
+        })
+        .filter(Boolean);
     }
   } catch (error) {
     console.error("获取表情包失败:", error);
@@ -232,15 +240,13 @@ const handleUpload = () => {
         if (uploadRes.code === 0 && uploadRes.data.succMap) {
           const newUrl = uploadRes.data.succMap[file.name];
           if (newUrl) {
-            const newPacks = [
-              ...emotionPacks.value,
-              { id: emotionPacks.value.length, cover: newUrl },
-            ];
-            await userApi.syncEmotionPack(
-              "emojis",
-              JSON.stringify(newPacks.map((pack) => pack.cover))
-            );
-            emotionPacks.value = newPacks;
+            const groupId = allGroupId.value || (await emojiApi.getAllGroupId());
+            if (!groupId) {
+              ElMessage.error("未找到“全部”表情分组");
+              return;
+            }
+            await emojiApi.addUrlEmoji(groupId, newUrl, { sort: 0 });
+            await fetchEmotionPacks();
           }
         }
       } catch (error) {
@@ -254,12 +260,10 @@ const handleUpload = () => {
 
 const handleDelete = async (pack) => {
   try {
-    const newPacks = emotionPacks.value.filter((p) => p.id !== pack.id);
-    await userApi.syncEmotionPack(
-      "emojis",
-      JSON.stringify(newPacks.map((p) => p.cover))
-    );
-    emotionPacks.value = newPacks;
+    const groupId = allGroupId.value || (await emojiApi.getAllGroupId());
+    if (!groupId) return;
+    await emojiApi.removeEmoji(groupId, pack.id);
+    await fetchEmotionPacks();
   } catch (error) {
     console.error("删除表情包失败:", error);
   }

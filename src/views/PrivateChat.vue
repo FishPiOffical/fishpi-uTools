@@ -163,6 +163,7 @@
   import { ref, onMounted, nextTick, onUnmounted, computed } from "vue";
   import { chatApi } from "../api/chat";
   import { userApi } from "../api/user";
+  import { emojiApi } from "../api/emoji";
   import { useUserStore } from "../stores/user";
   import { useChatroomStore } from "../stores/chatroom";
   import dayjs from "dayjs";
@@ -919,44 +920,16 @@
           }
 
           const imgSrc = match[1];
-          // 获取当前表情包列表
-          const res = await userApi.getEmotionPack("emojis");
-
-          if (res.code !== 0) {
-            ElMessage.error("获取表情包列表失败");
+          const groupId = await emojiApi.getAllGroupId();
+          if (!groupId) {
+            ElMessage.error("未找到“全部”表情分组");
             return;
           }
-
-          // 解析表情包数据，处理空数据的情况
-          let urls = [];
-          try {
-            urls = res.data ? JSON.parse(res.data) : [];
-            if (!Array.isArray(urls)) {
-              urls = [];
-            }
-          } catch (e) {
-            console.warn("解析表情包数据失败，将使用空数组", e);
-            urls = [];
-          }
-
-          // 检查是否已存在相同的表情
-          if (urls.includes(imgSrc)) {
-            ElMessage.warning("该表情已存在");
-            return;
-          }
-
-          // 添加新的图片URL
-          urls.push(imgSrc);
-
-          // 同步到服务器
-          const syncRes = await userApi.syncEmotionPack(
-            "emojis",
-            JSON.stringify(urls)
-          );
-          if (syncRes.code === 0) {
+          const addRes = await emojiApi.addUrlEmoji(groupId, imgSrc, { sort: 0 });
+          if (addRes.code === 0) {
             ElMessage.success("添加表情成功");
           } else {
-            ElMessage.error("同步表情包失败");
+            ElMessage.error(addRes.msg || "添加表情失败");
           }
         } catch (error) {
           console.error("添加表情失败:", error);
